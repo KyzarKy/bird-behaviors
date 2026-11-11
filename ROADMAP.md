@@ -1,6 +1,6 @@
 # Roadmap
 
-Built so far: 17 species across 8 orders, 2 habitats, triggerable behaviors with slow motion and close-up, and the class hierarchy explorer.
+Built so far: 17 species across 8 orders, 2 habitats, triggerable behaviors with slow motion and close-up, the class hierarchy explorer, and an interface on `@kyzarky/ui`.
 
 ## Deferred features
 
@@ -30,3 +30,6 @@ A silhouette performs behaviors and you name the species from movement alone. Ne
 - **Sound.** Real recordings in place of the text mnemonics.
 - **Tide and time of day** on the beach habitat, changing which behaviors are available.
 - **Wind.** A wind vector in `World` that `flyTo` and `hoverFor` read, so gulls and kingfishers can kite into it.
+- **Design system.** Move the navigation row and tag from `src/ui/bits.tsx` into `@kyzarky/ui` once a second app needs them.
+- **Browser tests.** One Playwright run on a phone-sized screen with an axe accessibility check, as in Fluent Prior.
+- **A theme switch,** and a night scene to go with the dark theme.

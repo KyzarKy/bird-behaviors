@@ -1,105 +1,50 @@
 # Bird Behaviors
 
-A web app for learning to identify birds by what they do. Pick a species, see it in a simplified version of its habitat, and trigger the behaviors it shows in the field: how it flies, how it feeds, how it moves on the ground.
+Learn to identify birds by what they do. Pick a species, watch it in its habitat, and trigger the behaviors you would see in the field.
 
-The 17 species are ones you can see from a backyard in Gardiner, Washington or down at Gardiner Beach on Discovery Bay, plus a chicken.
+**[Open the live app](https://kyzarky.github.io/bird-behaviors/)** · [The chicken in the class explorer](https://kyzarky.github.io/bird-behaviors/#/class/gallus-gallus-domesticus)
+
+![A chicken scratching, a hummingbird feeding at a flower, and a kingfisher hovering over the bay](docs/hero.gif)
+
+## Why it exists
+
+An interviewer asked me what I would consider when designing a chicken in an object-oriented, class-based way. I kept thinking about it afterward, and this is the longer answer: sixteen birds I can see from my yard in Gardiner, Washington, or down at the beach, plus the chicken, as a TypeScript class hierarchy that follows real taxonomy.
+
+```
+Bird ─ Galliformes ─ Phasianidae ─ Gallus ─ Chicken
+```
+
+Each class says only how it differs from its parent. The app's second tab reads the hierarchy back out of the running classes, so you can see where every behavior and every number comes from.
+
+## Read more
+
+| Topic | |
+| --- | --- |
+| [The chicken question](docs/the-chicken-question.md) | What belongs on `Chicken`, what belongs above it, and where inheritance stops helping |
+| [Behaviors](docs/behaviors.md) | How a behavior is written, and the three ways a subclass changes one |
+| [The flight model](docs/flight-model.md) | Twelve numbers, one flight routine, seventeen different fliers |
+| [Rendering](docs/rendering.md) | Drawing any bird from proportions and a pose, with no graphics library |
+| [Design system](docs/design-system.md) | How the interface uses [`@kyzarky/ui`](https://github.com/KyzarKy/design-system) |
+| [Roadmap](ROADMAP.md) | What is next |
+
+## Run it
 
 ```bash
 npm install
 npm run dev
 ```
 
-```bash
-npm test
-```
+`npm run verify` runs the typecheck, the tests (every behavior of every species, run headless to completion), and a production build.
 
-## The class hierarchy
+**Stack:** TypeScript (strict), React 19, Vite, Tailwind CSS 4, `@kyzarky/ui`, Vitest, and the browser's 2D canvas. GitHub Actions verifies each push and publishes to GitHub Pages.
 
-Every bird is an instance of a species class that inherits through its real taxonomy, five levels deep:
+## How this was built
 
-```
-Bird (Aves)
-└─ Galliformes            scratch(), dustBathe(), flush()
-   ├─ Phasianidae
-   │  └─ Gallus           roost()
-   │     └─ Chicken       overrides flush()
-   └─ Odontophoridae
-      └─ Callipepla       sentinel()
-         └─ CaliforniaQuail
-```
+I wanted to see whether Claude Fable 5.2 could build a project like this from a single prompt. I was the architect of the object-oriented schema: inheritance that follows taxonomy from `Bird` down to species, behaviors defined at the level where they arise, and flight as one shared method driven by per-class parameters. Claude wrote the first working version from that specification in one pass, which is the first commit. The purpose of the project is to show how I think about concepts like inheritance, so the hierarchy is the part to read.
 
-The code is in [src/birds](src/birds):
+## Edges
 
-| File | What it holds |
-| --- | --- |
-| [core/Bird.ts](src/birds/core/Bird.ts) | The abstract base class: the flight routine, ground movement, pecking, perching, and the four behaviors every bird has. |
-| [core/traits.ts](src/birds/core/traits.ts) | The types: `FlightProfile`, `Ecology`, `Look`, `BehaviorTable`. |
-| [core/reflect.ts](src/birds/core/reflect.ts) | Runtime introspection of the hierarchy. |
-| [core/World.ts](src/birds/core/World.ts) | The two habitats and their perches, trunks, water and particles. |
-| [taxonomy/](src/birds/taxonomy) | One file per order, each containing its families, genera and species. |
-
-### Behaviors live at their zoological level
-
-A behavior is a public generator method on the class where the behavior actually arises. `scratch()` is on `Galliformes`, so the chicken and the quail both have it and the hummingbird does not. `sally()` is on `Tyrannidae`. `drum()` is on `Picidae`.
-
-Subclasses change inherited behavior in three ways:
-
-- **Override the method.** `Chicken.flush()` replaces the galliform burst-and-glide with a wing-assisted run. `Colaptes.forage()` sends the flicker to the ground for ants, though it still inherits `hitchUp()` and `drum()` from `Picidae`.
-- **Override a knob the method reads.** `Tyrannidae.sally()` reads `sallyRange` and `returnChance`. `Contopus` sets them so the Olive-sided Flycatcher makes long sallies and returns to the same treetop.
-- **Override a hook the base class calls.** `Ardeidae.adjustFlightPose()` tucks the neck into an S on every airborne frame.
-
-Behaviors are written as generators so a sequence reads top to bottom:
-
-```ts
-*wormHunt(): Script {
-  yield* this.toGround(10);
-  yield* this.moveOnGround(...);          // run a few steps
-  yield* this.poseTo({ pitch: 0.55 }, 0.08); // stop, stand tall
-  yield* this.poseTo({ head: -0.6 }, 0.15);  // cock the head
-  yield* this.peck(1, 1.1);               // stab
-}
-```
-
-Each `yield` is one animation frame. Public generators are behaviors a user can trigger; protected ones (`flyTo`, `hoverFor`, `moveOnGround`, `peck`, `poseTo`) are the building blocks.
-
-### Traits are declared where they change
-
-Any class can declare static `flight`, `ecology` and `look` tables listing only the fields it changes. An instance resolves its values by merging those tables from `Bird` down to its own class.
-
-`Bird.flyTo()` is the single flight routine. It reads the resolved `FlightProfile`:
-
-| Parameter | Effect in `flyTo` / `hoverFor` |
-| --- | --- |
-| `cruiseSpeed`, `power` | Top speed, acceleration, how long the takeoff wind-up is. |
-| `agility` | Maximum turn rate. Low values fly wide arcs. |
-| `braking` | Deceleration. At 1 the bird stops with no visible slowing; low values need a long approach. |
-| `hover` | 0 cannot. Around 0.5 holds for a few seconds, wobbling, body near vertical. 1 holds indefinitely and can drift backward. |
-| `flapDuty`, `cyclePeriod`, `restPose` | The flap/rest rhythm: continuous, flap-and-bound (wings shut), or flap-and-glide (wings out). |
-| `glide` | Height lost while not flapping. |
-| `endurance`, `ceiling` | When the bird is forced to land, and how high it can get. |
-
-So the hummingbird (`hover: 1, braking: 1`, set on `Trochilidae`) and the kingfisher (`hover: 0.55, braking: 0.35`, set on `Alcedinidae`) both hover through the same code and look different. The chicken and the quail are both poor fliers in different ways: the quail has `power: 0.9` and five seconds of endurance, the chicken `power: 0.3`, 2.5 seconds, and a ceiling of 8.
-
-Some traits appear in unrelated lineages (hovering, dropping clams on rocks, soaring, clinging to bark). Those routines are protected methods on `Bird`, and each family that has the behavior exposes it as its own public method.
-
-### The hierarchy explorer is reflection
-
-The app's only list is the array of species classes in [taxonomy/index.ts](src/birds/taxonomy/index.ts). The tree in the Class hierarchy tab is rebuilt from that array by walking constructor prototypes. "Declared in" and "overridden in" come from asking each prototype whether it owns the method. Trait origins come from asking each constructor whether it owns the static table. There is no second description of the taxonomy to keep in sync.
-
-`BehaviorTable<T>` is a mapped type over the class's own Script-returning methods, so a behavior entry whose method was renamed or removed fails to compile.
-
-## Rendering
-
-[render/drawBird.ts](src/render/drawBird.ts) draws any bird on a 2D canvas from two inputs: its `Look` (proportions and colors) and its `Pose` (body pitch, neck, head, wings, legs, tail for this frame). Behaviors animate a bird only by writing to its pose and position. There is no per-species drawing code and no graphics library.
-
-[ui/Stage.tsx](src/ui/Stage.tsx) owns the animation loop and the camera. The React components around it are plain controls.
-
-## Known simplifications
-
-- Sizes and distances are stylized. A hummingbird is drawn about half the length of a heron so both are readable on one stage; speeds keep their real ratios.
-- Wingbeats above 8 per second are drawn at 8, and above 20 as a blur.
-- Plumage is a handful of color regions, enough to tell species apart, not field-guide accurate. One plumage per species (adult male where the sexes differ).
-- The flight parameters are my estimates from natural-history descriptions, not measurements.
-- The Blue Jay is not included because it does not occur on the Olympic Peninsula. `Cyanocitta` is ready for it.
-
-See [ROADMAP.md](ROADMAP.md) for what is next.
+- Sizes and distances are stylized so a hummingbird and a heron are both readable on one stage.
+- Plumage is a handful of color regions: enough to tell species apart, short of a field guide.
+- The flight numbers are estimates from natural-history descriptions.
+- The scene is always daylight, in the dark theme too.
