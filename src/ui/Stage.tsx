@@ -89,5 +89,5 @@ export function Stage({ bird, speed, closeUp, onBehaviorChange }: Props) {
     return () => cancelAnimationFrame(raf);
   }, [bird]);
 
-  return <canvas ref={canvasRef} className="stage" aria-label={`Animated ${bird.world.habitat.name}`} />;
+  return <canvas ref={canvasRef} className="block aspect-[100/62] w-full rounded-2xl border border-border bg-muted" aria-label={`Animated ${bird.world.habitat.name}`} />;
 }

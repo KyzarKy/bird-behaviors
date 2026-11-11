@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
-import { behaviorsOf, lineage, traitSources, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
+import { Button, Card, Link, List, ListRow, Meter, SegmentedControl } from '@kyzarky/ui';
+import { useMemo, useRef, useState } from 'react';
+import { behaviorsOf, lineage, resolveTraits, traitSources, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
 import type { Ecology, FlightProfile } from '../birds/core/traits';
 import { HABITATS, World } from '../birds/core/World';
+import { classHref } from './route';
 import { Stage } from './Stage';
 
 const BARS: { field: keyof FlightProfile; label: string }[] = [
@@ -13,66 +15,64 @@ const BARS: { field: keyof FlightProfile; label: string }[] = [
 ];
 
 const SPEEDS = [
-  { value: 0, label: 'Pause' },
-  { value: 0.25, label: '¼×' },
-  { value: 0.5, label: '½×' },
-  { value: 1, label: '1×' },
-];
+  { value: '0', label: 'Pause' },
+  { value: '0.25', label: '¼×' },
+  { value: '0.5', label: '½×' },
+  { value: '1', label: '1×' },
+] as const;
 
-interface Props {
-  species: SpeciesClass;
-  onOpenClass: (cls: BirdClass) => void;
-}
-
-export function FieldView({ species, onOpenClass }: Props) {
-  const bird = useMemo(() => new species(new World(HABITATS[resolveHabitat(species)])), [species]);
+export function FieldView({ species }: { species: SpeciesClass }) {
+  const bird = useMemo(() => new species(new World(HABITATS[resolveTraits<Ecology>(species, 'ecology').habitat])), [species]);
   const behaviors = useMemo(() => behaviorsOf(species).reverse(), [species]);
-  const flight = useMemo(() => new Map(traitSources(species, 'flight').map((s) => [s.field, s])), [species]);
+  const flight = useMemo(() => new Map(traitSources(species, 'flight').map((s) => [s.field, s.from])), [species]);
   const [current, setCurrent] = useState<string | null>(null);
   const [lastKey, setLastKey] = useState<string | null>(null);
-  const [speed, setSpeed] = useState(1);
-  const [closeUp, setCloseUp] = useState(false);
+  const [speed, setSpeed] = useState<(typeof SPEEDS)[number]['value']>('1');
+  // A phone's stage is small, so it starts zoomed in on the bird.
+  const [closeUp, setCloseUp] = useState(() => window.matchMedia('(max-width: 640px)').matches);
+  const stageRef = useRef<HTMLElement>(null);
 
   const shown = behaviors.find((b) => b.key === (current ?? lastKey));
   const perform = (key: string) => {
     bird.perform(key);
     setLastKey(key);
-    if (speed === 0) setSpeed(1);
+    if (speed === '0') setSpeed('1');
+    // On a narrow screen the buttons sit below the stage; bring it back into view.
+    stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
   const f = bird.flight;
+  const from = (field: keyof FlightProfile) => <ClassLink cls={flight.get(field)!} />;
 
   return (
-    <div className="field">
-      <section className="stage-column">
-        <header className="title">
-          <h1>{species.taxon.common}</h1>
-          <span className="sci">{species.taxon.name}</span>
-          <nav className="crumbs" aria-label="Classification">
-            {lineage(species).slice(0, -1).map((c) => (
-              <button key={c.taxon.name} className="link" onClick={() => onOpenClass(c)}>
-                {c.taxon.name}
-              </button>
+    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <section ref={stageRef} aria-labelledby="species-name" className="flex flex-col gap-3">
+        <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h1 id="species-name" className="font-semibold text-2xl tracking-tight">
+            {species.taxon.common}
+          </h1>
+          <span className="text-muted-foreground italic">{species.taxon.name}</span>
+          <nav aria-label="Classification" className="flex flex-wrap gap-x-2 text-sm sm:ml-auto">
+            {lineage(species).slice(0, -1).map((c, i) => (
+              <span key={c.taxon.name}>
+                {i > 0 && <span className="mr-2 text-muted-foreground">›</span>}
+                <ClassLink cls={c} />
+              </span>
             ))}
           </nav>
         </header>
 
-        <Stage bird={bird} speed={speed} closeUp={closeUp} onBehaviorChange={setCurrent} />
+        <Stage bird={bird} speed={Number(speed)} closeUp={closeUp} onBehaviorChange={setCurrent} />
 
-        <div className="toolbar">
-          <span className="habitat">{bird.world.habitat.name}</span>
-          <div className="seg" role="group" aria-label="Playback speed">
-            {SPEEDS.map((s) => (
-              <button key={s.value} className={speed === s.value ? 'on' : ''} onClick={() => setSpeed(s.value)}>
-                {s.label}
-              </button>
-            ))}
-          </div>
-          <label className="check">
-            <input type="checkbox" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} /> Close-up
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="flex-1 text-muted-foreground text-sm">{bird.world.habitat.name}</span>
+          <SegmentedControl label="Playback speed" value={speed} onChange={setSpeed} options={SPEEDS} />
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+            <input type="checkbox" className="size-4 accent-primary" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
+            Close-up
           </label>
         </div>
 
-        <p className="cue" aria-live="polite">
+        <p aria-live="polite" className="min-h-24 rounded-xl border border-border border-l-4 border-l-primary bg-card p-4 leading-relaxed">
           {shown ? (
             <>
               <strong>{shown.spec.label}.</strong> {shown.spec.cue}
@@ -83,94 +83,74 @@ export function FieldView({ species, onOpenClass }: Props) {
         </p>
       </section>
 
-      <aside className="panel">
-        <h2>Behaviors</h2>
-        <p className="hint">Each is tagged with the class that defines it.</p>
-        <ul className="behaviors">
-          {behaviors.map((b) => (
-            <li key={b.key}>
-              <button className={`behavior ${current === b.key ? 'on' : ''}`} onClick={() => perform(b.key)}>
-                {b.spec.label}
-              </button>
-              <span className="origin">
-                <button className="link" onClick={() => onOpenClass(b.declaredIn)}>
-                  {b.declaredIn.taxon.name}
-                </button>
-                {b.implementedIn !== b.declaredIn && (
-                  <>
-                    {' → overridden in '}
-                    <button className="link" onClick={() => onOpenClass(b.implementedIn)}>
-                      {b.implementedIn.taxon.name}
-                    </button>
-                  </>
-                )}
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        <h2>Flight profile</h2>
-        <p className="hint">The numbers the shared flight routine reads, and the class that set each.</p>
-        <table className="profile">
-          <tbody>
-            {BARS.map(({ field, label }) => (
-              <tr key={field}>
-                <th>{label}</th>
-                <td>
-                  <div className="bar">
-                    <div style={{ width: `${(f[field] as number) * 100}%` }} />
-                  </div>
-                </td>
-                <td className="origin">{flight.get(field)!.from.taxon.name}</td>
-              </tr>
+      <div className="flex flex-col gap-6">
+        <Card aria-labelledby="behaviors-heading">
+          <h2 id="behaviors-heading" className="font-semibold text-lg">
+            Behaviors
+          </h2>
+          <p className="mt-1 text-muted-foreground text-sm">Each is tagged with the class that defines it.</p>
+          <ul className="mt-3 flex flex-col gap-3">
+            {behaviors.map((b) => (
+              <li key={b.key}>
+                <Button variant={current === b.key ? 'default' : 'outline'} aria-pressed={current === b.key} className="w-full" onClick={() => perform(b.key)}>
+                  {b.spec.label}
+                </Button>
+                <p className="mt-1 px-1 text-muted-foreground text-xs">
+                  <ClassLink cls={b.declaredIn} />
+                  {b.implementedIn !== b.declaredIn && (
+                    <>
+                      , overridden in <ClassLink cls={b.implementedIn} />
+                    </>
+                  )}
+                </p>
+              </li>
             ))}
-            <tr>
-              <th>Cruise</th>
-              <td>{f.cruiseSpeed} m/s</td>
-              <td className="origin">{flight.get('cruiseSpeed')!.from.taxon.name}</td>
-            </tr>
-            <tr>
-              <th>Wingbeat</th>
-              <td>
-                {f.flapRate}/s, {describeRhythm(f)}
-              </td>
-              <td className="origin">{flight.get('flapDuty')!.from.taxon.name}</td>
-            </tr>
-            <tr>
-              <th>Endurance</th>
-              <td>{Number.isFinite(f.endurance) ? `${f.endurance} s` : 'sustained'}</td>
-              <td className="origin">{flight.get('endurance')!.from.taxon.name}</td>
-            </tr>
-          </tbody>
-        </table>
+          </ul>
+        </Card>
 
-        <h2>Field notes</h2>
-        <p className="note">{species.taxon.note}</p>
-        <dl className="facts">
-          <dt>On the ground</dt>
-          <dd>{describeGait(bird.ecology)}</dd>
-          <dt>Call</dt>
-          <dd>{bird.ecology.call}</dd>
-          {bird.ecology.song && (
-            <>
-              <dt>Song</dt>
-              <dd>{bird.ecology.song}</dd>
-            </>
-          )}
-        </dl>
-      </aside>
+        <Card aria-labelledby="flight-heading">
+          <List heading={<h2 id="flight-heading">Flight profile</h2>} description="The numbers the shared flight routine reads, and the class that set each.">
+            {BARS.map(({ field, label }) => (
+              <ListRow key={field} label={label} detail={<>{(f[field] as number).toFixed(2)} · {from(field)}</>}>
+                <Meter value={f[field] as number} />
+              </ListRow>
+            ))}
+            <ListRow label="Cruise speed" detail={<>{f.cruiseSpeed} m/s · {from('cruiseSpeed')}</>} />
+            <ListRow label={`Wingbeat: ${describeRhythm(f)}`} detail={<>{f.flapRate}/s · {from('flapDuty')}</>} />
+            <ListRow label="Endurance" detail={<>{Number.isFinite(f.endurance) ? `${f.endurance} s` : 'sustained'} · {from('endurance')}</>} />
+          </List>
+        </Card>
+
+        <Card aria-labelledby="notes-heading">
+          <h2 id="notes-heading" className="font-semibold text-lg">
+            Field notes
+          </h2>
+          <p className="mt-2 leading-relaxed">{species.taxon.note}</p>
+          <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+            <dt className="text-muted-foreground">On the ground</dt>
+            <dd>{describeGait(bird.ecology)}</dd>
+            <dt className="text-muted-foreground">Call</dt>
+            <dd>{bird.ecology.call}</dd>
+            {bird.ecology.song && (
+              <>
+                <dt className="text-muted-foreground">Song</dt>
+                <dd>{bird.ecology.song}</dd>
+              </>
+            )}
+          </dl>
+        </Card>
+      </div>
     </div>
   );
 }
 
-function resolveHabitat(cls: BirdClass) {
-  return traitSources(cls, 'ecology').find((s) => s.field === 'habitat')!.value as Ecology['habitat'];
+function ClassLink({ cls }: { cls: BirdClass }) {
+  return <Link href={classHref(cls)}>{cls.taxon.name}</Link>;
 }
 
 function describeRhythm(f: FlightProfile) {
   if (f.flapDuty >= 0.95) return 'continuous';
-  const rest = f.restPose === 'folded' ? 'bounds with wings shut' : 'glides';
-  return `flaps ${Math.round(f.flapDuty * 100)}% then ${rest}`;
+  return `flaps ${Math.round(f.flapDuty * 100)}%, then ${f.restPose === 'folded' ? 'bounds with wings shut' : 'glides'}`;
 }
 
 function describeGait(e: Ecology) {
