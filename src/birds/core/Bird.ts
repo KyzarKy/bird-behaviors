@@ -537,7 +537,7 @@ export abstract class Bird {
   /** Sitting on the water. The renderer hides the legs and lowers the body. */
   get afloat(): boolean {
     const water = this.world.habitat.water;
-    return this.ecology.swims && !this.airborne && !!water && this.pos.x > water.from && this.pos.y > -0.05;
+    return this.ecology.swims && !this.airborne && !!water && this.pos.x > water.from && Math.abs(this.pos.y) < 0.05;
   }
 
   /** A random place out on the water, for birds that swim. */
