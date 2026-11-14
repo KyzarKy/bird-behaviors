@@ -1,4 +1,5 @@
 import { SegmentedControl, Select } from '@kyzarky/ui';
+import { useState } from 'react';
 import { resolveTraits } from './birds/core/reflect';
 import type { Ecology } from './birds/core/traits';
 import { HABITATS } from './birds/core/World';
@@ -18,6 +19,8 @@ const BY_HABITAT = Object.values(HABITATS).map((habitat) => {
 
 export function App() {
   const route = useRoute();
+  const [query, setQuery] = useState('');
+  const matches = (s: (typeof SPECIES)[number]) => `${s.taxon.common} ${s.taxon.name}`.toLowerCase().includes(query.trim().toLowerCase());
   // Switching tabs keeps the subject: a species opens as its class, a class as its first species.
   const switchView = (view: 'field' | 'class') => {
     if (view === route.view) return;
@@ -48,7 +51,15 @@ export function App() {
         <main className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)]">
           <nav aria-label="Species" className="hidden lg:block">
             <p className="mb-4 px-3 text-muted-foreground text-xs">Sorted by how likely you are to see each one in {MONTHS[THIS_MONTH]}.</p>
-            {BY_HABITAT.map(({ habitat, levels }) => (
+            <input
+              type="search"
+              aria-label="Filter species by name"
+              placeholder="Filter by name"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="mb-4 h-9 w-full rounded-lg border border-border bg-card px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+            />
+            {BY_HABITAT.map(({ habitat, levels }) => ({ habitat, levels: levels.map(({ level, species }) => ({ level, species: species.filter(matches) })).filter((l) => l.species.length > 0) })).filter((h) => h.levels.length > 0).map(({ habitat, levels }) => (
               <div key={habitat.id} className="mb-6">
                 <h2 className="mb-2 px-3 font-semibold text-muted-foreground text-xs uppercase tracking-wider">{habitat.name}</h2>
                 {levels.map(({ level, species }) => (
