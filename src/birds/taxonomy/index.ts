@@ -113,6 +113,21 @@ import {
   WesternGrebe,
 } from './divers';
 import { BaldEagle, BeltedKingfisher, GlaucousWingedGull, GreatBlueHeron } from './waterside';
+import {
+  BarnSwallow,
+  BlackHeadedGrosbeak,
+  BlackThroatedGrayWarbler,
+  CommonYellowthroat,
+  OrangeCrownedWarbler,
+  TownsendsWarbler,
+  TreeSwallow,
+  VioletGreenSwallow,
+  WesternFlycatcher,
+  WesternTanager,
+  WesternWoodPewee,
+  WilsonsWarbler,
+  YellowRumpedWarbler,
+} from './summerbirds';
 
 /**
  * The only list in the app. The taxonomy tree, the species menu and the
@@ -224,4 +239,17 @@ export const SPECIES: readonly SpeciesClass[] = [
   DoubleCrestedCormorant,
   PelagicCormorant,
   BrandtsCormorant,
+  VioletGreenSwallow,
+  BarnSwallow,
+  TreeSwallow,
+  OrangeCrownedWarbler,
+  YellowRumpedWarbler,
+  WilsonsWarbler,
+  TownsendsWarbler,
+  BlackThroatedGrayWarbler,
+  CommonYellowthroat,
+  WesternTanager,
+  BlackHeadedGrosbeak,
+  WesternFlycatcher,
+  WesternWoodPewee,
 ];
