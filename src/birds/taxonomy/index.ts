@@ -85,6 +85,18 @@ import {
   SpottedSandpiper,
   WesternSandpiper,
 } from './shorebirds';
+import {
+  BrandtsCormorant,
+  CommonLoon,
+  DoubleCrestedCormorant,
+  HornedGrebe,
+  PacificLoon,
+  PelagicCormorant,
+  PiedBilledGrebe,
+  RedNeckedGrebe,
+  RedThroatedLoon,
+  WesternGrebe,
+} from './divers';
 import { BaldEagle, BeltedKingfisher, GlaucousWingedGull, GreatBlueHeron } from './waterside';
 
 /**
@@ -174,4 +186,14 @@ export const SPECIES: readonly SpeciesClass[] = [
   RhinocerosAuklet,
   MarbledMurrelet,
   CommonMurre,
+  CommonLoon,
+  PacificLoon,
+  RedThroatedLoon,
+  HornedGrebe,
+  RedNeckedGrebe,
+  WesternGrebe,
+  PiedBilledGrebe,
+  DoubleCrestedCormorant,
+  PelagicCormorant,
+  BrandtsCormorant,
 ];
