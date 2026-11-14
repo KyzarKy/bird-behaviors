@@ -28,6 +28,18 @@ import {
 } from './forestbirds';
 import { NorthernFlicker } from './piciformes';
 import {
+  BandTailedPigeon,
+  CommonNighthawk,
+  DownyWoodpecker,
+  EurasianCollaredDove,
+  HairyWoodpecker,
+  MourningDove,
+  PileatedWoodpecker,
+  RedBreastedSapsucker,
+  RockPigeon,
+  VauxsSwift,
+} from './yardbirds';
+import {
   AmericanGoldfinch,
   BrewersBlackbird,
   BrownHeadedCowbird,
@@ -252,4 +264,14 @@ export const SPECIES: readonly SpeciesClass[] = [
   BlackHeadedGrosbeak,
   WesternFlycatcher,
   WesternWoodPewee,
+  DownyWoodpecker,
+  HairyWoodpecker,
+  PileatedWoodpecker,
+  RedBreastedSapsucker,
+  BandTailedPigeon,
+  RockPigeon,
+  EurasianCollaredDove,
+  MourningDove,
+  VauxsSwift,
+  CommonNighthawk,
 ];

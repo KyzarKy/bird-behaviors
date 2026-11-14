@@ -48,7 +48,7 @@ describe('hierarchy', () => {
   it('rebuilds one tree from the species list', () => {
     const root = buildTree(SPECIES);
     expect(root.cls.taxon.name).toBe('Aves');
-    expect(root.children.length).toBe(15);
+    expect(root.children.length).toBe(17);
   });
 });
 
