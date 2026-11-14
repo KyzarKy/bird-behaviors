@@ -8,7 +8,7 @@ Learn to identify birds by what they do. Pick a species, watch it in its habitat
 
 ## Why it exists
 
-An interviewer asked me what I would consider when designing a chicken in an object-oriented, class-based way. I kept thinking about it afterward, and this is the longer answer: sixteen birds I can see from my yard in Gardiner, Washington, or down at the beach, plus the chicken, as a TypeScript class hierarchy that follows real taxonomy.
+An interviewer asked me what I would consider when designing a chicken in an object-oriented, class-based way. I kept thinking about it afterward, and this is the longer answer: 164 birds I can see from my yard in Gardiner, Washington, or down at the beach, plus the chicken, as a TypeScript class hierarchy that follows real taxonomy.
 
 ```
 Bird ─ Galliformes ─ Phasianidae ─ Gallus ─ Chicken
@@ -22,7 +22,7 @@ Each class says only how it differs from its parent. The app's second tab reads 
 | --- | --- |
 | [The chicken question](docs/the-chicken-question.md) | What belongs on `Chicken`, what belongs above it, and where inheritance stops helping |
 | [Behaviors](docs/behaviors.md) | How a behavior is written, and the three ways a subclass changes one |
-| [The flight model](docs/flight-model.md) | Twelve numbers, one flight routine, seventeen different fliers |
+| [The flight model](docs/flight-model.md) | Twelve numbers, one flight routine, 165 different fliers |
 | [Rendering](docs/rendering.md) | Drawing any bird from proportions and a pose, with no graphics library |
 | [Design system](docs/design-system.md) | How the interface uses [`@kyzarky/ui`](https://github.com/KyzarKy/design-system) |
 | [Roadmap](ROADMAP.md) | What is next |

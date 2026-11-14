@@ -1,6 +1,6 @@
 # Roadmap
 
-Built so far: 17 species across 8 orders, 2 habitats, triggerable behaviors with slow motion and close-up, the class hierarchy explorer, and an interface on `@kyzarky/ui`.
+Built so far: 165 species across 18 orders, 2 habitats, triggerable behaviors with slow motion and close-up, an auto mode where the bird chooses for itself, a species list sorted by how likely each bird is this month, the class hierarchy explorer, and an interface on `@kyzarky/ui`.
 
 ## Deferred features
 
@@ -15,16 +15,13 @@ Two stages in split view, each with its own bird, running the same behavior in s
 
 `Stage` already takes a bird as a prop, so this is mostly layout plus a shared clock.
 
-### Autonomous mode
-The bird chooses its own behaviors with realistic weighting, as it would in the field, with manual triggers still available. Needs a per-class weight table (another static, merged down the lineage like `flight`) and a chooser in `Bird.idle()`.
-
 ### ID quiz
-A silhouette performs behaviors and you name the species from movement alone. Needs a silhouette flag in `drawBird` (fill everything one color) and a small quiz component. Good fit with autonomous mode.
+A silhouette performs behaviors and you name the species from movement alone. Needs a silhouette flag in `drawBird` (fill everything one color) and a small quiz component. Good fit with auto mode.
 
 ## Other ideas
 
-- **More species in existing genera.** Black-capped Chickadee (`Poecile`), Western Wood-Pewee (`Contopus`), Downy and Pileated Woodpecker (`Picidae`), Dark-eyed Junco and Song Sparrow (`Passerellidae`), Blue Jay (`Cyanocitta`) for visitors from the East.
-- **New orders.** Waterfowl (dabbling Mallard against diving Bufflehead), shorebirds (Killdeer broken-wing display, Black Oystercatcher), Osprey for the plunge that contrasts with the eagle's snatch, owls.
+- **Things the renderer cannot draw yet.** White outer tail feathers (junco), a wing epaulet (Red-winged Blackbird), a rump patch (Yellow-rumped Warbler), a head that turns without the neck (owls), and rodent prey for hawks and owls. Each is worked around in the species files today.
+- **Behavior weights for auto mode.** Only the four `Bird`-level behaviors set a `weight`; displays and rare behaviors still come up as often as anything else.
 - **Sexes and seasons.** Female and juvenile plumages as `Look` variants; seasonal presence on the Miller Peninsula.
 - **Flocks.** Several instances on one stage: a quail covey with a sentinel, a mixed chickadee and nuthatch flock, gulls mobbing an eagle.
 - **Sound.** Real recordings in place of the text mnemonics.
