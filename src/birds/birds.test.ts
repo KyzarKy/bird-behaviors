@@ -45,6 +45,11 @@ describe('hierarchy', () => {
     expect(src(BeltedKingfisher, 'hover').value).toBeLessThan(1);
   });
 
+  it('declares each taxon once, however many files extend it', () => {
+    const byName = new Map<string, BirdClass>();
+    for (const s of SPECIES) for (const c of lineage(s)) expect(byName.get(c.taxon.name) ?? byName.set(c.taxon.name, c).get(c.taxon.name)).toBe(c);
+  });
+
   it('rebuilds one tree from the species list', () => {
     const root = buildTree(SPECIES);
     expect(root.cls.taxon.name).toBe('Aves');
