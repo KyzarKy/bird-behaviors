@@ -5,7 +5,7 @@ import { SPECIES } from './taxonomy';
 import { Galliformes, Chicken, CaliforniaQuail } from './taxonomy/galliformes';
 import { AnnasHummingbird, Trochilidae } from './taxonomy/apodiformes';
 import { Colaptes, NorthernFlicker, Picidae } from './taxonomy/piciformes';
-import { BeltedKingfisher } from './taxonomy/waterside';
+import { BaldEagle, BeltedKingfisher } from './taxonomy/waterside';
 
 const names = (classes: BirdClass[]) => classes.map((c) => c.taxon.name);
 const make = (cls: (typeof SPECIES)[number]) => {
@@ -73,5 +73,21 @@ describe('simulation', () => {
         }
       });
     }
+  }
+});
+
+describe('regressions', () => {
+  // From a piling the run-up used to be placed back over the beach, and the turn toward the water went through the sand.
+  for (const post of HABITATS.beach.perches.filter((p) => p.kind === 'post')) {
+    it(`Bald Eagle fishing from the piling at x=${post.x} never hits the beach`, () => {
+      const bird = make(BaldEagle);
+      bird.pos = { x: post.x, y: post.y };
+      bird.perform('snatchFish');
+      for (let frames = 0; bird.current !== null; frames++) {
+        bird.update(1 / 60);
+        expect(bird.airborne && bird.pos.y < 2 && bird.pos.x < HABITATS.beach.water!.from).toBe(false);
+        if (frames > 60 * 90) throw new Error('did not finish');
+      }
+    });
   }
 });

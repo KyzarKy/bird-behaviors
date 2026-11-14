@@ -364,7 +364,11 @@ export abstract class Bird {
       let heading = v > 0.5 ? Math.atan2(this.vel.y, this.vel.x) : want;
       // Turn rate tightens close in (and after a long miss) so nothing orbits its target forever.
       const maxTurn = turnRate * dt * (1 + 6 / Math.max(dist, 1)) * (legTime > 8 ? 5 : 1);
-      heading += clamp(angleDiff(want, heading), -maxTurn, maxTurn);
+      let turn = angleDiff(want, heading);
+      // A near-reversal with no room below goes up and over, not down through the ground.
+      const room = this.pos.y - this.world.floorY(this.pos.x);
+      if (Math.abs(turn) > 2 && Math.sin(heading + turn / 2) < 0 && room < (2.5 * v) / turnRate) turn -= Math.sign(turn) * TAU;
+      heading += clamp(turn, -maxTurn, maxTurn);
       const nv = v < wantMag ? Math.min(wantMag, v + accel * dt) : Math.max(wantMag, v - decel * dt);
       this.vel = { x: Math.cos(heading) * nv, y: Math.sin(heading) * nv };
       this.pos.x = clamp(this.pos.x + this.vel.x * dt, 1, 99);

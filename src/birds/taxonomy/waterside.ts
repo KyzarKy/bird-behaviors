@@ -2,7 +2,7 @@
  * The four orders at Gardiner Beach: eagles, kingfishers, herons and gulls.
  * One file because each order contributes a single species.
  */
-import { Bird, rand } from '../core/Bird';
+import { Bird, clamp, rand } from '../core/Bird';
 import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Vec } from '../core/traits';
 
 // ========================================================= Accipitriformes
@@ -79,13 +79,16 @@ export abstract class Haliaeetus extends Accipitridae {
     yield* this.toPerch();
     const perch = { ...this.pos };
     yield* this.lookAround(1.5);
-    const strike = { x: water.from + 18, y: 0.8 };
-    yield* this.flyTo({ x: strike.x - 22, y: 9 }, { land: false });
+    // Strike far enough from the perch for a run-up, toward whichever side has open water.
+    const dir = perch.x < water.from + 20 ? 1 : -1;
+    const strike = { x: perch.x < water.from ? water.from + 18 : perch.x + dir * 20, y: 0.8 };
+    // From the bluff, come down to an approach height first. From a piling the glide starts at the perch.
+    if (Math.abs(strike.x - perch.x) > 22) yield* this.flyTo({ x: strike.x - dir * 22, y: 9 }, { land: false });
     yield* this.flyTo(strike, { land: false, glide: true });
     this.world.burst('splash', strike.x, 0, 5);
     this.pose.carry = 'fish';
     this.pose.carryInFeet = true;
-    yield* this.flyTo({ x: strike.x + 12, y: 8 }, { land: false });
+    yield* this.flyTo({ x: clamp(strike.x + dir * 12, water.from + 2, 97), y: 8 }, { land: false });
     yield* this.flyTo(perch);
     for (let i = 0; i < 3; i++) yield* this.peck(1, 1.2);
     this.pose.carry = null;
