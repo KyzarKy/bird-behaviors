@@ -12,6 +12,24 @@ import {
   StellersJay,
 } from './passeriformes';
 import { NorthernFlicker } from './piciformes';
+import {
+  AmericanWigeon,
+  Bufflehead,
+  Brant,
+  CanadaGoose,
+  CommonGoldeneye,
+  CommonMerganser,
+  GreenWingedTeal,
+  HarlequinDuck,
+  HoodedMerganser,
+  LongTailedDuck,
+  Mallard,
+  NorthernPintail,
+  RedBreastedMerganser,
+  SurfScoter,
+  TrumpeterSwan,
+  WhiteWingedScoter,
+} from './waterfowl';
 import { BaldEagle, BeltedKingfisher, GlaucousWingedGull, GreatBlueHeron } from './waterside';
 
 /**
@@ -36,4 +54,20 @@ export const SPECIES: readonly SpeciesClass[] = [
   BeltedKingfisher,
   GreatBlueHeron,
   GlaucousWingedGull,
+  Mallard,
+  AmericanWigeon,
+  NorthernPintail,
+  GreenWingedTeal,
+  Bufflehead,
+  CommonGoldeneye,
+  SurfScoter,
+  WhiteWingedScoter,
+  HarlequinDuck,
+  LongTailedDuck,
+  RedBreastedMerganser,
+  CommonMerganser,
+  HoodedMerganser,
+  Brant,
+  CanadaGoose,
+  TrumpeterSwan,
 ];
