@@ -207,8 +207,10 @@ export function drawBird(ctx: Ctx, bird: Bird) {
   const hr = b * 0.62 * k.headSize;
   const flying = bird.airborne;
   const legFull = k.legLength * L;
-  const legLen = flying ? 0 : legFull * (1 - p.crouch);
-  const cy = legLen + b * 0.85;
+  const afloat = bird.afloat;
+  const legLen = flying || afloat ? 0 : legFull * (1 - p.crouch);
+  // A swimming bird rides with the lower third of its body under the surface.
+  const cy = afloat ? b * 0.45 : legLen + b * 0.85;
   const cos = Math.cos(p.pitch);
   const sin = Math.sin(p.pitch);
 
@@ -219,7 +221,7 @@ export function drawBird(ctx: Ctx, bird: Bird) {
   ctx.lineCap = ctx.lineJoin = 'round';
 
   // Legs stay planted while the body pitches above them.
-  if (!flying) {
+  if (!flying && !afloat) {
     const hipX = -a * 0.05 * cos + b * 0.55 * sin;
     const hipY = cy - a * 0.05 * sin - b * 0.55 * cos;
     ctx.strokeStyle = k.legs;

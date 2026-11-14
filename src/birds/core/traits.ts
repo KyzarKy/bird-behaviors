@@ -60,6 +60,13 @@ export interface Ecology {
   groundSpeed: number;
   /** Pigeon-style head thrust while walking. */
   headBob: boolean;
+  /** Floats on the water instead of wading on the bottom. */
+  swims: boolean;
+  /**
+   * How easy it is to find on the Miller Peninsula in each month, January first:
+   * 0 absent, 1 scarce, 2 regular, 3 hard to miss.
+   */
+  presence?: readonly number[];
   /** Resting body angle in radians: 0 horizontal, higher is more upright. */
   posture: number;
   call: string;

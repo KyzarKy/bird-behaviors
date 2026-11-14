@@ -109,6 +109,7 @@ export abstract class Bird {
     gait: 'hop',
     groundSpeed: 5,
     headBob: false,
+    swims: false,
     posture: 0.15,
     call: 'chip',
   };
@@ -270,7 +271,7 @@ export abstract class Bird {
   /** Where a new bird appears. Runs at the end of the constructor. */
   protected spawn() {
     const perch = this.findPerch(undefined, 'any');
-    this.pos = perch ? { x: perch.x, y: perch.y } : this.groundSpot(40, 12);
+    this.pos = perch ? { x: perch.x, y: perch.y } : (this.waterSpot() ?? this.groundSpot(40, 12));
   }
 
   /** The pose the bird returns to between actions. */
@@ -331,7 +332,7 @@ export abstract class Bird {
     let goal = target;
     let reached = true;
     if (target.y > f.ceiling) {
-      goal = { x: target.x, y: this.world.floorY(target.x) };
+      goal = { x: target.x, y: this.restY(target.x) };
       reached = false;
       land = true;
     }
@@ -345,7 +346,7 @@ export abstract class Bird {
       if (reached && this.airTime > f.endurance) {
         // Spent. Come down wherever it happens to be.
         const x = this.world.clampLand(this.pos.x + this.pose.facing * 5);
-        goal = { x, y: this.world.floorY(x) };
+        goal = { x, y: this.restY(x) };
         reached = false;
         land = glide = true;
       }
@@ -374,14 +375,14 @@ export abstract class Bird {
       const maxTurn = turnRate * dt * (1 + 6 / Math.max(dist, 1)) * (legTime > 8 ? 5 : 1);
       let turn = angleDiff(want, heading);
       // A near-reversal with no room below goes up and over, not down through the ground.
-      const room = this.pos.y - this.world.floorY(this.pos.x);
+      const room = this.pos.y - this.restY(this.pos.x);
       if (Math.abs(turn) > 2 && Math.sin(heading + turn / 2) < 0 && room < (2.5 * v) / turnRate) turn -= Math.sign(turn) * TAU;
       heading += clamp(turn, -maxTurn, maxTurn);
       const nv = v < wantMag ? Math.min(wantMag, v + accel * dt) : Math.max(wantMag, v - decel * dt);
       this.vel = { x: Math.cos(heading) * nv, y: Math.sin(heading) * nv };
       this.pos.x = clamp(this.pos.x + this.vel.x * dt, 1, 99);
       this.pos.y += this.vel.y * dt;
-      if (dist > 2) this.pos.y = Math.max(this.pos.y, this.world.floorY(this.pos.x) + 0.4);
+      if (dist > 2) this.pos.y = Math.max(this.pos.y, this.restY(this.pos.x) + 0.4);
 
       this.flightPose(flapping);
     }
@@ -508,15 +509,69 @@ export abstract class Bird {
 
   // ------------------------------------------------------------- ground
 
+  /** Where the feet rest at x: the ground, the bottom for a wader, the surface for a swimmer. */
+  protected restY(x: number): number {
+    const water = this.world.habitat.water;
+    return this.ecology.swims && water && x > water.from ? 0 : this.world.floorY(x);
+  }
+
+  /** Sitting on the water. The renderer hides the legs and lowers the body. */
+  get afloat(): boolean {
+    const water = this.world.habitat.water;
+    return this.ecology.swims && !this.airborne && !!water && this.pos.x > water.from && this.pos.y > -0.05;
+  }
+
+  /** A random place out on the water, for birds that swim. */
+  protected waterSpot(): Vec | null {
+    const water = this.world.habitat.water;
+    return this.ecology.swims && water ? { x: rand(water.from + 6, 94), y: 0 } : null;
+  }
+
+  /** Get onto the water, flying there if need be. Paddling about is moveOnGround(). */
+  protected *toWater(): Script {
+    const spot = this.waterSpot();
+    if (spot && !this.afloat) yield* this.flyOver(spot);
+  }
+
+  /**
+   * Go under and come up `dx` away. Loons, grebes, cormorants, sea ducks and
+   * auks are unrelated and all hunt this way, so the routine lives here.
+   * `leap` is the forward jump some of them make to get under.
+   */
+  protected *diveUnder(seconds: number, dx: number, leap = 0): Script {
+    if (!this.afloat) return;
+    const p = this.pose;
+    const from = { ...this.pos };
+    const to = clamp(from.x + dx, (this.world.habitat.water?.from ?? 0) + 4, 96);
+    if (to !== from.x) p.facing = to > from.x ? 1 : -1;
+    const depth = Math.min(2, -this.world.floorY(to) - 0.2, -this.world.floorY(from.x) - 0.2);
+    yield* this.tween(0.3, (t) => {
+      p.pitch = -1.1 * t;
+      p.neck = 0.95 - 0.9 * t;
+      this.pos.y = leap * Math.sin(Math.PI * t) - depth * 0.4 * t;
+    });
+    this.world.burst('splash', from.x, 0, 4);
+    yield* this.tween(seconds, (t) => {
+      this.pos.x = from.x + (to - from.x) * t;
+      this.pos.y = -depth * (0.4 + 0.6 * Math.sin(Math.PI * Math.min(1, t * 1.2)));
+      p.pitch = -1.1 + 1.6 * t;
+      p.stride = Math.sin(t * seconds * 14);
+    });
+    this.pos = { x: to, y: 0 };
+    p.stride = 0;
+    this.world.burst('splash', to, 0, 3);
+    yield* this.relax(0.25);
+  }
+
   get onGround(): boolean {
-    return !this.airborne && this.pose.rotation === 0 && Math.abs(this.pos.y - this.world.floorY(this.pos.x)) < 0.05;
+    return !this.airborne && this.pose.rotation === 0 && Math.abs(this.pos.y - this.restY(this.pos.x)) < 0.05;
   }
 
   /** Walk, run or hop to x, as the species' gait dictates. Birds that cannot walk fly. */
   protected *moveOnGround(x: number, speedMul = 1): Script {
     const gait = this.ecology.gait;
     if (!this.onGround || gait === 'none') {
-      yield* this.flyOver({ x, y: this.world.floorY(x) });
+      yield* this.flyOver({ x, y: this.restY(x) });
       return;
     }
     const p = this.pose;
@@ -528,7 +583,7 @@ export abstract class Bird {
         const x0 = this.pos.x;
         yield* this.tween(0.16 / speedMul, (t) => {
           this.pos.x = x0 + dir * step * t;
-          this.pos.y = this.world.floorY(this.pos.x) + this.size * 0.12 * Math.sin(Math.PI * t);
+          this.pos.y = this.restY(this.pos.x) + this.size * 0.12 * Math.sin(Math.PI * t);
           p.crouch = 0.3 * Math.sin(Math.PI * t);
         });
         yield* this.wait(0.07);
@@ -539,7 +594,7 @@ export abstract class Bird {
       while (Math.abs(x - this.pos.x) > 0.2) {
         const dt = yield;
         this.pos.x += dir * Math.min(speed * dt, Math.abs(x - this.pos.x));
-        this.pos.y = this.world.floorY(this.pos.x);
+        this.pos.y = this.restY(this.pos.x);
         phase += (dt * speed * Math.PI) / (this.size * 0.5);
         p.stride = Math.sin(phase);
         // The head stays fixed in space while the body walks under it, then snaps forward.
@@ -574,7 +629,7 @@ export abstract class Bird {
   /** If caught in the air with nothing to do, land somewhere sensible. */
   protected *settle(): Script {
     if (!this.airborne) return;
-    yield* this.flyTo(this.findPerch(undefined, 'near') ?? this.groundSpot(this.pos.x, 6));
+    yield* this.flyTo(this.findPerch(undefined, 'near') ?? this.waterSpot() ?? this.groundSpot(this.pos.x, 6));
   }
 
   protected *peck(times = 1, depth = 1): Script {
