@@ -12,6 +12,25 @@ import {
   StellersJay,
 } from './passeriformes';
 import { NorthernFlicker } from './piciformes';
+import {
+  AmericanGoldfinch,
+  BrewersBlackbird,
+  BrownHeadedCowbird,
+  DarkEyedJunco,
+  EuropeanStarling,
+  EveningGrosbeak,
+  FoxSparrow,
+  GoldenCrownedSparrow,
+  HouseFinch,
+  HouseSparrow,
+  PineSiskin,
+  PurpleFinch,
+  RedCrossbill,
+  RedWingedBlackbird,
+  SavannahSparrow,
+  SongSparrow,
+  WhiteCrownedSparrow,
+} from './seedeaters';
 import { BaldEagle, BeltedKingfisher, GlaucousWingedGull, GreatBlueHeron } from './waterside';
 
 /**
@@ -36,4 +55,21 @@ export const SPECIES: readonly SpeciesClass[] = [
   BeltedKingfisher,
   GreatBlueHeron,
   GlaucousWingedGull,
+  DarkEyedJunco,
+  SongSparrow,
+  WhiteCrownedSparrow,
+  GoldenCrownedSparrow,
+  FoxSparrow,
+  SavannahSparrow,
+  HouseFinch,
+  PurpleFinch,
+  PineSiskin,
+  AmericanGoldfinch,
+  RedCrossbill,
+  EveningGrosbeak,
+  RedWingedBlackbird,
+  BrewersBlackbird,
+  BrownHeadedCowbird,
+  HouseSparrow,
+  EuropeanStarling,
 ];
