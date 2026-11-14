@@ -5,6 +5,17 @@ import type { Trunk, World } from './World';
 /** Stage units per second for each m/s of real airspeed. */
 const SPEED = 2.2;
 const TAU = Math.PI * 2;
+/** The fastest wingbeat a 60 Hz screen still shows as a beat: about four frames per stroke. */
+const MAX_DRAWN_FLAP = 14;
+/** The fastest real wingbeat in the hierarchy (hummingbirds). It is drawn at the maximum. */
+const FASTEST_FLAP = 45;
+
+/**
+ * Real wingbeats per second to drawn ones. Every rate is placed relative to the
+ * hummingbird's at the top. The curve leaves slow fliers near their true rate
+ * and compresses fast ones, so they stay in order without running off the screen.
+ */
+export const drawnFlapRate = (real: number) => MAX_DRAWN_FLAP * Math.min(1, real / FASTEST_FLAP) ** 0.6;
 
 export const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 export const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
@@ -43,8 +54,6 @@ export interface Pose {
   wings: 'folded' | 'open';
   /** -1 downstroke .. 1 upstroke. */
   flap: number;
-  /** Wings beating too fast to see. */
-  blur: boolean;
   carry: Item | null;
   carryInFeet: boolean;
   speech: string | null;
@@ -175,7 +184,6 @@ export abstract class Bird {
       facing: 1,
       rotation: 0,
       wings: 'folded',
-      blur: false,
       carry: null,
       carryInFeet: false,
       speech: null,
@@ -421,8 +429,7 @@ export abstract class Bird {
       p.tailAngle = h > 0.9 ? 0 : -0.5;
       p.neck = 0.6;
       p.head = aim;
-      p.blur = this.flight.flapRate >= 20;
-      p.flap = Math.sin(this.airTime * TAU * Math.min(this.flight.flapRate * 1.3, 9));
+      p.flap = Math.sin(this.airTime * TAU * drawnFlapRate(this.flight.flapRate * 1.3));
       this.adjustFlightPose();
     }
     p.tailFan = 0;
@@ -447,12 +454,11 @@ export abstract class Bird {
       this.pos.y = Math.min(48, y0 + t * 0.9 * f.glide);
       if (Math.abs(this.vel.x) > 1) p.facing = this.vel.x > 0 ? 1 : -1;
       p.wings = 'open';
-      p.blur = false;
       p.pitch = 0.05;
       p.neck = 0.25;
       // Banking through the turn shows first the top of the wings, then the underside.
       const flapNow = f.glide < 0.7 && t % 3 < 0.7;
-      p.flap = flapNow ? Math.sin(this.airTime * TAU * f.flapRate) : 0.25 + 0.45 * Math.cos(angle);
+      p.flap = flapNow ? Math.sin(this.airTime * TAU * drawnFlapRate(f.flapRate)) : 0.25 + 0.45 * Math.cos(angle);
       this.adjustFlightPose();
     }
   }
@@ -481,11 +487,9 @@ export abstract class Bird {
     p.neckExt = 1;
     p.head = 0;
     p.stride = p.crouch = 0;
-    p.blur = flapping && f.flapRate >= 20;
     if (flapping) {
       p.wings = 'open';
-      // Real rates above ~8 Hz alias on a 60 Hz screen, so they are capped (or blurred).
-      p.flap = Math.sin(this.airTime * TAU * Math.min(f.flapRate, 8));
+      p.flap = Math.sin(this.airTime * TAU * drawnFlapRate(f.flapRate));
     } else if (f.restPose === 'folded') {
       p.wings = 'folded';
     } else {
@@ -499,7 +503,7 @@ export abstract class Bird {
     this.airborne = false;
     this.airTime = 0;
     this.vel = { x: 0, y: 0 };
-    Object.assign(this.pose, this.restingPose(), { wings: 'folded', blur: false });
+    Object.assign(this.pose, this.restingPose(), { wings: 'folded' });
   }
 
   // ------------------------------------------------------------- ground

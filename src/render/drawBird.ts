@@ -256,7 +256,7 @@ export function drawBird(ctx: Ctx, bird: Bird) {
     ctx.restore();
   }
 
-  if (open && !p.blur) {
+  if (open) {
     ctx.save();
     ctx.translate(a * 0.12, 0);
     ctx.globalAlpha = 0.8;
@@ -312,13 +312,7 @@ export function drawBird(ctx: Ctx, bird: Bird) {
   drawHead(ctx, bird, hr);
   ctx.restore();
 
-  if (p.blur) {
-    // Wings beating too fast to resolve: draw the swept arc instead.
-    ctx.save();
-    ctx.globalAlpha = 0.4;
-    for (const f of [-1, -0.45, 0.45, 1]) drawWing(ctx, k.wing, a, b, span, f);
-    ctx.restore();
-  } else if (open) {
+  if (open) {
     drawWing(ctx, k.wing, a, b, span, p.flap);
   } else {
     shape(ctx, k.wing, () => ctx.ellipse(-a * 0.12, b * 0.12, a * 0.72, b * 0.55, -0.12, 0, TAU));
