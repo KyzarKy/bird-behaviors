@@ -12,6 +12,21 @@ import {
   StellersJay,
 } from './passeriformes';
 import { NorthernFlicker } from './piciformes';
+import {
+  AmericanKestrel,
+  BarnOwl,
+  BarredOwl,
+  CoopersHawk,
+  GreatHornedOwl,
+  Merlin,
+  NorthernHarrier,
+  NorthernPygmyOwl,
+  Osprey,
+  PeregrineFalcon,
+  RedTailedHawk,
+  SharpShinnedHawk,
+  TurkeyVulture,
+} from './raptors';
 import { BaldEagle, BeltedKingfisher, GlaucousWingedGull, GreatBlueHeron } from './waterside';
 
 /**
@@ -36,4 +51,17 @@ export const SPECIES: readonly SpeciesClass[] = [
   BeltedKingfisher,
   GreatBlueHeron,
   GlaucousWingedGull,
+  Osprey,
+  RedTailedHawk,
+  CoopersHawk,
+  SharpShinnedHawk,
+  NorthernHarrier,
+  TurkeyVulture,
+  PeregrineFalcon,
+  Merlin,
+  AmericanKestrel,
+  BarredOwl,
+  GreatHornedOwl,
+  NorthernPygmyOwl,
+  BarnOwl,
 ];
