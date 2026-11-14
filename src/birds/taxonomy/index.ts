@@ -113,6 +113,27 @@ import {
   WesternGrebe,
 } from './divers';
 import { BaldEagle, BeltedKingfisher, GlaucousWingedGull, GreatBlueHeron } from './waterside';
+import {
+  AmericanPipit,
+  BullocksOriole,
+  ChippingSparrow,
+  LazuliBunting,
+  LincolnsSparrow,
+  NorthernSawWhetOwl,
+  NorthernShrike,
+  RingNeckedPheasant,
+  RoughLeggedHawk,
+  RuffedGrouse,
+  SaysPhoebe,
+  ShortEaredOwl,
+  SootyGrouse,
+  TownsendsSolitaire,
+  WesternBluebird,
+  WesternKingbird,
+  WesternMeadowlark,
+  WesternScreechOwl,
+  WhiteThroatedSparrow,
+} from './passageland';
 
 /**
  * The only list in the app. The taxonomy tree, the species menu and the
@@ -224,4 +245,23 @@ export const SPECIES: readonly SpeciesClass[] = [
   DoubleCrestedCormorant,
   PelagicCormorant,
   BrandtsCormorant,
+  ChippingSparrow,
+  WhiteThroatedSparrow,
+  LincolnsSparrow,
+  WesternMeadowlark,
+  BullocksOriole,
+  LazuliBunting,
+  NorthernShrike,
+  TownsendsSolitaire,
+  WesternBluebird,
+  AmericanPipit,
+  WesternKingbird,
+  SaysPhoebe,
+  RoughLeggedHawk,
+  NorthernSawWhetOwl,
+  WesternScreechOwl,
+  ShortEaredOwl,
+  RuffedGrouse,
+  SootyGrouse,
+  RingNeckedPheasant,
 ];
