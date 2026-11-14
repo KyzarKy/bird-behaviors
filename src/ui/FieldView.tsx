@@ -4,6 +4,7 @@ import { behaviorsOf, lineage, resolveTraits, traitSources, type BirdClass, type
 import type { Ecology, FlightProfile } from '../birds/core/traits';
 import { HABITATS, World } from '../birds/core/World';
 import { classHref } from './route';
+import { MONTHS, PRESENCE, presenceOf, THIS_MONTH } from './season';
 import { Stage } from './Stage';
 
 const BARS: { field: keyof FlightProfile; label: string }[] = [
@@ -133,6 +134,12 @@ export function FieldView({ species }: { species: SpeciesClass }) {
           </h2>
           <p className="mt-2 leading-relaxed">{species.taxon.note}</p>
           <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+            <dt className="text-muted-foreground">{MONTHS[THIS_MONTH]}</dt>
+            <dd>{PRESENCE[presenceOf(species)[THIS_MONTH]]} here</dd>
+            <dt className="text-muted-foreground">Through the year</dt>
+            <dd>
+              <Calendar levels={presenceOf(species)} />
+            </dd>
             <dt className="text-muted-foreground">On the ground</dt>
             <dd>{describeGait(bird.ecology)}</dd>
             <dt className="text-muted-foreground">Call</dt>
@@ -152,6 +159,23 @@ export function FieldView({ species }: { species: SpeciesClass }) {
 
 function ClassLink({ cls }: { cls: BirdClass }) {
   return <Link href={classHref(cls)}>{cls.taxon.name}</Link>;
+}
+
+/** Twelve bars, January to December, as tall as the bird is easy to find. This month is filled in the primary color. */
+function Calendar({ levels }: { levels: readonly number[] }) {
+  const months = levels.map((level, m) => `${MONTHS[m]}: ${PRESENCE[level].toLowerCase()}`);
+  return (
+    <span role="img" aria-label={months.join(', ')} className="flex h-6 max-w-48 items-end gap-0.5">
+      {levels.map((level, m) => (
+        <span
+          key={m}
+          title={months[m]}
+          className={`flex-1 rounded-sm ${m === THIS_MONTH ? 'bg-primary' : 'bg-muted-foreground/40'}`}
+          style={{ height: `${10 + level * 30}%` }}
+        />
+      ))}
+    </span>
+  );
 }
 
 function describeRhythm(f: FlightProfile) {

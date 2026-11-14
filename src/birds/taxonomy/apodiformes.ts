@@ -138,7 +138,7 @@ export class AnnasHummingbird extends Calypte {
     note: 'Year-round on the Olympic Peninsula, even through snow. Stocky and gray-green; the male’s whole head flashes rose-magenta when it turns toward you.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'tzip… tzip…', song: 'bzz-bzz-bzz chrrr zwee (thin, scratchy)' };
+  static override ecology: Partial<Ecology> = { call: 'tzip… tzip…', song: 'bzz-bzz-bzz chrrr zwee (thin, scratchy)', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.1,
@@ -196,7 +196,7 @@ export class RufousHummingbird extends Selasphorus {
     note: 'Arrives in March with the red-flowering currant and leaves by late summer. Smaller than an Anna’s, bright orange, and the one starting every fight at the feeder.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'chip-chip-chip (hard, scolding)' };
+  static override ecology: Partial<Ecology> = { call: 'chip-chip-chip (hard, scolding)', presence: [0, 0, 2, 3, 3, 3, 3, 2, 1, 0, 0, 0] };
 
   static override look: Partial<Look> = {
     length: 0.09,

@@ -183,7 +183,7 @@ export class Chicken extends Gallus {
     ceiling: 8,
   };
 
-  static override ecology: Partial<Ecology> = { call: 'buk… buk… buk-buk-bu-GAWK!' };
+  static override ecology: Partial<Ecology> = { call: 'buk… buk… buk-buk-bu-GAWK!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.45,
@@ -282,7 +282,7 @@ export class CaliforniaQuail extends Callipepla {
     note: 'Common in the brushy edges of the Sequim–Gardiner rain shadow. Plump, gray, scaly-bellied, with a black teardrop plume.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'chi-CA-go!' };
+  static override ecology: Partial<Ecology> = { call: 'chi-CA-go!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.25,

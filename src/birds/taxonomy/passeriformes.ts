@@ -151,7 +151,7 @@ export class StellersJay extends Cyanocitta {
     note: 'The jay of the conifer forest. Charcoal head and shoulders fading to deep blue. Works its way up a tree by hopping branch to branch in a spiral, then glides out from the top.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'SHAACK! SHAACK! SHAACK!', song: 'quiet whisper-song of clicks and gurgles' };
+  static override ecology: Partial<Ecology> = { call: 'SHAACK! SHAACK! SHAACK!', song: 'quiet whisper-song of clicks and gurgles', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.3,
@@ -214,7 +214,7 @@ export class AmericanCrow extends Corvus {
     note: 'The beach crows of Puget Sound were once split as “Northwestern Crow.” Square tail, steady rowing flight with no soaring, and a plain caw.',
   };
 
-  static override ecology: Partial<Ecology> = { habitat: 'beach', call: 'caw! caw! caw!' };
+  static override ecology: Partial<Ecology> = { habitat: 'beach', call: 'caw! caw! caw!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
   static override look: Partial<Look> = { length: 0.45 };
 
   static override behaviors: BehaviorTable<AmericanCrow> = {
@@ -239,7 +239,7 @@ export class CommonRaven extends Corvus {
 
   // The quickest way to split it from a crow: ravens soar, crows do not.
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 12, glide: 0.85, flapRate: 3.5, flapDuty: 0.35, cyclePeriod: 3.2 };
-  static override ecology: Partial<Ecology> = { call: 'kraaak… kraaak…', perches: ['treetop', 'branch'] };
+  static override ecology: Partial<Ecology> = { call: 'kraaak… kraaak…', perches: ['treetop', 'branch'], presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
   static override look: Partial<Look> = { length: 0.62, tailShape: 'pointed', tailLength: 0.6, beakLength: 0.85, wingSpan: 2 };
 
   static override behaviors: BehaviorTable<CommonRaven> = {
@@ -356,7 +356,7 @@ export class OliveSidedFlycatcher extends Contopus {
     note: 'On the very tip of the tallest snag from May to August. Big-headed and short-tailed, with dark flanks like an unbuttoned vest over a white front. The song carries half a mile.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'pip-pip-pip', song: 'Quick, THREE BEERS!' };
+  static override ecology: Partial<Ecology> = { call: 'pip-pip-pip', song: 'Quick, THREE BEERS!', presence: [0, 0, 0, 0, 2, 3, 3, 2, 1, 0, 0, 0] };
 
   static override look: Partial<Look> = {
     length: 0.19,
@@ -441,7 +441,7 @@ export class AmericanRobin extends Turdus {
     note: 'The yardstick bird: other species are described as “smaller than a robin.” Gray-brown above, brick-orange below, with a broken white eye-ring.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'tut-tut-tut… peek!', song: 'cheerily, cheer-up, cheer-up, cheerily' };
+  static override ecology: Partial<Ecology> = { call: 'tut-tut-tut… peek!', song: 'cheerily, cheer-up, cheer-up, cheerily', presence: [2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2] };
 
   static override look: Partial<Look> = {
     length: 0.25,
@@ -544,7 +544,7 @@ export class ChestnutBackedChickadee extends Poecile {
     note: 'The chickadee of wet Pacific conifer forest. Rich chestnut back and flanks and a dark brown cap. Its call is higher, faster and buzzier than a Black-capped’s.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'tsick-a-zee-zee', song: 'thin, buzzy chips (no whistled song)' };
+  static override ecology: Partial<Ecology> = { call: 'tsick-a-zee-zee', song: 'thin, buzzy chips (no whistled song)', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.12,
@@ -628,7 +628,7 @@ export class RedBreastedNuthatch extends Sitta {
     note: 'The conifer nuthatch. Blue-gray back, rusty underparts, and a black line through the eye under a white eyebrow. Sounds like a tiny tin horn.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'yank-yank-yank', song: 'eeen-eeen-eeen-eeen (nasal, rapid)' };
+  static override ecology: Partial<Ecology> = { call: 'yank-yank-yank', song: 'eeen-eeen-eeen-eeen (nasal, rapid)', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.11,
@@ -713,7 +713,7 @@ export class SpottedTowhee extends Pipilo {
     note: 'Black hood, red eye, rufous flanks, white belly, white spots on the wing. Lives in the salal and sword fern and rarely comes far out of cover.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'meeewww? (a rising, catlike whine)', song: 'chup-chup-zeeeeeee' };
+  static override ecology: Partial<Ecology> = { call: 'meeewww? (a rising, catlike whine)', song: 'chup-chup-zeeeeeee', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.21,

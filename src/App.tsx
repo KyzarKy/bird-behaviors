@@ -7,11 +7,14 @@ import { NavLink } from './ui/bits';
 import { FieldView } from './ui/FieldView';
 import { HierarchyView } from './ui/HierarchyView';
 import { classHref, fieldHref, speciesFor, useRoute } from './ui/route';
+import { MONTHS, PRESENCE, presenceOf, THIS_MONTH } from './ui/season';
 
-const BY_HABITAT = Object.values(HABITATS).map((habitat) => ({
-  habitat,
-  species: SPECIES.filter((s) => resolveTraits<Ecology>(s, 'ecology').habitat === habitat.id),
-}));
+/** Each habitat's species, grouped by how easy they are to find this month, likeliest first. */
+const BY_HABITAT = Object.values(HABITATS).map((habitat) => {
+  const here = SPECIES.filter((s) => resolveTraits<Ecology>(s, 'ecology').habitat === habitat.id);
+  const levels = [3, 2, 1, 0].map((level) => ({ level, species: here.filter((s) => presenceOf(s)[THIS_MONTH] === level) }));
+  return { habitat, levels: levels.filter((l) => l.species.length > 0) };
+});
 
 export function App() {
   const route = useRoute();
@@ -44,13 +47,22 @@ export function App() {
       {route.view === 'field' ? (
         <main className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)]">
           <nav aria-label="Species" className="hidden lg:block">
-            {BY_HABITAT.map(({ habitat, species }) => (
+            <p className="mb-4 px-3 text-muted-foreground text-xs">Sorted by how likely you are to see each one in {MONTHS[THIS_MONTH]}.</p>
+            {BY_HABITAT.map(({ habitat, levels }) => (
               <div key={habitat.id} className="mb-6">
                 <h2 className="mb-2 px-3 font-semibold text-muted-foreground text-xs uppercase tracking-wider">{habitat.name}</h2>
-                {species.map((s) => (
-                  <NavLink key={s.taxon.name} href={fieldHref(s)} current={s === route.species}>
-                    {s.taxon.common}
-                  </NavLink>
+                {levels.map(({ level, species }) => (
+                  <div key={level} className="mb-2">
+                    <h3 className="flex items-center gap-2 px-3 py-1 text-muted-foreground text-xs">
+                      {PRESENCE[level]}
+                      <span className="h-px flex-1 bg-border" />
+                    </h3>
+                    {species.map((s) => (
+                      <NavLink key={s.taxon.name} href={fieldHref(s)} current={s === route.species} className={level === 0 && s !== route.species ? 'text-muted-foreground' : ''}>
+                        {s.taxon.common}
+                      </NavLink>
+                    ))}
+                  </div>
                 ))}
               </div>
             ))}
@@ -60,15 +72,17 @@ export function App() {
               Species
             </label>
             <Select id="species" value={fieldHref(route.species)} onChange={(e) => (window.location.hash = e.target.value)}>
-              {BY_HABITAT.map(({ habitat, species }) => (
-                <optgroup key={habitat.id} label={habitat.name}>
-                  {species.map((s) => (
-                    <option key={s.taxon.name} value={fieldHref(s)}>
-                      {s.taxon.common}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
+              {BY_HABITAT.map(({ habitat, levels }) =>
+                levels.map(({ level, species }) => (
+                  <optgroup key={`${habitat.id}-${level}`} label={`${habitat.name}: ${PRESENCE[level].toLowerCase()} in ${MONTHS[THIS_MONTH]}`}>
+                    {species.map((s) => (
+                      <option key={s.taxon.name} value={fieldHref(s)}>
+                        {s.taxon.common}
+                      </option>
+                    ))}
+                  </optgroup>
+                )),
+              )}
             </Select>
           </div>
           <FieldView key={route.species.taxon.name} species={route.species} />
