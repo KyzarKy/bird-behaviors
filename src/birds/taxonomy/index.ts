@@ -11,6 +11,21 @@ import {
   SpottedTowhee,
   StellersJay,
 } from './passeriformes';
+import {
+  BewicksWren,
+  BlackCappedChickadee,
+  BrownCreeper,
+  Bushtit,
+  CedarWaxwing,
+  GoldenCrownedKinglet,
+  HermitThrush,
+  HuttonsVireo,
+  PacificWren,
+  RubyCrownedKinglet,
+  SwainsonsThrush,
+  VariedThrush,
+  WarblingVireo,
+} from './forestbirds';
 import { NorthernFlicker } from './piciformes';
 import {
   AmericanGoldfinch,
@@ -174,4 +189,17 @@ export const SPECIES: readonly SpeciesClass[] = [
   RhinocerosAuklet,
   MarbledMurrelet,
   CommonMurre,
+  BewicksWren,
+  BlackCappedChickadee,
+  BrownCreeper,
+  Bushtit,
+  CedarWaxwing,
+  GoldenCrownedKinglet,
+  HermitThrush,
+  HuttonsVireo,
+  PacificWren,
+  RubyCrownedKinglet,
+  SwainsonsThrush,
+  VariedThrush,
+  WarblingVireo,
 ];
