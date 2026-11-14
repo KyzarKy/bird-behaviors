@@ -30,6 +30,8 @@ export function FieldView({ species }: { species: SpeciesClass }) {
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]['value']>('1');
   // A phone's stage is small, so it starts zoomed in on the bird.
   const [closeUp, setCloseUp] = useState(() => window.matchMedia('(max-width: 640px)').matches);
+  const [auto, setAuto] = useState(false);
+  bird.auto = auto;
   const stageRef = useRef<HTMLElement>(null);
 
   const shown = behaviors.find((b) => b.key === (current ?? lastKey));
@@ -70,6 +72,10 @@ export function FieldView({ species }: { species: SpeciesClass }) {
             <input type="checkbox" className="size-4 accent-primary" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
             Close-up
           </label>
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+            <input type="checkbox" className="size-4 accent-primary" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
+            Auto
+          </label>
         </div>
 
         <p aria-live="polite" className="min-h-24 rounded-xl border border-border border-l-4 border-l-primary bg-card p-4 leading-relaxed">
@@ -78,7 +84,7 @@ export function FieldView({ species }: { species: SpeciesClass }) {
               <strong>{shown.spec.label}.</strong> {shown.spec.cue}
             </>
           ) : (
-            <>Pick a behavior to watch. {species.taxon.note}</>
+            <>Pick a behavior to watch, or turn on Auto and let the bird choose. {species.taxon.note}</>
           )}
         </p>
       </section>

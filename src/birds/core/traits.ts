@@ -129,6 +129,8 @@ export interface BehaviorSpec {
   label: string;
   /** What a birder should watch for. */
   cue: string;
+  /** Relative odds of the bird choosing this on its own. Defaults to 1. */
+  weight?: number;
 }
 
 /**

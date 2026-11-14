@@ -1,4 +1,4 @@
-import { resolveTraits, type BirdClass } from './reflect';
+import { behaviorsOf, resolveTraits, type BirdClass } from './reflect';
 import type { BehaviorTable, Ecology, FlightProfile, Item, Look, PerchKind, Script, Taxon, Vec } from './traits';
 import type { Trunk, World } from './World';
 
@@ -142,18 +142,22 @@ export abstract class Bird {
     fly: {
       label: 'Fly to a new spot',
       cue: 'Watch the wingbeat rhythm and the line it draws through the air: steady rowing, flap-and-bound, flap-and-glide, or soaring. Flight style alone often names the family.',
+      weight: 2,
     },
     forage: {
       label: 'Forage',
       cue: 'How a bird feeds is usually its most reliable behavioral field mark.',
+      weight: 4,
     },
     preen: {
       label: 'Preen and stretch',
       cue: 'Nibbling the breast feathers, a one-wing stretch, then a full-body shake. A relaxed bird; a good moment to study plumage.',
+      weight: 2,
     },
     call: {
       label: 'Call',
       cue: 'Calls are short and given year-round by both sexes, unlike song.',
+      weight: 2,
     },
   };
 
@@ -169,11 +173,16 @@ export abstract class Bird {
   airborne = false;
   /** Key of the behavior in progress, or null when idling. */
   current: string | null = null;
+  /** Left to itself, the bird picks its own next behavior after each pause. */
+  auto = false;
 
   /** Seconds since takeoff. Drives the flap cycle and endurance. */
   protected airTime = 0;
   private script: Script | null = null;
   private speechTimer = 0;
+  /** Seconds of idling left before an autonomous bird does something. */
+  private pause = 0;
+  private last: string | null = null;
 
   constructor(readonly world: World) {
     const cls = this.constructor as BirdClass;
@@ -203,8 +212,15 @@ export abstract class Bird {
     p.kickNear = p.kickFar = p.stride = p.headThrust = p.roll = p.beakOpen = p.crest = 0;
     p.carry = null;
     p.carryInFeet = false;
-    this.current = key;
+    this.current = this.last = key;
     this.script = (method as () => Script).call(this);
+  }
+
+  /** A behavior drawn by weight from everything this class can do, never the same one twice running. */
+  private choose(): string {
+    const options = behaviorsOf(this.constructor as BirdClass).filter((b) => b.key !== this.last);
+    let roll = Math.random() * options.reduce((sum, b) => sum + (b.spec.weight ?? 1), 0);
+    return options.find((b) => (roll -= b.spec.weight ?? 1) < 0)!.key;
   }
 
   update(dt: number) {
@@ -212,6 +228,9 @@ export abstract class Bird {
     if (!this.script) {
       this.current = null;
       this.script = this.idle();
+      this.pause = rand(1.5, 4);
+    } else if (this.auto && this.current === null && (this.pause -= dt) <= 0) {
+      this.perform(this.choose());
     }
     if (this.script.next(dt).done) this.script = null;
   }

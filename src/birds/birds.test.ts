@@ -91,3 +91,20 @@ describe('regressions', () => {
     });
   }
 });
+
+describe('auto mode', () => {
+  for (const cls of SPECIES) {
+    it(`${cls.taxon.common} chooses its own behaviors and stays on stage`, () => {
+      const bird = make(cls);
+      bird.auto = true;
+      const seen = new Set<string>();
+      for (let frames = 0; frames < 60 * 120; frames++) {
+        bird.world.step(1 / 60);
+        bird.update(1 / 60);
+        if (bird.current) seen.add(bird.current);
+        expect(bird.pos.x >= 0 && bird.pos.x <= 100 && bird.pos.y > -4 && bird.pos.y < 54).toBe(true);
+      }
+      expect(seen.size).toBeGreaterThan(1);
+    });
+  }
+});
