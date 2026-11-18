@@ -42,12 +42,20 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
   const changeScene = (to: HabitatId) => (window.location.hash = fieldHref(inScene(species, to) ? species : likeliestIn(to), to));
 
   const shown = behaviors.find((b) => b.key === (current ?? lastKey));
+  // Shown in the cue panel when someone taps a behavior this scene cannot support.
+  const [blocked, setBlocked] = useState<string | null>(null);
+  const why = (key: string) => {
+    const lack = bird.missing(key);
+    return lack && `Needs ${lack}, which ${bird.world.habitat.name} does not have.`;
+  };
   const perform = (key: string) => {
+    // On a narrow screen the buttons sit below the stage and the cue panel; bring them back into view.
+    stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (why(key)) return setBlocked(key);
+    setBlocked(null);
     bird.perform(key);
     setLastKey(key);
     if (speed === '0') setSpeed('1');
-    // On a narrow screen the buttons sit below the stage; bring it back into view.
-    stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
   const f = bird.flight;
   const from = (field: keyof FlightProfile) => <ClassLink cls={flight.get(field)!} />;
@@ -73,8 +81,8 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
         <Stage bird={bird} speed={Number(speed)} closeUp={closeUp} onBehaviorChange={setCurrent} />
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div className="flex-1">
-            <Select aria-label="Scene" value={scene} onChange={(e) => changeScene(e.target.value as HabitatId)} className="w-auto">
+          <div className="w-full sm:w-auto sm:flex-1">
+            <Select aria-label="Scene" value={scene} onChange={(e) => changeScene(e.target.value as HabitatId)} className="w-full sm:w-auto">
               {Object.values(HABITATS).map((h) => (
                 <option key={h.id} value={h.id}>
                   {h.name}
@@ -94,7 +102,11 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
         </div>
 
         <p aria-live="polite" className="min-h-24 rounded-xl border border-border border-l-4 border-l-primary bg-card p-4 leading-relaxed">
-          {shown ? (
+          {blocked ? (
+            <>
+              <strong>{behaviors.find((b) => b.key === blocked)?.spec.label} is not possible here.</strong> {why(blocked)} Switch scenes to see it.
+            </>
+          ) : shown ? (
             <>
               <strong>{shown.spec.label}.</strong> {shown.spec.cue}
             </>
@@ -113,10 +125,19 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
           <ul className="mt-3 flex flex-col gap-3">
             {behaviors.map((b) => (
               <li key={b.key}>
-                <Button variant={current === b.key ? 'default' : 'outline'} aria-pressed={current === b.key} className="w-full" onClick={() => perform(b.key)}>
+                <Button
+                  variant={current === b.key ? 'default' : 'outline'}
+                  aria-pressed={current === b.key}
+                  // aria-disabled rather than disabled, so the button still shows its tooltip and explains itself when tapped.
+                  aria-disabled={!!why(b.key)}
+                  title={why(b.key) ?? undefined}
+                  className={`w-full ${why(b.key) ? 'cursor-not-allowed opacity-45' : ''}`}
+                  onClick={() => perform(b.key)}
+                >
                   {b.spec.label}
                 </Button>
                 <p className="mt-1 px-1 text-muted-foreground text-xs">
+                  {why(b.key) && <span className="text-warning">Needs {bird.missing(b.key)} · </span>}
                   <ClassLink cls={b.declaredIn} />
                   {b.implementedIn !== b.declaredIn && (
                     <>
