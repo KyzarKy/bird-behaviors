@@ -42,17 +42,13 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
   const changeScene = (to: HabitatId) => (window.location.hash = fieldHref(inScene(species, to) ? species : likeliestIn(to), to));
 
   const shown = behaviors.find((b) => b.key === (current ?? lastKey));
-  // Shown in the cue panel when someone taps a behavior this scene cannot support.
-  const [blocked, setBlocked] = useState<string | null>(null);
   const why = (key: string) => {
     const lack = bird.missing(key);
     return lack && `Needs ${lack}, which ${bird.world.habitat.name} does not have.`;
   };
   const perform = (key: string) => {
-    // On a narrow screen the buttons sit below the stage and the cue panel; bring them back into view.
+    // On a narrow screen the buttons sit below the stage; bring it back into view.
     stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    if (why(key)) return setBlocked(key);
-    setBlocked(null);
     bird.perform(key);
     setLastKey(key);
     if (speed === '0') setSpeed('1');
@@ -90,7 +86,11 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
               ))}
             </Select>
           </div>
-          <SegmentedControl label="Playback speed" value={speed} onChange={setSpeed} options={SPEEDS} />
+          {/* On phones the scene, the speed and the two checkboxes each get a row. */}
+          <div className="w-full sm:w-auto">
+            <SegmentedControl label="Playback speed" value={speed} onChange={setSpeed} options={SPEEDS} />
+          </div>
+          <div className="flex w-full gap-x-4 sm:w-auto">
           <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
             <input type="checkbox" className="size-4 accent-primary" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
             Close-up
@@ -99,19 +99,26 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
             <input type="checkbox" className="size-4 accent-primary" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
             Auto
           </label>
+          </div>
         </div>
 
         <p aria-live="polite" className="min-h-24 rounded-xl border border-border border-l-4 border-l-primary bg-card p-4 leading-relaxed">
-          {blocked ? (
-            <>
-              <strong>{behaviors.find((b) => b.key === blocked)?.spec.label} is not possible here.</strong> {why(blocked)} Switch scenes to see it.
-            </>
-          ) : shown ? (
+          {shown ? (
             <>
               <strong>{shown.spec.label}.</strong> {shown.spec.cue}
             </>
           ) : (
-            <>Pick a behavior to watch, or turn on Auto and let the bird choose. {species.taxon.note}</>
+            <>
+              {/* Below xl the behaviors card sits under the stage, often off screen; link to it. */}
+              <button
+                type="button"
+                className="text-primary underline underline-offset-2 xl:hidden"
+                onClick={() => document.getElementById('behaviors-heading')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              >
+                Pick a behavior (below)
+              </button>
+              <span className="hidden xl:inline">Pick a behavior</span> to watch, or turn on Auto and let the bird choose. {species.taxon.note}
+            </>
           )}
         </p>
       </section>
@@ -128,16 +135,16 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
                 <Button
                   variant={current === b.key ? 'default' : 'outline'}
                   aria-pressed={current === b.key}
-                  // aria-disabled rather than disabled, so the button still shows its tooltip and explains itself when tapped.
+                  // aria-disabled rather than disabled, so the tooltip still shows on hover.
                   aria-disabled={!!why(b.key)}
                   title={why(b.key) ?? undefined}
-                  className={`w-full ${why(b.key) ? 'cursor-not-allowed opacity-45' : ''}`}
-                  onClick={() => perform(b.key)}
+                  className={`w-full ${why(b.key) ? 'cursor-not-allowed opacity-45 hover:!bg-transparent active:!bg-transparent' : ''}`}
+                  onClick={() => !why(b.key) && perform(b.key)}
                 >
                   {b.spec.label}
                 </Button>
                 <p className="mt-1 px-1 text-muted-foreground text-xs">
-                  {why(b.key) && <span className="text-warning">Needs {bird.missing(b.key)} · </span>}
+                  {why(b.key) && <span className="block text-warning">{why(b.key)}</span>}
                   <ClassLink cls={b.declaredIn} />
                   {b.implementedIn !== b.declaredIn && (
                     <>
