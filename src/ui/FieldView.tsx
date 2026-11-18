@@ -4,7 +4,7 @@ import { behaviorsOf, lineage, traitSources, type BirdClass, type SpeciesClass }
 import type { Ecology, FlightProfile, HabitatId } from '../birds/core/traits';
 import { HABITATS, World } from '../birds/core/World';
 import { classHref, fieldHref } from './route';
-import { inScene, levelIn, likeliestIn, MONTHS, PRESENCE, presenceOf, THIS_MONTH } from './season';
+import { inScene, levelIn, likeliestIn, MONTHS, PRESENCE, THIS_MONTH } from './season';
 import { Stage } from './Stage';
 
 const BARS: { field: keyof FlightProfile; label: string }[] = [
@@ -178,9 +178,9 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
           <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
             <dt className="text-muted-foreground">{MONTHS[THIS_MONTH]}</dt>
             <dd>{PRESENCE[levelIn(species, scene)]} in this scene</dd>
-            <dt className="text-muted-foreground">Through the year</dt>
+            <dt className="text-muted-foreground">Here through the year</dt>
             <dd>
-              <Calendar levels={presenceOf(species)} />
+              <Calendar levels={MONTHS.map((_, m) => levelIn(species, scene, m))} />
             </dd>
             <dt className="text-muted-foreground">On the ground</dt>
             <dd>{describeGait(bird.ecology)}</dd>
