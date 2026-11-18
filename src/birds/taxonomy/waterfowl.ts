@@ -58,6 +58,7 @@ export abstract class Anatidae extends Anseriformes {
     },
     takeoffRun: {
       label: 'Take off from the water',
+      needs: 'water',
       cue: 'Dabbling ducks spring almost straight up. Diving ducks, geese and swans have to patter along the surface, flapping hard, before they lift. The heavier the bird, the longer the run.',
     },
   };

@@ -134,6 +134,8 @@ export interface BehaviorSpec {
   label: string;
   /** What a birder should watch for. */
   cue: string;
+  /** Something the scene must have for the behavior to make sense. */
+  needs?: 'water' | 'rocks' | 'bark';
   /** Relative odds of the bird choosing this on its own. Defaults to 1. */
   weight?: number;
 }

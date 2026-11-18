@@ -31,8 +31,14 @@ export abstract class Pandionidae extends Accipitriformes {
   static override ecology: Partial<Ecology> = { perches: ['post', 'treetop'], gait: 'walk', groundSpeed: 2, posture: 0.5 };
 
   static override behaviors: BehaviorTable<Pandionidae> = {
+    forage: {
+      label: 'Forage',
+      needs: 'water',
+      cue: 'Eats almost nothing but live fish, caught by plunging into open water.',
+    },
     plungeDive: {
       label: 'Hover and plunge',
+      needs: 'water',
       cue: 'Flies a slow search line 50 feet over the water, stops and hovers with the bill pointing down, then drops feet-first into a big splash and often goes in to the body. It climbs out, shakes like a dog in midair and carries the fish head-first. A Bald Eagle’s strike is a dry snatch from the surface.',
     },
   };

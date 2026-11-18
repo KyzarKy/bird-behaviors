@@ -36,10 +36,12 @@ export abstract class Picidae extends Piciformes {
   static override behaviors: BehaviorTable<Picidae> = {
     hitchUp: {
       label: 'Hitch up the trunk',
+      needs: 'bark',
       cue: 'Lands low and works upward in jerks, tail pressed to the bark as a prop, stopping to tap and probe. Reaches the top, drops to the base of the next tree, and starts again.',
     },
     drum: {
       label: 'Drum',
+      needs: 'bark',
       cue: 'A fast, even roll on the most resonant dead wood available. Drumming is the woodpecker’s song: it claims territory, and it is far faster than feeding taps.',
     },
   };

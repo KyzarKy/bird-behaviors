@@ -220,9 +220,18 @@ export abstract class Bird {
     this.script = (method as () => Script).call(this);
   }
 
+  /** What this scene lacks for a behavior (open water, rocks, bark to climb), or null if it can be done here. */
+  missing(key: string): string | null {
+    const needs = behaviorsOf(this.constructor as BirdClass).find((b) => b.key === key)?.spec.needs;
+    if (needs === 'water' && !this.world.habitat.water) return 'open water';
+    if (needs === 'rocks' && !this.world.habitat.perches.some((p) => p.kind === 'rock')) return 'rocks';
+    if (needs === 'bark' && !this.world.habitat.trunks.some((t) => t.climb)) return 'a trunk with bark to climb';
+    return null;
+  }
+
   /** A behavior drawn by weight from everything this class can do, never the same one twice running. */
   private choose(): string {
-    const options = behaviorsOf(this.constructor as BirdClass).filter((b) => b.key !== this.last);
+    const options = behaviorsOf(this.constructor as BirdClass).filter((b) => b.key !== this.last && !this.missing(b.key));
     let roll = Math.random() * options.reduce((sum, b) => sum + (b.spec.weight ?? 1), 0);
     return options.find((b) => (roll -= b.spec.weight ?? 1) < 0)!.key;
   }
@@ -680,7 +689,8 @@ export abstract class Bird {
    * and each family exposes it under its own behavior.
    */
   protected *dropOnRocks(item: Item): Script {
-    const rock = this.findPerch(['rock'], 'near');
+    // Any rock will do, including one the bird is already standing on.
+    const rock = this.world.habitat.perches.find((q) => q.kind === 'rock');
     if (!rock) return;
     yield* this.travelTo({ x: this.world.clampLand(rock.x + 9), y: 0 });
     yield* this.peck(3);

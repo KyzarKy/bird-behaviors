@@ -63,8 +63,14 @@ export abstract class Haliaeetus extends Accipitridae {
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 14, power: 0.35, agility: 0.2, glide: 0.95, flapRate: 2.5, flapDuty: 0.15, cyclePeriod: 6 };
 
   static override behaviors: BehaviorTable<Haliaeetus> = {
+    forage: {
+      label: 'Forage',
+      needs: 'water',
+      cue: 'Feeds mostly on fish, taken from the surface of open water.',
+    },
     snatchFish: {
       label: 'Snatch a fish',
+      needs: 'water',
       cue: 'A long, shallow glide low over the water, feet swung forward at the last second, and the fish is lifted off the surface. The eagle barely gets wet. An Osprey plunges in feet-first with a splash.',
     },
   };
@@ -432,6 +438,7 @@ export abstract class Laridae extends Charadriiformes {
     },
     dropShellfish: {
       label: 'Drop a clam on the rocks',
+      needs: 'rocks',
       cue: 'The same trick the crows use, learned independently: carry the clam up, drop it on something hard, follow it down.',
     },
     footPaddle: {

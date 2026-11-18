@@ -128,3 +128,22 @@ describe('drawn wingbeat rate', () => {
     for (let r = 1; r < 45; r++) expect(drawnFlapRate(r + 1)).toBeGreaterThan(drawnFlapRate(r));
   });
 });
+
+describe('scene requirements', () => {
+  // A behavior that gives up on its first frame in a scene is missing something there; it must say what, so the UI can disable it.
+  for (const cls of SPECIES) {
+    for (const scene of (Object.keys(HABITATS) as HabitatId[]).filter((h) => inScene(cls, h))) {
+      it(`${cls.taxon.common} (${scene}) declares what it needs`, () => {
+        for (const { key } of behaviorsOf(cls)) {
+          const bird = make(cls, scene);
+          if (bird.missing(key)) continue;
+          bird.update(1 / 60);
+          bird.perform(key);
+          bird.update(1 / 60);
+          bird.update(1 / 60);
+          expect(bird.current, `${key} ends at once`).toBe(key);
+        }
+      });
+    }
+  }
+});

@@ -220,6 +220,7 @@ export class AmericanCrow extends Corvus {
   static override behaviors: BehaviorTable<AmericanCrow> = {
     dropShellfish: {
       label: 'Drop a clam on the rocks',
+      needs: 'rocks',
       cue: 'Digs a clam at the tideline, flies straight up over rock or pavement, lets go, and follows it down. If it does not break, it goes higher.',
     },
   };
