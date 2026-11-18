@@ -15,6 +15,9 @@ Two stages in split view, each with its own bird, running the same behavior in s
 
 `Stage` already takes a bird as a prop, so this is mostly layout plus a shared clock.
 
+### Flock toggle
+A switch beside Auto and Close-up that fills the stage with a flock of the selected species, so you can see how it looks and acts in a group: a quail covey with a sentinel, bushtits streaming bush to bush, a tight starling flock wheeling, a goose V, scoters rafting offshore. Solitary species would show a loose pair or nothing more. Needs `Stage` to step and draw several birds, and a per-class flock size and spacing (another static merged down the lineage). Mixed flocks, such as chickadees with nuthatches or gulls mobbing an eagle, come after.
+
 ### ID quiz
 A silhouette performs behaviors and you name the species from movement alone. Needs a silhouette flag in `drawBird` (fill everything one color) and a small quiz component. Good fit with auto mode.
 
@@ -23,7 +26,6 @@ A silhouette performs behaviors and you name the species from movement alone. Ne
 - **Things the renderer cannot draw yet.** White outer tail feathers (junco), a wing epaulet (Red-winged Blackbird), a rump patch (Yellow-rumped Warbler), a head that turns without the neck (owls), and rodent prey for hawks and owls. Each is worked around in the species files today.
 - **Behavior weights for auto mode.** Only the four `Bird`-level behaviors set a `weight`; displays and rare behaviors still come up as often as anything else.
 - **Sexes and seasons.** Female and juvenile plumages as `Look` variants; seasonal presence on the Miller Peninsula.
-- **Flocks.** Several instances on one stage: a quail covey with a sentinel, a mixed chickadee and nuthatch flock, gulls mobbing an eagle.
 - **Sound.** Real recordings in place of the text mnemonics.
 - **Tide and time of day** on the beach habitat, changing which behaviors are available.
 - **Wind.** A wind vector in `World` that `flyTo` and `hoverFor` read, so gulls and kingfishers can kite into it.
