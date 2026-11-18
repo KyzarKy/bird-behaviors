@@ -30,5 +30,5 @@ The hummingbird arrives at a flower at full speed and stops. The kingfisher has 
 ## What is simplified
 
 - The model is kinematic. It steers a velocity; it does not compute lift and drag.
-- Wingbeats are drawn slower than life at the fast end. A 60 Hz screen shows about 14 beats per second at most, so the hummingbird's 45 is drawn at 14 and every other rate is scaled against it (`drawnFlapRate` in `Bird.ts`). An eagle's 2.5 stays 2.5; a chickadee's 25 becomes 10.
+- Wingbeats up to 10 a second are drawn at their real rate. Faster ones are compressed so the hummingbird's 45 is drawn at 20, the fastest a 60 Hz screen shows smoothly (three frames per beat). A chickadee's 25 becomes about 17 and a quail's 14 about 13 (`drawnFlapRate` in `Bird.ts`).
 - The values are estimates from natural-history descriptions.

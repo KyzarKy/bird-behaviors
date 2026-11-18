@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { drawnFlapRate } from './core/Bird';
 import { behaviorsOf, buildTree, lineage, traitSources, type BirdClass } from './core/reflect';
 import { HABITATS, World } from './core/World';
 import { SPECIES } from './taxonomy';
@@ -112,4 +113,15 @@ describe('auto mode', () => {
       expect(seen.size).toBeGreaterThan(1);
     });
   }
+});
+
+describe('drawn wingbeat rate', () => {
+  it('is true to life up to 10/s, smooth above, and 20/s for a hummingbird', () => {
+    for (const r of [1, 2.5, 7, 10]) expect(drawnFlapRate(r)).toBe(r);
+    expect(drawnFlapRate(45)).toBeCloseTo(20, 1);
+    expect(drawnFlapRate(60)).toBe(20);
+    // No kink at the knee, and faster birds always beat faster on screen.
+    expect(drawnFlapRate(10.01) - 10).toBeCloseTo(0.01, 3);
+    for (let r = 1; r < 45; r++) expect(drawnFlapRate(r + 1)).toBeGreaterThan(drawnFlapRate(r));
+  });
 });

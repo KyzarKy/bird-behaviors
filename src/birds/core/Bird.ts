@@ -5,17 +5,21 @@ import type { Trunk, World } from './World';
 /** Stage units per second for each m/s of real airspeed. */
 const SPEED = 2.2;
 const TAU = Math.PI * 2;
-/** The fastest wingbeat a 60 Hz screen still shows as a beat: about four frames per stroke. */
-const MAX_DRAWN_FLAP = 14;
-/** The fastest real wingbeat in the hierarchy (hummingbirds). It is drawn at the maximum. */
-const FASTEST_FLAP = 45;
+/** Wingbeats up to this rate are drawn at their real speed: at 60 frames a second each beat still gets six frames. */
+const TRUE_TO_LIFE_FLAP = 10;
+/** The fastest beat a 60 Hz screen draws smoothly, three frames per beat. The hummingbird's 45 is drawn here. */
+const MAX_DRAWN_FLAP = 20;
+/** Chosen so the curve passes through (45, 20): solves k * ln(1 + 35 / k) = 10. */
+const FLAP_KNEE = 4.68;
 
 /**
- * Real wingbeats per second to drawn ones. Every rate is placed relative to the
- * hummingbird's at the top. The curve leaves slow fliers near their true rate
- * and compresses fast ones, so they stay in order without running off the screen.
+ * Real wingbeats per second to drawn ones. Up to 10 a second they are left
+ * alone. Above that the extra is compressed on a log curve that starts at
+ * the same slope, so there is no visible kink, and reaches 20 at the
+ * hummingbird's 45. A chickadee's 25 is drawn at about 17; an eagle's 2.5 at 2.5.
  */
-export const drawnFlapRate = (real: number) => MAX_DRAWN_FLAP * Math.min(1, real / FASTEST_FLAP) ** 0.6;
+export const drawnFlapRate = (real: number) =>
+  real <= TRUE_TO_LIFE_FLAP ? real : Math.min(MAX_DRAWN_FLAP, TRUE_TO_LIFE_FLAP + FLAP_KNEE * Math.log(1 + (real - TRUE_TO_LIFE_FLAP) / FLAP_KNEE));
 
 export const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 export const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
