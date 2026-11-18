@@ -90,7 +90,7 @@ export class Osprey extends Pandion {
     note: 'White below with a dark eye stripe and a brown necklace, and a kink at the wrist in flight. Summer only: arrives in April, fishes Discovery Bay and the Gardiner shoreline, and is gone by October.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { yard: 1 },
     habitat: 'beach',
     call: 'chewk-chewk-chewk (a whistled, rising chirp)',
     presence: [0, 0, 0, 1, 2, 2, 2, 2, 1, 0, 0, 0],
@@ -192,7 +192,7 @@ export class RedTailedHawk extends Buteo {
     note: 'Brown above with a pale, streaky belly band, dark bars on the front edge of the underwing and a rusty tail on adults. The common hawk over the Miller Peninsula clearings all year, usually on a pole or treetop.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 1 },
     call: 'keeeeer (a hoarse, descending scream)',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
   };
@@ -394,7 +394,7 @@ export class NorthernHarrier extends Circus {
     note: 'A white rump patch above a long tail marks every plumage. Adult males are pale gray, females and young brown with a streaked buff belly. Winters over the marsh and grass at Gardiner and the head of Discovery Bay, October to March.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { yard: 1 },
     habitat: 'beach',
     call: 'kek-kek-kek-kek (thin and rapid, rarely heard)',
     presence: [2, 2, 2, 1, 0, 0, 0, 1, 1, 2, 2, 2],
@@ -517,7 +517,7 @@ export class TurkeyVulture extends Cathartes {
     note: 'Blackish with a small, bare red head and a long tail. A summer visitor over the Miller Peninsula, arriving in March and gone by October. Look for it over open ground on warm afternoons.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
     call: 'hsss (a hiss; it has no true voice)',
     presence: [0, 0, 1, 2, 2, 2, 2, 2, 2, 1, 0, 0],
   };
@@ -618,7 +618,7 @@ export class PeregrineFalcon extends Falco {
 
   static override flight: Partial<FlightProfile> = { flapRate: 4.5, power: 0.75 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { yard: 1 },
     habitat: 'beach',
     perches: ['post', 'rock', 'treetop'],
     call: 'kak-kak-kak-kak (harsh and fast)',

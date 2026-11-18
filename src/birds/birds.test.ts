@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { drawnFlapRate } from './core/Bird';
 import { behaviorsOf, buildTree, lineage, traitSources, type BirdClass } from './core/reflect';
 import { HABITATS, World } from './core/World';
+import type { HabitatId } from './core/traits';
+import { inScene } from '../ui/season';
 import { SPECIES } from './taxonomy';
 import { Galliformes, Chicken, CaliforniaQuail } from './taxonomy/galliformes';
 import { AnnasHummingbird, Trochilidae } from './taxonomy/apodiformes';
@@ -9,9 +11,9 @@ import { Colaptes, NorthernFlicker, Picidae } from './taxonomy/piciformes';
 import { BaldEagle, BeltedKingfisher } from './taxonomy/waterside';
 
 const names = (classes: BirdClass[]) => classes.map((c) => c.taxon.name);
-const make = (cls: (typeof SPECIES)[number]) => {
+const make = (cls: (typeof SPECIES)[number], scene?: HabitatId) => {
   const proto = Object.assign({}, ...lineage(cls).map((c) => (Object.hasOwn(c, 'ecology') ? c.ecology : {})));
-  return new cls(new World(HABITATS[proto.habitat as 'yard' | 'beach']));
+  return new cls(new World(HABITATS[scene ?? (proto.habitat as HabitatId)]));
 };
 
 describe('hierarchy', () => {
@@ -61,9 +63,10 @@ describe('hierarchy', () => {
 describe('simulation', () => {
   // Every behavior of every species must run to completion and keep the bird on stage.
   for (const cls of SPECIES) {
+    for (const scene of (Object.keys(HABITATS) as HabitatId[]).filter((h) => inScene(cls, h)))
     for (const { key } of behaviorsOf(cls)) {
-      it(`${cls.taxon.common}: ${key}`, () => {
-        const bird = make(cls);
+      it(`${cls.taxon.common} (${scene}): ${key}`, () => {
+        const bird = make(cls, scene);
         bird.update(1 / 60);
         bird.perform(key);
         let frames = 0;

@@ -143,7 +143,7 @@ export class NorthernFlicker extends Colaptes {
     note: 'Brown and barred with a spotted belly and a black crescent on the chest. When it flies, look for the white rump and the salmon-red flash under the wings of our western “red-shafted” birds.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'kleeer!   …wicka-wicka-wicka', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
+  static override ecology: Partial<Ecology> = { scenes: { beach: 1 }, call: 'kleeer!   …wicka-wicka-wicka', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.31,

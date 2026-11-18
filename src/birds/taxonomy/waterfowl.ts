@@ -999,7 +999,7 @@ export class CanadaGoose extends Branta {
     note: 'Black neck and head with a white chinstrap, brown body. Around Gardiner Beach and the Miller Peninsula shore all year, grazing the grass above the beach and loafing on the water.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { yard: 2 },
     call: 'ah-HONK, ah-HONK',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
   };

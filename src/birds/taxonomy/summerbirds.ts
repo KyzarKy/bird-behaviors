@@ -84,7 +84,7 @@ export class VioletGreenSwallow extends Tachycineta {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 12, flapRate: 12 };
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 3 },
     habitat: 'yard',
     perches: ['twig', 'branch'],
     call: 'chit-chit, tsip',
@@ -117,7 +117,7 @@ export class TreeSwallow extends Tachycineta {
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 10 };
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
     habitat: 'yard',
     perches: ['twig', 'post'],
     call: 'chee-weet, chi-veet',
@@ -160,7 +160,7 @@ export class BarnSwallow extends Hirundo {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 11, flapRate: 9, glide: 0.7 };
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 3 },
     habitat: 'yard',
     perches: ['post', 'twig'],
     call: 'kvick-kvick, witt-witt',

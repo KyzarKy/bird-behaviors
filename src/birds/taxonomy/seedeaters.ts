@@ -60,7 +60,7 @@ export class DarkEyedJunco extends Junco {
     note: 'The Oregon form here: dark slate hood, brown back, pinkish sides, pale pink bill. Present all year on the Miller Peninsula; the flocks under the feeder and along the forest edge are largest from fall to spring.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 1 },
     call: 'tsip, and a dry smacking tck',
     song: 'a flat, musical trill on one pitch',
     presence: [3, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3],
@@ -120,7 +120,7 @@ export class SongSparrow extends Melospiza {
     note: 'Brown, heavily streaked, with the streaks gathering into a dark central spot on the breast. The commonest sparrow of Gardiner and the Discovery Bay shoreline thickets, singing from a bush top most of the year.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
     call: 'chimp (a flat, nasal chip)',
     song: 'maids-maids-maids, put on your tea-kettle-ettle-ettle',
     presence: [2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2],
@@ -192,7 +192,7 @@ export class WhiteCrownedSparrow extends Zonotrichia {
     note: 'Crisp black and white head stripes, gray breast, pink-orange bill. The Puget Sound form nests in brushy clearings and the dune edge at Gardiner and along the Miller Peninsula from April to August; a few stay through winter.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
     call: 'pink! (a sharp, metallic chip)',
     song: 'I-whistle-then-buzz-chee-zee (a clear whistle, then buzzy trills)',
     presence: [1, 1, 2, 3, 3, 3, 3, 3, 2, 2, 1, 1],
@@ -349,7 +349,7 @@ export class SavannahSparrow extends Passerculus {
     note: 'Streaky and pale, with a yellow eyebrow, a short notched tail and pink legs. A summer bird of the beach-grass edge at Gardiner and the open grass on Protection Island and the Miller Peninsula, from April to September.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 3 },
     call: 'tsip (thin)',
     song: 'tip-tip-tip, see-see-see, say-whee (thin and buzzy)',
     presence: [0, 0, 1, 2, 3, 3, 3, 2, 2, 1, 0, 0],
@@ -877,7 +877,7 @@ export class BrewersBlackbird extends Euphagus {
     note: 'The male is glossy black with a purple head and a pale yellow eye; the female is gray-brown with a dark eye. Uncommon at Gardiner and the Miller Peninsula, in parking lots and farm fields, more often in flocks from spring to fall.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
     call: 'tchk (a hard click)',
     song: 'a creaky, wheezy ksh-eeek',
     presence: [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1],
@@ -1088,7 +1088,7 @@ export class EuropeanStarling extends Sturnus {
     note: 'Black with a green and purple gloss, a short square tail and a long pointed bill that is yellow in spring and dark in fall; winter birds are speckled white. Common at Gardiner and the Miller Peninsula all year, on lawns and in nest holes in dead trees.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
     call: 'a drawn-out, descending sleeee',
     song: 'whistles, clicks and rattles mixed with mimicry of other birds',
     presence: [2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2],

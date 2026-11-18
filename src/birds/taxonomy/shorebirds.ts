@@ -108,7 +108,7 @@ export class Killdeer extends Charadrius {
 
   static override flight: Partial<FlightProfile> = { flapRate: 5.5 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { yard: 1 },
     call: 'kill-DEE kill-DEE dee-dee-dee',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
   };

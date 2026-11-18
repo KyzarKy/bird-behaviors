@@ -60,6 +60,11 @@ export interface Ecology {
   groundSpeed: number;
   /** Pigeon-style head thrust while walking. */
   headBob: boolean;
+  /**
+   * Other scenes it turns up in, each with the most it is ever seen there
+   * (0..3, as in `presence`). Its own `habitat` always counts as 3.
+   */
+  scenes?: Partial<Record<HabitatId, number>>;
   /** Floats on the water instead of wading on the bottom. */
   swims: boolean;
   /**

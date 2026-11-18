@@ -214,7 +214,7 @@ export class AmericanCrow extends Corvus {
     note: 'The beach crows of Puget Sound were once split as “Northwestern Crow.” Square tail, steady rowing flight with no soaring, and a plain caw.',
   };
 
-  static override ecology: Partial<Ecology> = { habitat: 'beach', call: 'caw! caw! caw!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
+  static override ecology: Partial<Ecology> = { scenes: { yard: 3 }, habitat: 'beach', call: 'caw! caw! caw!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
   static override look: Partial<Look> = { length: 0.45 };
 
   static override behaviors: BehaviorTable<AmericanCrow> = {
@@ -239,7 +239,7 @@ export class CommonRaven extends Corvus {
 
   // The quickest way to split it from a crow: ravens soar, crows do not.
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 12, glide: 0.85, flapRate: 3.5, flapDuty: 0.35, cyclePeriod: 3.2 };
-  static override ecology: Partial<Ecology> = { call: 'kraaak… kraaak…', perches: ['treetop', 'branch'], presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
+  static override ecology: Partial<Ecology> = { scenes: { beach: 2 }, call: 'kraaak… kraaak…', perches: ['treetop', 'branch'], presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
   static override look: Partial<Look> = { length: 0.62, tailShape: 'pointed', tailLength: 0.6, beakLength: 0.85, wingSpan: 2 };
 
   static override behaviors: BehaviorTable<CommonRaven> = {
@@ -441,7 +441,7 @@ export class AmericanRobin extends Turdus {
     note: 'The yardstick bird: other species are described as “smaller than a robin.” Gray-brown above, brick-orange below, with a broken white eye-ring.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'tut-tut-tut… peek!', song: 'cheerily, cheer-up, cheer-up, cheerily', presence: [2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2] };
+  static override ecology: Partial<Ecology> = { scenes: { beach: 1 }, call: 'tut-tut-tut… peek!', song: 'cheerily, cheer-up, cheer-up, cheerily', presence: [2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2] };
 
   static override look: Partial<Look> = {
     length: 0.25,
@@ -713,7 +713,7 @@ export class SpottedTowhee extends Pipilo {
     note: 'Black hood, red eye, rufous flanks, white belly, white spots on the wing. Lives in the salal and sword fern and rarely comes far out of cover.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'meeewww? (a rising, catlike whine)', song: 'chup-chup-zeeeeeee', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
+  static override ecology: Partial<Ecology> = { scenes: { beach: 1 }, call: 'meeewww? (a rising, catlike whine)', song: 'chup-chup-zeeeeeee', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.21,

@@ -528,7 +528,7 @@ export class RockPigeon extends Columba {
 
   static override flight: Partial<FlightProfile> = { flapRate: 6 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
     call: "coo-roo-c'too-coo",
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
   };
@@ -592,7 +592,7 @@ export class EurasianCollaredDove extends Streptopelia {
 
   static override flight: Partial<FlightProfile> = { flapRate: 6.5 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { scenes: { beach: 1 },
     call: 'koo-KOO-kook (three notes, middle one stressed); harsh hwaah in flight',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
   };
