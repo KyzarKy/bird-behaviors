@@ -1,30 +1,32 @@
 import { SegmentedControl, Select } from '@kyzarky/ui';
 import { useState } from 'react';
-import { resolveTraits } from './birds/core/reflect';
-import type { Ecology } from './birds/core/traits';
-import { HABITATS } from './birds/core/World';
 import { SPECIES } from './birds/taxonomy';
 import { NavLink } from './ui/bits';
 import { FieldView } from './ui/FieldView';
 import { HierarchyView } from './ui/HierarchyView';
 import { classHref, fieldHref, speciesFor, useRoute } from './ui/route';
-import { MONTHS, PRESENCE, presenceOf, THIS_MONTH } from './ui/season';
-
-/** Each habitat's species, grouped by how easy they are to find this month, likeliest first. */
-const BY_HABITAT = Object.values(HABITATS).map((habitat) => {
-  const here = SPECIES.filter((s) => resolveTraits<Ecology>(s, 'ecology').habitat === habitat.id);
-  const levels = [3, 2, 1, 0].map((level) => ({ level, species: here.filter((s) => presenceOf(s)[THIS_MONTH] === level) }));
-  return { habitat, levels: levels.filter((l) => l.species.length > 0) };
-});
+import { groupsIn, levelIn, MONTHS, PRESENCE, THIS_MONTH } from './ui/season';
 
 export function App() {
   const route = useRoute();
   const [query, setQuery] = useState('');
+  // Which presence groups are expanded. Choosing another bird or scene resets it to just the current bird's group.
+  const [expanded, setExpanded] = useState({ key: '', levels: new Set<number>() });
   const matches = (s: (typeof SPECIES)[number]) => `${s.taxon.common} ${s.taxon.name}`.toLowerCase().includes(query.trim().toLowerCase());
   // Switching tabs keeps the subject: a species opens as its class, a class as its first species.
   const switchView = (view: 'field' | 'class') => {
     if (view === route.view) return;
     window.location.hash = route.view === 'field' ? classHref(route.species) : fieldHref(speciesFor(route.cls));
+  };
+
+  const scene = route.view === 'field' ? route.scene : 'yard';
+  const groups = groupsIn(scene);
+  const key = route.view === 'field' ? `${route.species.taxon.name}/${scene}` : '';
+  const open = expanded.key === key ? expanded.levels : new Set(route.view === 'field' ? [levelIn(route.species, scene)] : []);
+  const toggle = (level: number) => {
+    const levels = new Set(open);
+    if (!levels.delete(level)) levels.add(level);
+    setExpanded({ key, levels });
   };
 
   return (
@@ -59,44 +61,49 @@ export function App() {
               onChange={(e) => setQuery(e.target.value)}
               className="mb-4 h-9 w-full rounded-lg border border-border bg-card px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
             />
-            {BY_HABITAT.map(({ habitat, levels }) => ({ habitat, levels: levels.map(({ level, species }) => ({ level, species: species.filter(matches) })).filter((l) => l.species.length > 0) })).filter((h) => h.levels.length > 0).map(({ habitat, levels }) => (
-              <div key={habitat.id} className="mb-6">
-                <h2 className="mb-2 px-3 font-semibold text-muted-foreground text-xs uppercase tracking-wider">{habitat.name}</h2>
-                {levels.map(({ level, species }) => (
-                  <div key={level} className="mb-2">
-                    <h3 className="flex items-center gap-2 px-3 py-1 text-muted-foreground text-xs">
-                      {PRESENCE[level]}
-                      <span className="h-px flex-1 bg-border" />
-                    </h3>
-                    {species.map((s) => (
-                      <NavLink key={s.taxon.name} href={fieldHref(s)} current={s === route.species} className={level === 0 && s !== route.species ? 'text-muted-foreground' : ''}>
-                        {s.taxon.common}
-                      </NavLink>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            ))}
+            {groups.map(({ level, species }) => ({ level, species: species.filter(matches) })).filter((g) => g.species.length > 0).map(({ level, species }) => {
+              // While searching, every group with a match stays open.
+              const isOpen = query.trim() !== '' || open.has(level);
+              return (
+                <details key={level} open={isOpen} className="mb-2">
+                  <summary
+                    className="flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-3 text-muted-foreground text-xs hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:min-h-11 [&::-webkit-details-marker]:hidden"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggle(level);
+                    }}
+                  >
+                    <span aria-hidden className={`transition-transform ${isOpen ? 'rotate-90' : ''}`}>›</span>
+                    {PRESENCE[level]}
+                    <span className="h-px flex-1 bg-border" />
+                    {species.length}
+                  </summary>
+                  {species.map((s) => (
+                    <NavLink key={s.taxon.name} href={fieldHref(s, scene)} current={s === route.species} className={level === 0 && s !== route.species ? 'text-muted-foreground' : ''}>
+                      {s.taxon.common}
+                    </NavLink>
+                  ))}
+                </details>
+              );
+            })}
           </nav>
           <div className="lg:hidden">
             <label htmlFor="species" className="mb-1 block text-muted-foreground text-sm">
               Species
             </label>
-            <Select id="species" value={fieldHref(route.species)} onChange={(e) => (window.location.hash = e.target.value)}>
-              {BY_HABITAT.map(({ habitat, levels }) =>
-                levels.map(({ level, species }) => (
-                  <optgroup key={`${habitat.id}-${level}`} label={`${habitat.name}: ${PRESENCE[level].toLowerCase()} in ${MONTHS[THIS_MONTH]}`}>
-                    {species.map((s) => (
-                      <option key={s.taxon.name} value={fieldHref(s)}>
-                        {s.taxon.common}
-                      </option>
-                    ))}
-                  </optgroup>
-                )),
-              )}
+            <Select id="species" value={fieldHref(route.species, scene)} onChange={(e) => (window.location.hash = e.target.value)}>
+              {groups.map(({ level, species }) => (
+                <optgroup key={level} label={`${PRESENCE[level]} in ${MONTHS[THIS_MONTH]}`}>
+                  {species.map((s) => (
+                    <option key={s.taxon.name} value={fieldHref(s, scene)}>
+                      {s.taxon.common}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
             </Select>
           </div>
-          <FieldView key={route.species.taxon.name} species={route.species} />
+          <FieldView key={key} species={route.species} scene={scene} />
         </main>
       ) : (
         <main>

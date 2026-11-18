@@ -1,10 +1,10 @@
-import { Button, Card, Link, List, ListRow, Meter, SegmentedControl } from '@kyzarky/ui';
-import { useMemo, useRef, useState } from 'react';
-import { behaviorsOf, lineage, resolveTraits, traitSources, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
-import type { Ecology, FlightProfile } from '../birds/core/traits';
+import { Button, Card, Link, List, ListRow, Meter, SegmentedControl, Select } from '@kyzarky/ui';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { behaviorsOf, lineage, traitSources, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
+import type { Ecology, FlightProfile, HabitatId } from '../birds/core/traits';
 import { HABITATS, World } from '../birds/core/World';
-import { classHref } from './route';
-import { MONTHS, PRESENCE, presenceOf, THIS_MONTH } from './season';
+import { classHref, fieldHref } from './route';
+import { inScene, levelIn, likeliestIn, MONTHS, PRESENCE, presenceOf, THIS_MONTH } from './season';
 import { Stage } from './Stage';
 
 const BARS: { field: keyof FlightProfile; label: string }[] = [
@@ -22,8 +22,8 @@ const SPEEDS = [
   { value: '1', label: '1×' },
 ] as const;
 
-export function FieldView({ species }: { species: SpeciesClass }) {
-  const bird = useMemo(() => new species(new World(HABITATS[resolveTraits<Ecology>(species, 'ecology').habitat])), [species]);
+export function FieldView({ species, scene }: { species: SpeciesClass; scene: HabitatId }) {
+  const bird = useMemo(() => new species(new World(HABITATS[scene])), [species, scene]);
   const behaviors = useMemo(() => behaviorsOf(species).reverse(), [species]);
   const flight = useMemo(() => new Map(traitSources(species, 'flight').map((s) => [s.field, s.from])), [species]);
   const [current, setCurrent] = useState<string | null>(null);
@@ -34,6 +34,12 @@ export function FieldView({ species }: { species: SpeciesClass }) {
   const [auto, setAuto] = useState(false);
   bird.auto = auto;
   const stageRef = useRef<HTMLElement>(null);
+  // A new bird or scene was picked, possibly from far down the list: bring the stage back into view.
+  useEffect(() => {
+    stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, []);
+  // Keep the bird if it visits the new scene; otherwise show the likeliest bird there.
+  const changeScene = (to: HabitatId) => (window.location.hash = fieldHref(inScene(species, to) ? species : likeliestIn(to), to));
 
   const shown = behaviors.find((b) => b.key === (current ?? lastKey));
   const perform = (key: string) => {
@@ -67,7 +73,15 @@ export function FieldView({ species }: { species: SpeciesClass }) {
         <Stage bird={bird} speed={Number(speed)} closeUp={closeUp} onBehaviorChange={setCurrent} />
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="flex-1 text-muted-foreground text-sm">{bird.world.habitat.name}</span>
+          <div className="flex-1">
+            <Select aria-label="Scene" value={scene} onChange={(e) => changeScene(e.target.value as HabitatId)} className="w-auto">
+              {Object.values(HABITATS).map((h) => (
+                <option key={h.id} value={h.id}>
+                  {h.name}
+                </option>
+              ))}
+            </Select>
+          </div>
           <SegmentedControl label="Playback speed" value={speed} onChange={setSpeed} options={SPEEDS} />
           <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
             <input type="checkbox" className="size-4 accent-primary" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
@@ -135,7 +149,7 @@ export function FieldView({ species }: { species: SpeciesClass }) {
           <p className="mt-2 leading-relaxed">{species.taxon.note}</p>
           <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
             <dt className="text-muted-foreground">{MONTHS[THIS_MONTH]}</dt>
-            <dd>{PRESENCE[presenceOf(species)[THIS_MONTH]]} here</dd>
+            <dd>{PRESENCE[levelIn(species, scene)]} in this scene</dd>
             <dt className="text-muted-foreground">Through the year</dt>
             <dd>
               <Calendar levels={presenceOf(species)} />
