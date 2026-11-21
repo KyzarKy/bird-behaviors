@@ -20,6 +20,12 @@ export function App() {
 
   const scene = route.view === 'field' ? route.scene : 'yard';
   const groups = groupsIn(scene);
+  // Birds that never visit this scene, so one overhead can be found from anywhere; their links open their own habitat.
+  const others = SPECIES.filter((s) => !inScene(s, scene));
+  const sidebar = [
+    ...groups.map(({ level, species }) => ({ level, label: PRESENCE[level], species, href: (s: (typeof SPECIES)[number]) => fieldHref(s, scene) })),
+    { level: -1, label: 'In other scenes', species: others, href: (s: (typeof SPECIES)[number]) => fieldHref(s) },
+  ];
   const key = route.view === 'field' ? `${route.species.taxon.name}/${scene}` : '';
   const open = expanded.key === key ? expanded.levels : new Set(route.view === 'field' ? [levelIn(route.species, scene)] : []);
   const toggle = (level: number) => {
@@ -53,7 +59,7 @@ export function App() {
           <nav aria-label="Species" className="hidden lg:block">
             <p className="mb-4 px-3 text-muted-foreground text-xs">Sorted by how likely you are to see each one in {MONTHS[THIS_MONTH]}.</p>
             <Input type="search" aria-label="Filter species by name" placeholder="Filter by name" value={query} onChange={(e) => setQuery(e.target.value)} className="mb-4" />
-            {groups.map(({ level, species }) => ({ level, species: species.filter(matches) })).filter((g) => g.species.length > 0).map(({ level, species }) => {
+            {sidebar.map((g) => ({ ...g, species: g.species.filter(matches) })).filter((g) => g.species.length > 0).map(({ level, label, species, href }) => {
               // While searching, every group with a match stays open.
               const isOpen = query.trim() !== '' || open.has(level);
               return (
@@ -66,12 +72,12 @@ export function App() {
                     }}
                   >
                     <span aria-hidden className={`transition-transform ${isOpen ? 'rotate-90' : ''}`}>›</span>
-                    {PRESENCE[level]}
+                    {label}
                     <span className="h-px flex-1 bg-border" />
                     {species.length}
                   </summary>
                   {species.map((s) => (
-                    <NavLink key={s.taxon.name} href={fieldHref(s, scene)} current={s === route.species} className={level === 0 && s !== route.species ? 'text-muted-foreground' : ''}>
+                    <NavLink key={s.taxon.name} href={href(s)} current={s === route.species} className={level <= 0 && s !== route.species ? 'text-muted-foreground' : ''}>
                       {s.taxon.common}
                     </NavLink>
                   ))}
@@ -93,8 +99,7 @@ export function App() {
                 ...groups.flatMap(({ level, species }) =>
                   species.map((s) => ({ value: fieldHref(s, scene), label: s.taxon.common, keywords: s.taxon.name, group: `${PRESENCE[level]} in ${MONTHS[THIS_MONTH]}` })),
                 ),
-                // So a bird overhead can be found from any scene; picking one opens its own habitat.
-                ...SPECIES.filter((s) => !inScene(s, scene)).map((s) => ({ value: fieldHref(s), label: s.taxon.common, keywords: s.taxon.name, group: 'In other scenes' })),
+                ...others.map((s) => ({ value: fieldHref(s), label: s.taxon.common, keywords: s.taxon.name, group: 'In other scenes' })),
               ]}
             />
           </div>
