@@ -1,7 +1,6 @@
-import { Card, Link, Select, Table } from '@kyzarky/ui';
+import { Card, Combobox, Link, NavLink, Table, Tag } from '@kyzarky/ui';
 import { behaviorsOf, lineage, ownBehaviors, traitSources, type BirdClass, type TraitKey, type TraitSource } from '../birds/core/reflect';
 import { SPECIES } from '../birds/taxonomy';
-import { NavLink, Tag } from './bits';
 import { CLASSES, classHref, fieldHref } from './route';
 
 const TABLES: { key: TraitKey; title: string }[] = [
@@ -45,14 +44,18 @@ export function HierarchyView({ selected }: { selected: BirdClass }) {
         <label htmlFor="class" className="mb-1 block text-muted-foreground text-sm">
           Class
         </label>
-        <Select id="class" value={classHref(selected)} onChange={(e) => (window.location.hash = e.target.value)}>
-          {CLASSES.map(({ cls, depth }) => (
-            <option key={cls.taxon.name} value={classHref(cls)}>
-              {'  '.repeat(depth)}
-              {cls.taxon.rank === 'species' ? cls.taxon.common : cls.taxon.name}
-            </option>
-          ))}
-        </Select>
+        <Combobox
+          id="class"
+          placeholder="Type a class or bird"
+          value={classHref(selected)}
+          onChange={(href) => (window.location.hash = href)}
+          options={CLASSES.map(({ cls, depth }) => ({
+            value: classHref(cls),
+            // Non-breaking spaces, so the indent that shows the tree isn't collapsed.
+            label: '  '.repeat(depth) + (cls.taxon.rank === 'species' ? cls.taxon.common : cls.taxon.name),
+            keywords: cls.taxon.rank === 'species' ? cls.taxon.name : cls.taxon.common,
+          }))}
+        />
       </div>
 
       <Card aria-labelledby="class-name" className="flex flex-col gap-8">

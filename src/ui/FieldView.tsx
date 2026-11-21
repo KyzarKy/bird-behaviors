@@ -1,4 +1,4 @@
-import { Button, Card, Link, List, ListRow, Meter, SegmentedControl, Select } from '@kyzarky/ui';
+import { Button, Card, Checkbox, Link, List, ListRow, Meter, SegmentedControl, Select } from '@kyzarky/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { behaviorsOf, lineage, traitSources, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
 import type { Ecology, FlightProfile, HabitatId } from '../birds/core/traits';
@@ -91,14 +91,8 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
             <SegmentedControl label="Playback speed" value={speed} onChange={setSpeed} options={SPEEDS} />
           </div>
           <div className="flex w-full gap-x-4 sm:w-auto">
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
-            <input type="checkbox" className="size-4 accent-primary" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
-            Close-up
-          </label>
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
-            <input type="checkbox" className="size-4 accent-primary" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
-            Auto
-          </label>
+            <Checkbox label="Close-up" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
+            <Checkbox label="Auto" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
           </div>
         </div>
 

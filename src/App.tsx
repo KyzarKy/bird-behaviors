@@ -1,11 +1,10 @@
-import { SegmentedControl, Select } from '@kyzarky/ui';
+import { Combobox, Input, NavLink, SegmentedControl } from '@kyzarky/ui';
 import { useState } from 'react';
 import { SPECIES } from './birds/taxonomy';
-import { NavLink } from './ui/bits';
 import { FieldView } from './ui/FieldView';
 import { HierarchyView } from './ui/HierarchyView';
 import { classHref, fieldHref, speciesFor, useRoute } from './ui/route';
-import { groupsIn, levelIn, MONTHS, PRESENCE, THIS_MONTH } from './ui/season';
+import { groupsIn, inScene, levelIn, MONTHS, PRESENCE, THIS_MONTH } from './ui/season';
 
 export function App() {
   const route = useRoute();
@@ -53,14 +52,7 @@ export function App() {
         <main className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)]">
           <nav aria-label="Species" className="hidden lg:block">
             <p className="mb-4 px-3 text-muted-foreground text-xs">Sorted by how likely you are to see each one in {MONTHS[THIS_MONTH]}.</p>
-            <input
-              type="search"
-              aria-label="Filter species by name"
-              placeholder="Filter by name"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="mb-4 h-9 w-full rounded-lg border border-border bg-card px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
-            />
+            <Input type="search" aria-label="Filter species by name" placeholder="Filter by name" value={query} onChange={(e) => setQuery(e.target.value)} className="mb-4" />
             {groups.map(({ level, species }) => ({ level, species: species.filter(matches) })).filter((g) => g.species.length > 0).map(({ level, species }) => {
               // While searching, every group with a match stays open.
               const isOpen = query.trim() !== '' || open.has(level);
@@ -91,17 +83,20 @@ export function App() {
             <label htmlFor="species" className="mb-1 block text-muted-foreground text-sm">
               Species
             </label>
-            <Select id="species" value={fieldHref(route.species, scene)} onChange={(e) => (window.location.hash = e.target.value)}>
-              {groups.map(({ level, species }) => (
-                <optgroup key={level} label={`${PRESENCE[level]} in ${MONTHS[THIS_MONTH]}`}>
-                  {species.map((s) => (
-                    <option key={s.taxon.name} value={fieldHref(s, scene)}>
-                      {s.taxon.common}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </Select>
+            {/* Type to narrow the list: scrolling a couple hundred birds on a phone is slow. */}
+            <Combobox
+              id="species"
+              placeholder="Type a bird's name"
+              value={fieldHref(route.species, scene)}
+              onChange={(href) => (window.location.hash = href)}
+              options={[
+                ...groups.flatMap(({ level, species }) =>
+                  species.map((s) => ({ value: fieldHref(s, scene), label: s.taxon.common, keywords: s.taxon.name, group: `${PRESENCE[level]} in ${MONTHS[THIS_MONTH]}` })),
+                ),
+                // So a bird overhead can be found from any scene; picking one opens its own habitat.
+                ...SPECIES.filter((s) => !inScene(s, scene)).map((s) => ({ value: fieldHref(s), label: s.taxon.common, keywords: s.taxon.name, group: 'In other scenes' })),
+              ]}
+            />
           </div>
           <FieldView key={key} species={route.species} scene={scene} />
         </main>
