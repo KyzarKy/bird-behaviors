@@ -32,11 +32,6 @@ export abstract class Pandionidae extends Accipitriformes {
 
   static override behaviors: BehaviorTable<Pandionidae> = {
     forage: {
-      label: 'Forage',
-      needs: 'water',
-      cue: 'Eats almost nothing but live fish, caught by plunging into open water.',
-    },
-    plungeDive: {
       label: 'Hover and plunge',
       needs: 'water',
       cue: 'Flies a slow search line 50 feet over the water, stops and hovers with the bill pointing down, then drops feet-first into a big splash and often goes in to the body. It climbs out, shakes like a dog in midair and carries the fish head-first. A Bald Eagle’s strike is a dry snatch from the surface.',
@@ -141,7 +136,7 @@ export abstract class Buteo extends Accipitridae {
       label: 'Kite on the wind',
       cue: 'Hangs almost motionless over one spot on set wings with the tail fanned, riding the breeze, then slides sideways to a new spot. Gulls kite too, but a buteo’s wings are broad and rounded.',
     },
-    perchHunt: {
+    forage: {
       label: 'Hunt from a perch',
       cue: 'Sits upright and still on a treetop or post for many minutes, head tipped down, then drops on a short glide to the ground and mantles with the wings spread over what it caught.',
     },
@@ -242,7 +237,7 @@ export abstract class Accipiter extends Accipitridae {
   static override look: Partial<Look> = { build: 0.5, headSize: 0.7, tailLength: 0.6, wingSpan: 2, legLength: 0.3, eye: '#c8452a' };
 
   static override behaviors: BehaviorTable<Accipiter> = {
-    ambushDash: {
+    forage: {
       label: 'Ambush dash',
       cue: 'Waits out of sight in the trees, then comes through the yard a few feet off the ground, hugging cover, and pops up onto a branch on the far side. Over in seconds. Compare its size and how twisty the line is with the other accipiter.',
     },
@@ -357,7 +352,7 @@ export abstract class Circus extends Accipitridae {
   static override look: Partial<Look> = { build: 0.4, headSize: 0.7, tailLength: 0.6, tailShape: 'square', wingSpan: 2.3, legLength: 0.3 };
 
   static override behaviors: BehaviorTable<Circus> = {
-    quarter: {
+    forage: {
       label: 'Quarter low over the ground',
       cue: 'Glides back and forth a few feet above the grass with wings held in a shallow V, rocking from side to side and tipping to look down. No other hawk flies this low and this slowly. It ends in a sudden drop onto prey.',
     },
@@ -579,7 +574,7 @@ export abstract class Falconidae extends Falconiformes {
   static override look: Partial<Look> = { build: 0.6, headSize: 0.8, tailLength: 0.4, wingSpan: 2.2, legLength: 0.14 };
 
   static override behaviors: BehaviorTable<Falconidae> = {
-    stoop: {
+    forage: {
       label: 'Stoop',
       cue: 'Climbs, then folds the wings and falls at the prey in a steep dive with a hard pull-out. How high it starts is the clue: a Peregrine from far above, a Merlin from a low rise, a kestrel from a hover only a few feet up.',
     },
@@ -814,7 +809,7 @@ export abstract class Strigiformes extends Bird {
       label: 'Swivel the head',
       cue: 'The body stays put while the head turns far around, up to 270 degrees, and tilts or bobs to line up a sound. Owls cannot move their eyes, so this is how they look.',
     },
-    pounce: {
+    forage: {
       label: 'Pounce from a perch',
       cue: 'Sits motionless, stares down, then drops without a sound on spread wings with the feet thrust forward, and mantles over the prey. Normally a dusk and night hunt; shown here in daylight.',
     },
@@ -1013,7 +1008,7 @@ export abstract class Glaucidium extends Strigidae {
       label: 'Flick the tail',
       cue: 'The tail jerks up and down every few seconds while the owl sits still and stares. A hunting owl, usually in good light; a small owl with a long, cocked tail that is not flicking is probably something else.',
     },
-    dayHunt: {
+    forage: {
       label: 'Daytime dash',
       cue: 'Perched in the open at the top of a conifer, in full daylight, until it launches on a fast, undulating dash after a songbird. Chickadees and nuthatches scold it, which is often how it gets found.',
     },
@@ -1089,7 +1084,7 @@ export abstract class Tytonidae extends Strigiformes {
   static override look: Partial<Look> = { build: 0.5, headSize: 1.4, beakLength: 0.3, tailLength: 0.25, wingSpan: 2.8, legLength: 0.35, eye: '#1a1a1a' };
 
   static override behaviors: BehaviorTable<Tytonidae> = {
-    quarterSearch: {
+    forage: {
       label: 'Quarter low, then drop',
       cue: 'Pale and ghostlike, it floats slowly back and forth a few feet over open ground with the head tipped down, hangs for a moment, then drops. Wingbeats are silent and buoyant, unlike a hawk’s. Normally a dusk and night hunt; shown here in daylight.',
     },

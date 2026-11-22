@@ -23,10 +23,12 @@ describe('hierarchy', () => {
   });
 
   it('places behaviors at the right taxonomic level', () => {
-    const scratch = behaviorsOf(Chicken).find((b) => b.key === 'scratch')!;
-    expect(scratch.declaredIn).toBe(Galliformes);
-    expect(behaviorsOf(CaliforniaQuail).some((b) => b.key === 'scratch')).toBe(true);
-    expect(behaviorsOf(AnnasHummingbird).some((b) => b.key === 'scratch')).toBe(false);
+    // Every galliform forages by scratching; a hummingbird forages its own way.
+    const forage = (cls: BirdClass) => behaviorsOf(cls).find((b) => b.key === 'forage')!;
+    expect(forage(Chicken).implementedIn).toBe(Galliformes);
+    expect(forage(Chicken).spec.label).toBe('Scratch and peck');
+    expect(forage(CaliforniaQuail).implementedIn).toBe(Galliformes);
+    expect(forage(AnnasHummingbird).implementedIn).toBe(Trochilidae);
 
     const flush = behaviorsOf(Chicken).find((b) => b.key === 'flush')!;
     expect(flush.declaredIn).toBe(Galliformes);
@@ -58,6 +60,21 @@ describe('hierarchy', () => {
     expect(root.cls.taxon.name).toBe('Aves');
     expect(root.children.length).toBe(18);
   });
+});
+
+describe('behavior tables', () => {
+  // A method whose whole body is `return this.other();` is the same action listed twice.
+  // Relabel the inherited behavior in the class's own table instead (see forage).
+  const alias = (cls: BirdClass, key: string) => {
+    const owner = lineage(cls).reverse().find((c) => Object.hasOwn(c.prototype, key))!;
+    return String(Object.getOwnPropertyDescriptor(owner.prototype, key)!.value).match(/^\s*\w+\(\)\s*\{\s*return this\.(\w+)\(\);\s*\}$/)?.[1];
+  };
+  for (const cls of SPECIES) {
+    it(`${cls.taxon.common} lists each action once`, () => {
+      const keys = behaviorsOf(cls).map((b) => b.key);
+      for (const key of keys) expect(keys, `${key} only returns another behavior`).not.toContain(alias(cls, key));
+    });
+  }
 });
 
 describe('simulation', () => {

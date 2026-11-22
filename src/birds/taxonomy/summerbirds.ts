@@ -32,7 +32,7 @@ export abstract class Hirundinidae extends Passeriformes {
   static override look: Partial<Look> = { beakShape: 'thin', beakLength: 0.3, legLength: 0.05, wingSpan: 2, tailShape: 'forked', build: 0.4 };
 
   static override behaviors: BehaviorTable<Hirundinidae> = {
-    hawk: {
+    forage: {
       label: 'Hawk insects on the wing',
       cue: 'Never still in the air: a few quick flaps, a long swoop or glide, a sharp turn toward an insect, and the bill gapes. Height over the ground and how much of the time the wings are set tell the species apart.',
       weight: 4,
@@ -204,7 +204,7 @@ export abstract class Parulidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.4, beakShape: 'thin', beakLength: 0.5, tailLength: 0.55, headSize: 0.95 };
 
   static override behaviors: BehaviorTable<Parulidae> = {
-    glean: {
+    forage: {
       label: 'Glean from twig tips',
       cue: 'Flits from tip to tip, pecking at leaves and buds, with a flick of the tail between pecks. Compare the height it works and how long it stays at each stop; a warbler that never pauses is typical.',
       weight: 4,
@@ -319,10 +319,15 @@ export class YellowRumpedWarbler extends Setophaga {
   };
 
   static override behaviors: BehaviorTable<YellowRumpedWarbler> = {
-    flycatch: {
+    forage: {
       label: 'Flycatch from a perch',
       cue: 'Darts out from a branch to snap an insect, banks, and returns. The tail fans on the turn and flashes the yellow rump. Other warblers here glean from leaves and rarely do this.',
       weight: 3,
+    },    // It still gleans like the rest of its family, and in winter eats berries and seeds too.
+    glean: {
+      label: 'Glean from twig tips',
+      cue: 'Between sallies it works the twigs like any other warbler, pecking at leaves and buds.',
+      weight: 2,
     },
   };
 
@@ -589,7 +594,7 @@ export abstract class Piranga extends Cardinalidae {
   static override ecology: Partial<Ecology> = { perches: ['treetop', 'branch'] };
 
   static override behaviors: BehaviorTable<Piranga> = {
-    canopyCreep: {
+    forage: {
       label: 'Work along the canopy',
       cue: 'Moves from branch to branch at a slow pace, stopping to stare for several seconds before reaching out to take an insect or a berry. Compare the pause length with a warbler’s.',
       weight: 4,

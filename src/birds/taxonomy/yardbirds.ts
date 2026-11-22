@@ -140,7 +140,7 @@ export abstract class Dryocopus extends Picidae {
   };
 
   static override behaviors: BehaviorTable<Dryocopus> = {
-    excavate: {
+    forage: {
       label: 'Excavate a hole',
       cue: 'Braces its tail, throws its whole body back, and hits the trunk with single heavy blows. Chips fly several feet. No other woodpecker here leaves holes this big or this squared off.',
     },
@@ -244,7 +244,7 @@ export abstract class Sphyrapicus extends Picidae {
   };
 
   static override behaviors: BehaviorTable<Sphyrapicus> = {
-    tapWells: {
+    forage: {
       label: 'Tend sap wells',
       cue: 'Drills a column of small square holes up one trunk, flies off, and comes back to lick them in order. Other woodpeckers peck at random and do not return to the same spot.',
     },
@@ -718,7 +718,7 @@ export abstract class Apodidae extends Apodiformes {
   };
 
   static override behaviors: BehaviorTable<Apodidae> = {
-    hawkInsects: {
+    forage: {
       label: 'Hawk insects',
       cue: 'Continuous flight at all heights, in long loops with sudden turns. The wings are bowed and stiff and seem to flicker alternately, not beat together. A swallow flaps and glides on a more relaxed rhythm.',
     },
@@ -868,7 +868,7 @@ export abstract class Caprimulgidae extends Caprimulgiformes {
   };
 
   static override behaviors: BehaviorTable<Caprimulgidae> = {
-    hawkInsects: {
+    forage: {
       label: 'Hawk insects',
       cue: 'Erratic and high, in loose bounding turns on long, pointed, slightly bent wings. Wings are quicker and more irregular than a gull’s, and the bird twists to chase each insect.',
     },

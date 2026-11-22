@@ -76,7 +76,9 @@ export function behaviorsOf(cls: BirdClass): BehaviorInfo[] {
   for (const c of chain) {
     for (const [key, spec] of Object.entries(own(c, 'behaviors') as Record<string, BehaviorSpec>)) {
       const known = out.get(key);
-      if (known) known.spec = spec;
+      // A lower class relabels a behavior and keeps its odds unless it sets its own. What the
+      // scene must have is not carried down: a relabel is often a different way of doing it.
+      if (known) known.spec = { weight: known.spec.weight, ...spec };
       else out.set(key, { key, spec, declaredIn: c, implementedIn: c, overriddenIn: [] });
     }
     for (const info of out.values()) {

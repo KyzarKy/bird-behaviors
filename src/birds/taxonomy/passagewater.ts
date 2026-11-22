@@ -64,7 +64,7 @@ export class NorthernShoveler extends Spatula {
   };
 
   static override behaviors: BehaviorTable<NorthernShoveler> = {
-    sieve: {
+    forage: {
       label: 'Sieve the surface',
       cue: 'Swims in tight circles with the big bill laid flat on the water, sweeping it from side to side. Often several birds circle together, each stirring up food for the next. A Mallard upends; a shoveler rarely does.',
       weight: 3,
@@ -638,7 +638,7 @@ export abstract class Numenius extends Scolopacidae {
   static override look: Partial<Look> = { build: 0.4, neckLength: 0.28, legLength: 0.5, wingSpan: 2.2, headSize: 0.6, beakLength: 3 };
 
   static override behaviors: BehaviorTable<Numenius> = {
-    reachProbe: {
+    forage: {
       label: 'Probe for crabs',
       cue: 'Pushes the long bill deep into a burrow and holds it there, then draws out a crab, gives it a shake and swallows it whole. A dowitcher probes with a stitching motion and never pulls out anything this big.',
     },
@@ -754,7 +754,7 @@ export abstract class Phalaropus extends Scolopacidae {
   static override look: Partial<Look> = { build: 0.5, neckLength: 0.18, legLength: 0.15, headSize: 0.7, beakShape: 'needle', beakLength: 1.1 };
 
   static override behaviors: BehaviorTable<Phalaropus> = {
-    probe: {
+    forage: {
       label: 'Spin on the water',
       cue: 'Swims in quick circles, sometimes ten or more in a row, then picks at the surface. The spin pulls small animals up from below. No other sandpiper swims at all.',
     },
@@ -893,7 +893,7 @@ export abstract class Sterna extends Laridae {
   static override look: Partial<Look> = { build: 0.35, headSize: 0.7, legLength: 0.1, tailLength: 0.35, tailShape: 'forked', wingSpan: 2.6, beakShape: 'dagger', beakLength: 1 };
 
   static override behaviors: BehaviorTable<Sterna> = {
-    plungeDive: {
+    forage: {
       label: 'Hover and plunge',
       cue: 'Flies slowly with the head and bill pointed down, stops in a short hover, then folds and drops. If it misses it climbs and tries again a short way on. Smaller than a Caspian Tern, with a thin bill and quicker, lighter wingbeats.',
     },
@@ -974,7 +974,7 @@ export abstract class Stercorariidae extends Charadriiformes {
   static override look: Partial<Look> = { build: 0.5, headSize: 0.7, legLength: 0.15, tailLength: 0.3, wingSpan: 2.6, beakShape: 'hook', beakLength: 0.7 };
 
   static override behaviors: BehaviorTable<Stercorariidae> = {
-    pirate: {
+    forage: {
       label: 'Chase and rob a tern',
       cue: 'Shadows a tern or gull carrying a fish, matching every twist and turn at speed until the victim drops it. The jaeger then swoops down and catches the fish before it hits the water.',
     },
@@ -1196,7 +1196,7 @@ export class BrownPelican extends Pelecanus {
   };
 
   static override behaviors: BehaviorTable<BrownPelican> = {
-    plungeDive: {
+    forage: {
       label: 'Plunge-dive',
       cue: 'Circles 30 feet or more above the water, then folds the wings and drops headfirst with a huge splash. It comes up with the pouch full, tips the bill down to drain the water, then swallows. No other large waterbird here dives from this height.',
       weight: 3,

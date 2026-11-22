@@ -295,7 +295,7 @@ export abstract class Tyrannidae extends Passeriformes {
   static override look: Partial<Look> = { beakShape: 'thin', beakLength: 0.6, legLength: 0.08, headSize: 1.1 };
 
   static override behaviors: BehaviorTable<Tyrannidae> = {
-    sally: {
+    forage: {
       label: 'Sally for insects',
       cue: 'Upright on an exposed perch, head swiveling. A sudden dart out, an audible bill snap, and a loop back to a perch. How far it goes and whether it returns to the same spot separates the species.',
     },
@@ -401,7 +401,7 @@ export abstract class Turdus extends Turdidae {
   };
 
   static override behaviors: BehaviorTable<Turdus> = {
-    wormHunt: {
+    forage: {
       label: 'Hunt worms',
       cue: 'Runs a few steps, stops dead and stands tall, cocks its head to one side, then stabs. The head tilt is the bird looking, not listening: its eyes are on the sides of its head.',
     },
@@ -474,7 +474,7 @@ export abstract class Paridae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.75, headSize: 1.15, beakLength: 0.3, tailLength: 0.55 };
 
   static override behaviors: BehaviorTable<Paridae> = {
-    hangGlean: {
+    forage: {
       label: 'Glean upside down',
       cue: 'Flits to the very tip of a twig and swings underneath it to pick at buds and cones. Few other birds this size feed hanging by their feet.',
     },
@@ -571,7 +571,7 @@ export abstract class Sittidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.6, tailLength: 0.25, beakShape: 'chisel', beakLength: 0.75, legLength: 0.08 };
 
   static override behaviors: BehaviorTable<Sittidae> = {
-    creepDown: {
+    forage: {
       label: 'Creep down the trunk',
       cue: 'Head-first down the bark in short jerks, pausing to crane its head out and look around. A small bird pointing downward on a trunk is a nuthatch.',
     },
@@ -660,7 +660,7 @@ export abstract class Passerellidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.6, beakLength: 0.4 };
 
   static override behaviors: BehaviorTable<Passerellidae> = {
-    doubleScratch: {
+    forage: {
       label: 'Double-scratch',
       cue: 'A quick hop forward, then both feet kick backward together, throwing leaves behind it. You often hear the rustling in the litter before you see the bird. A chicken scratches one foot at a time.',
     },

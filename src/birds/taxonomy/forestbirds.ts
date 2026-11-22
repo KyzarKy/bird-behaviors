@@ -82,7 +82,7 @@ export abstract class Aegithalidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.7, headSize: 1.05, beakShape: 'cone', beakLength: 0.25, tailLength: 0.85 };
 
   static override behaviors: BehaviorTable<Aegithalidae> = {
-    streamFlock: {
+    forage: {
       label: 'Stream through the bushes',
       cue: 'One bird commits to the next bush and the others follow in a string, calling the whole way. At each stop they hang upside down and pick at the twig tips, then all leave within seconds.',
       weight: 3,
@@ -157,7 +157,7 @@ export abstract class Certhiidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.4, headSize: 0.95, beakShape: 'thin', beakLength: 1, legLength: 0.08, tailLength: 0.9, tailShape: 'pointed' };
 
   static override behaviors: BehaviorTable<Certhiidae> = {
-    spiralUp: {
+    forage: {
       label: 'Spiral up the trunk',
       cue: 'Starts at the foot of a tree and works up in short hitches, swinging round to the other side now and then. At the top it lets go and flutters down to the base of the next tree. A nuthatch goes down head first; a creeper never does.',
       weight: 3,
@@ -254,7 +254,7 @@ export abstract class Troglodytidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.8, headSize: 1.05, beakShape: 'thin', beakLength: 0.7, tailLength: 0.4, tailCock: 0.9 };
 
   static override behaviors: BehaviorTable<Troglodytidae> = {
-    creep: {
+    forage: {
       label: 'Creep through the litter',
       cue: 'Body low and tail up, it threads between roots and fallen logs in short hops, poking into every crevice. It looks more like a mouse than a bird.',
       weight: 3,
@@ -432,7 +432,7 @@ export abstract class Regulidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.8, headSize: 1.1, beakShape: 'thin', beakLength: 0.35, tailLength: 0.45 };
 
   static override behaviors: BehaviorTable<Regulidae> = {
-    hoverGlean: {
+    forage: {
       label: 'Hover-glean at a twig tip',
       cue: 'Flutters in place at the very end of a branch, picking from needles and buds it never lands on, then flits to the next. Chickadees hang from twigs; kinglets hover in front of them.',
       weight: 3,
@@ -588,7 +588,7 @@ export abstract class Ixoreus extends Turdidae {
       label: 'Sing the long whistle',
       cue: 'One long, eerie, slightly buzzy note held for two or three seconds, then silence, then another at a different pitch. It carries across the forest and is usually the first sign the bird is there.',
     },
-    leafToss: {
+    forage: {
       label: 'Toss the leaf litter',
       cue: 'Sweeps its bill sideways through the leaves, flinging them over its shoulder to uncover insects and seeds. A robin pulls worms from lawns; this one works under the shrubs.',
     },
@@ -672,7 +672,7 @@ export abstract class Catharus extends Turdidae {
   static override look: Partial<Look> = { length: 0.17, build: 0.55, legLength: 0.2, tailLength: 0.5, beakLength: 0.5 };
 
   static override behaviors: BehaviorTable<Catharus> = {
-    hopFreeze: {
+    forage: {
       label: 'Hop and freeze',
       cue: 'Two or three quick hops under the shrubs, then it stands bolt upright and motionless, watching. Unlike a robin it does not cock its head or stab the lawn; it takes insects from the litter.',
     },
@@ -807,7 +807,7 @@ export abstract class Bombycillidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.65, headSize: 1.05, crest: 'pointed', beakShape: 'cone', beakLength: 0.4, tailLength: 0.45 };
 
   static override behaviors: BehaviorTable<Bombycillidae> = {
-    berryPass: {
+    forage: {
       label: 'Pass a berry',
       cue: 'A bird picks a berry and, instead of eating it, sidles along the branch and hands it to a neighbor, who may hand it on. Berries are swallowed whole with a toss of the head.',
     },
@@ -822,9 +822,11 @@ export abstract class Bombycillidae extends Passeriformes {
   }
 
   *berryPass(): Script {
-    const shrub = this.findPerch(['shrub'], 'near');
-    if (!shrub) return;
-    yield* this.flyTo(shrub);
+    // findPerch skips the perch it is on, and a scene may have only the one shrub.
+    const onShrub = this.world.habitat.perches.some((q) => q.kind === 'shrub' && Math.hypot(q.x - this.pos.x, q.y - this.pos.y) <= 3);
+    const shrub = onShrub ? null : this.findPerch(['shrub'], 'near');
+    if (!onShrub && !shrub) return;
+    if (shrub) yield* this.flyTo(shrub);
     yield* this.peck(1, 0.8);
     this.pose.carry = 'seed';
     yield* this.poseTo({ neck: 1.2, head: 0.2, crest: 0.6 }, 0.2);
@@ -917,7 +919,7 @@ export abstract class Vireonidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.65, headSize: 1.1, beakShape: 'cone', beakLength: 0.45, tailLength: 0.45 };
 
   static override behaviors: BehaviorTable<Vireonidae> = {
-    peerAndGlean: {
+    forage: {
       label: 'Peer and glean',
       cue: 'A slow hop, a pause with the head tilted one way and then the other, then a reach under a leaf for a caterpillar. Compare the near-constant motion of a kinglet.',
       weight: 3,

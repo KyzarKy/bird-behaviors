@@ -34,7 +34,7 @@ export abstract class Picidae extends Piciformes {
   static override look: Partial<Look> = { beakShape: 'chisel', beakLength: 0.9, tailShape: 'pointed', tailLength: 0.45, legLength: 0.1 };
 
   static override behaviors: BehaviorTable<Picidae> = {
-    hitchUp: {
+    forage: {
       label: 'Hitch up the trunk',
       needs: 'bark',
       cue: 'Lands low and works upward in jerks, tail pressed to the bark as a prop, stopping to tap and probe. Reaches the top, drops to the base of the next tree, and starts again.',
@@ -112,7 +112,7 @@ export abstract class Colaptes extends Picidae {
   static override ecology: Partial<Ecology> = { perches: ['branch', 'post'] };
 
   static override behaviors: BehaviorTable<Colaptes> = {
-    antProbe: {
+    forage: {
       label: 'Probe for ants',
       cue: 'A woodpecker on the lawn. Hops, then drives its bill into the ground again and again in one spot, lapping ants with a tongue that reaches two inches past the bill tip.',
     },

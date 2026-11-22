@@ -41,7 +41,7 @@ A method override is kept for a difference of kind. A startled quail flies; a st
 Three cases where a strict tree is the wrong tool, and what the design does about each:
 
 - **Convergent traits.** Hummingbirds and kingfishers hover, crows and gulls both drop clams on rocks, and none of them share an ancestor below `Bird`. Putting `hover()` on a common parent would give it to chickens. Here the mechanics are protected methods on `Bird` driven by parameters, and each family that has the behavior exposes it publicly under its own name.
-- **Exceptions inside a group.** The Northern Flicker is a woodpecker that feeds on the ground. `Colaptes` overrides `forage()` and still inherits `drum()` and `hitchUp()` from `Picidae`. An override handles the exception without splitting the family.
+- **Exceptions inside a group.** The Northern Flicker is a woodpecker that feeds on the ground. `Colaptes` overrides `forage()`, which in `Picidae` hitches up a trunk, and still inherits `drum()`. An override handles the exception without splitting the family.
 - **A subclass that is worse at something.** A chicken is a bird that mostly cannot fly. It still has `fly()`, because callers should be able to ask any bird to fly and get a truthful result: the chicken flutters a short way, runs out of endurance, and walks the rest. The method's contract is "try to get there", and every subclass can honor that.
 
 ## 5. The domestic chicken is a special case of its own genus

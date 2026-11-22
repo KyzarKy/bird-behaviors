@@ -64,11 +64,6 @@ export abstract class Haliaeetus extends Accipitridae {
 
   static override behaviors: BehaviorTable<Haliaeetus> = {
     forage: {
-      label: 'Forage',
-      needs: 'water',
-      cue: 'Feeds mostly on fish, taken from the surface of open water.',
-    },
-    snatchFish: {
       label: 'Snatch a fish',
       needs: 'water',
       cue: 'A long, shallow glide low over the water, feet swung forward at the last second, and the fish is lifted off the surface. The eagle barely gets wet. An Osprey plunges in feet-first with a splash.',
@@ -170,7 +165,7 @@ export abstract class Alcedinidae extends Coraciiformes {
   static override look: Partial<Look> = { build: 0.6, headSize: 1.3, beakShape: 'dagger', beakLength: 1, tailLength: 0.3, crest: 'shaggy' };
 
   static override behaviors: BehaviorTable<Alcedinidae> = {
-    plungeDive: {
+    forage: {
       label: 'Plunge from a perch',
       cue: 'Sits over the water staring down, bobs its head, then drops headfirst and goes right under. Back on the perch it beats the fish against the wood before swallowing it head first.',
     },
@@ -312,7 +307,7 @@ export abstract class Ardeidae extends Pelecaniformes {
   static override look: Partial<Look> = { build: 0.35, headSize: 0.42, neckLength: 0.8, legLength: 0.5, tailLength: 0.2, wingSpan: 1.9, beakShape: 'dagger', beakLength: 1.6, legsTrail: true };
 
   static override behaviors: BehaviorTable<Ardeidae> = {
-    stalk: {
+    forage: {
       label: 'Stalk and strike',
       cue: 'Wades in slow motion, one foot placed at a time, neck easing forward. Freezes completely. The strike itself is too fast to follow; then the head comes up and the fish goes down whole.',
     },
