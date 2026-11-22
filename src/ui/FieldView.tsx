@@ -1,7 +1,7 @@
 import { Button, Card, Checkbox, Link, List, ListRow, Meter, SegmentedControl, Select } from '@kyzarky/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { behaviorsOf, lineage, traitSources, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
-import type { Ecology, FlightProfile, HabitatId, Rarity } from '../birds/core/traits';
+import type { Ecology, FlightProfile, HabitatId } from '../birds/core/traits';
 import { HABITATS, World } from '../birds/core/World';
 import { classHref, fieldHref } from './route';
 import { inScene, levelIn, likeliestIn, MONTHS, PRESENCE, THIS_MONTH } from './season';
@@ -176,12 +176,6 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
             <dd>
               <Calendar levels={MONTHS.map((_, m) => levelIn(species, scene, m))} />
             </dd>
-            {bird.ecology.rarity && (
-              <>
-                <dt className="text-muted-foreground">Worldwide</dt>
-                <dd>{describeRarity(bird.ecology.rarity)}</dd>
-              </>
-            )}
             <dt className="text-muted-foreground">On the ground</dt>
             <dd>{describeGait(bird.ecology)}</dd>
             <dt className="text-muted-foreground">Call</dt>
@@ -223,17 +217,6 @@ function Calendar({ levels }: { levels: readonly number[] }) {
 function describeRhythm(f: FlightProfile) {
   if (f.flapDuty >= 0.95) return 'continuous';
   return `flaps ${Math.round(f.flapDuty * 100)}%, then ${f.restPose === 'folded' ? 'bounds with wings shut' : 'glides'}`;
-}
-
-const RED_LIST = { LC: 'Least Concern', NT: 'Near Threatened', VU: 'Vulnerable', EN: 'Endangered', CR: 'Critically Endangered' };
-
-function describeRarity({ status, population, source }: Rarity) {
-  return (
-    <>
-      {RED_LIST[status]}
-      {population && <>, {population} adults</>} <span className="text-muted-foreground">({source})</span>
-    </>
-  );
 }
 
 function describeGait(e: Ecology) {

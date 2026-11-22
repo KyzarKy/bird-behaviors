@@ -111,7 +111,6 @@ export class Killdeer extends Charadrius {
   static override ecology: Partial<Ecology> = { scenes: { yard: 1 },
     call: 'kill-DEE kill-DEE dee-dee-dee',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-    rarity: { status: 'NT', population: 'about 2.3 million', source: 'BirdLife International 2024' },
   };
 
   static override look: Partial<Look> = {
@@ -161,7 +160,6 @@ export class BlackBelliedPlover extends Pluvialis {
     posture: 0.4,
     call: 'plee-oo-ee (three plaintive notes)',
     presence: [1, 1, 1, 2, 2, 0, 1, 2, 2, 2, 1, 1],
-    rarity: { status: 'VU', population: '1–2.5 million', source: 'BirdLife International 2024' },
   };
 
   static override look: Partial<Look> = {
@@ -382,7 +380,6 @@ export class BlackTurnstone extends Arenaria {
   static override ecology: Partial<Ecology> = {
     call: 'a rattling skirr-r-r-r-r',
     presence: [2, 2, 2, 2, 1, 0, 0, 1, 2, 2, 2, 2],
-    rarity: { status: 'LC', population: 'about 95,000', source: 'BirdLife International 2024' },
   };
 
   static override look: Partial<Look> = {
@@ -438,7 +435,6 @@ export class Sanderling extends Calidris {
     groundSpeed: 9,
     call: 'kwit kwit (short and sharp)',
     presence: [2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2],
-    rarity: { status: 'LC', population: '900,000–1.2 million', source: 'BirdLife International 2024' },
   };
 
   static override behaviors: BehaviorTable<Sanderling> = {
@@ -495,7 +491,6 @@ export class Dunlin extends Calidris {
     posture: 0.05,
     call: 'treeep (rough and reedy)',
     presence: [2, 2, 2, 1, 1, 0, 0, 0, 1, 2, 3, 3],
-    rarity: { status: 'NT', population: '3–7 million', source: 'BirdLife International 2024' },
   };
 
   protected override feedOffset = -3;
@@ -530,7 +525,6 @@ export class WesternSandpiper extends Calidris {
   static override ecology: Partial<Ecology> = {
     call: 'jeet, jeet (thin and sharp)',
     presence: [0, 0, 0, 2, 3, 1, 2, 3, 2, 0, 0, 0],
-    rarity: { status: 'LC', population: 'about 3.5 million', source: 'BirdLife International 2024' },
   };
 
   // Partly webbed toes let it wade belly-deep, often pushing the whole head under.
@@ -566,7 +560,6 @@ export class LeastSandpiper extends Calidris {
     posture: 0.1,
     call: 'kreep (thin and rising)',
     presence: [0, 0, 0, 2, 2, 0, 1, 2, 2, 1, 0, 0],
-    rarity: { status: 'NT', population: '5–15 million', source: 'BirdLife International 2024' },
   };
 
   // A picker, not a prober: stays above the wet sand and takes food from the surface.
@@ -632,7 +625,6 @@ export class GreaterYellowlegs extends Tringa {
   static override ecology: Partial<Ecology> = {
     call: 'tew-tew-tew (loud and descending)',
     presence: [1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1],
-    rarity: { status: 'NT', population: '137,000–6.9 million', source: 'BirdLife International 2024' },
   };
 
   static override behaviors: BehaviorTable<GreaterYellowlegs> = {
@@ -748,7 +740,6 @@ export class SpottedSandpiper extends Actitis {
   static override ecology: Partial<Ecology> = {
     call: 'peet-weet! (clear and whistled)',
     presence: [0, 0, 0, 1, 2, 2, 2, 2, 1, 0, 0, 0],
-    rarity: { status: 'LC', population: 'about 660,000', source: 'BirdLife International 2024' },
   };
 
   static override look: Partial<Look> = {
@@ -782,7 +773,6 @@ export class ShortBilledGull extends Larus {
   static override ecology: Partial<Ecology> = {
     call: 'keeow, mew-mew-mew (high and nasal)',
     presence: [3, 3, 3, 2, 1, 1, 1, 2, 2, 3, 3, 3],
-    rarity: { status: 'LC', source: 'BirdLife International 2018, as Mew Gull' },
   };
 
   static override behaviors: BehaviorTable<ShortBilledGull> = {
@@ -833,7 +823,6 @@ export class CaliforniaGull extends Larus {
   static override ecology: Partial<Ecology> = {
     call: 'kyow, kyow, kuh-kuh-kuh',
     presence: [1, 1, 1, 1, 1, 1, 2, 3, 3, 2, 1, 1],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override behaviors: BehaviorTable<CaliforniaGull> = {
@@ -892,7 +881,6 @@ export class HeermannsGull extends Larus {
   static override ecology: Partial<Ecology> = {
     call: 'whee-ow (whining), nasal ow-ow-ow',
     presence: [0, 0, 0, 0, 0, 1, 2, 3, 3, 2, 1, 0],
-    rarity: { status: 'NT', population: 'about 350,000', source: 'BirdLife International 2020' },
   };
 
   static override behaviors: BehaviorTable<HeermannsGull> = {
@@ -978,7 +966,6 @@ export class BonapartesGull extends Chroicocephalus {
   static override ecology: Partial<Ecology> = {
     call: 'geeer (nasal, tern-like rasp)',
     presence: [1, 1, 1, 2, 2, 0, 0, 1, 2, 3, 3, 1],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -1054,7 +1041,6 @@ export class CaspianTern extends Hydroprogne {
   static override ecology: Partial<Ecology> = {
     call: 'rrraah! (deep and raspy)',
     presence: [0, 0, 0, 1, 2, 2, 3, 3, 1, 0, 0, 0],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -1186,7 +1172,6 @@ export class PigeonGuillemot extends Cepphus {
   static override ecology: Partial<Ecology> = {
     call: 'a thin, high seeeee whistle',
     presence: [1, 1, 1, 2, 3, 3, 3, 3, 2, 1, 1, 1],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -1250,7 +1235,6 @@ export class RhinocerosAuklet extends Cerorhinca {
   static override ecology: Partial<Ecology> = {
     call: 'a low, growling moan, mostly at the colony',
     presence: [1, 1, 1, 2, 3, 3, 3, 3, 2, 1, 1, 1],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -1313,7 +1297,6 @@ export class MarbledMurrelet extends Brachyramphus {
   static override ecology: Partial<Ecology> = {
     call: 'keer! keer! (fast and gull-like, given in flight)',
     presence: [1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1],
-    rarity: { status: 'EN', population: '240,000–280,000', source: 'BirdLife International 2020' },
   };
 
   static override look: Partial<Look> = {
@@ -1380,7 +1363,6 @@ export class CommonMurre extends Uria {
     call: 'a low, growling arrr',
     posture: 0.5,
     presence: [2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {

@@ -199,7 +199,6 @@ export class Mallard extends Anas {
   static override ecology: Partial<Ecology> = {
     call: 'QUACK, quack-quack-quack (the hen); the drake gives a soft rhaeb',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-    rarity: { status: 'LC', population: '17–19 million', source: 'BirdLife International 2025' },
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 5, cruiseSpeed: 15 };
@@ -232,7 +231,6 @@ export class NorthernPintail extends Anas {
   static override ecology: Partial<Ecology> = {
     call: 'prrip, prrip (the drake’s soft double whistle); the hen gives a weak quack',
     presence: [2, 2, 1, 1, 0, 0, 0, 0, 1, 1, 2, 2],
-    rarity: { status: 'LC', population: '4.7–4.8 million', source: 'BirdLife International 2019' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 16, flapRate: 5.5, agility: 0.6 };
@@ -270,7 +268,6 @@ export class GreenWingedTeal extends Anas {
   static override ecology: Partial<Ecology> = {
     call: 'krick, krick (the drake’s high, ringing whistle)',
     presence: [2, 2, 2, 1, 0, 0, 0, 1, 1, 2, 2, 2],
-    rarity: { status: 'LC', population: 'about 3.9 million', source: 'BirdLife International 2020' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 15, power: 0.75, agility: 0.75, flapRate: 8 };
@@ -340,7 +337,6 @@ export class AmericanWigeon extends Mareca {
   static override ecology: Partial<Ecology> = {
     call: 'whee-whee-WHEW (the drake’s three-note whistle)',
     presence: [3, 3, 2, 1, 0, 0, 0, 0, 1, 2, 3, 3],
-    rarity: { status: 'LC', population: 'about 2.7 million', source: 'BirdLife International 2021' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 14, flapRate: 6 };
@@ -422,7 +418,6 @@ export class Bufflehead extends Bucephala {
   static override ecology: Partial<Ecology> = {
     call: 'a low squeaky growl; usually silent',
     presence: [3, 3, 3, 2, 1, 0, 0, 0, 0, 2, 3, 3],
-    rarity: { status: 'LC', population: 'about 1.3 million', source: 'BirdLife International 2022' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 14, power: 0.5, flapRate: 10 };
@@ -464,7 +459,6 @@ export class CommonGoldeneye extends Bucephala {
   static override ecology: Partial<Ecology> = {
     call: 'speer-ick (the drake in display); the wings whistle in flight',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 15, flapRate: 8 };
@@ -539,7 +533,6 @@ export class SurfScoter extends Melanitta {
   static override ecology: Partial<Ecology> = {
     call: 'a low, liquid gurgle; mostly silent',
     presence: [3, 3, 3, 3, 2, 1, 1, 1, 2, 3, 3, 3],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -570,7 +563,6 @@ export class WhiteWingedScoter extends Melanitta {
   static override ecology: Partial<Ecology> = {
     call: 'a hoarse, low croak; mostly silent',
     presence: [2, 2, 2, 2, 1, 1, 0, 1, 1, 2, 2, 2],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { power: 0.28, cruiseSpeed: 14, flapRate: 5.5 };
@@ -642,7 +634,6 @@ export class HarlequinDuck extends Histrionicus {
   static override ecology: Partial<Ecology> = {
     call: 'ek-ek-ek (a squeaky, mouse-like squeal)',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 1, 1, 2, 2],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -717,7 +708,6 @@ export class LongTailedDuck extends Clangula {
   static override ecology: Partial<Ecology> = {
     call: 'ow-ow-owdle-ow (a yodeling, musical chorus)',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2],
-    rarity: { status: 'VU', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -794,7 +784,6 @@ export class RedBreastedMerganser extends Mergus {
   static override ecology: Partial<Ecology> = {
     call: 'a hoarse, rasping krrr; mostly silent',
     presence: [3, 3, 2, 2, 1, 0, 0, 0, 0, 1, 2, 3],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -825,7 +814,6 @@ export class CommonMerganser extends Mergus {
   static override ecology: Partial<Ecology> = {
     call: 'a low, harsh karr; mostly silent',
     presence: [2, 2, 1, 1, 0, 0, 0, 0, 0, 1, 1, 2],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 15, power: 0.35, flapRate: 6 };
@@ -907,7 +895,6 @@ export class HoodedMerganser extends Lophodytes {
   static override ecology: Partial<Ecology> = {
     call: 'a low, frog-like croak, hrrroo',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2],
-    rarity: { status: 'LC', population: 'about 1.1 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -974,7 +961,6 @@ export class Brant extends Branta {
   static override ecology: Partial<Ecology> = {
     call: 'cruk-cruk-cruk (a low, guttural chorus)',
     presence: [2, 2, 3, 3, 1, 0, 0, 0, 0, 0, 1, 2],
-    rarity: { status: 'LC', population: 'about 490,000', source: 'BirdLife International 2021' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 14, flapRate: 4.5, agility: 0.4 };
@@ -1017,7 +1003,6 @@ export class CanadaGoose extends Branta {
   static override ecology: Partial<Ecology> = { scenes: { yard: 2 },
     call: 'ah-HONK, ah-HONK',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 13, power: 0.35, flapRate: 3, agility: 0.25 };
@@ -1085,7 +1070,6 @@ export class TrumpeterSwan extends Cygnus {
   static override ecology: Partial<Ecology> = {
     call: 'a low, nasal, French-horn honk, hoo-hoo',
     presence: [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-    rarity: { status: 'LC', population: 'about 50,000', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {

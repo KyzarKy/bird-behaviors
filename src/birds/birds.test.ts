@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { drawnFlapRate } from './core/Bird';
-import { behaviorsOf, buildTree, lineage, resolveTraits, traitSources, type BirdClass } from './core/reflect';
+import { behaviorsOf, buildTree, lineage, traitSources, type BirdClass } from './core/reflect';
 import { HABITATS, World } from './core/World';
-import type { Ecology, HabitatId } from './core/traits';
+import type { HabitatId } from './core/traits';
 import { inScene } from '../ui/season';
 import { SPECIES } from './taxonomy';
 import { Galliformes, Chicken, CaliforniaQuail } from './taxonomy/galliformes';
@@ -146,14 +146,4 @@ describe('scene requirements', () => {
       });
     }
   }
-});
-
-describe('field notes', () => {
-  // The chicken is domestic, so it has no Red List assessment. BirdLife's DataZone has no
-  // factsheet for the Black Oystercatcher under any name tried (see docs/rarity.md).
-  const exempt = ['Chicken', 'Black Oystercatcher'];
-  it('every wild species says how many there are worldwide, and where that comes from', () => {
-    const missing = SPECIES.filter((s) => !resolveTraits<Ecology>(s, 'ecology').rarity).map((s) => s.taxon.common);
-    expect(missing).toEqual(exempt);
-  });
 });

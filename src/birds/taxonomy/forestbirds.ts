@@ -31,7 +31,6 @@ export class BlackCappedChickadee extends Poecile {
     call: 'chick-a-dee-dee-dee',
     song: 'fee-bee (two clear whistled notes, the second lower)',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-    rarity: { status: 'LC', population: 'about 43 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -129,7 +128,6 @@ export class Bushtit extends Psaltriparus {
     habitat: 'yard',
     call: 'sit-sit-sit-sit-tsrrrr (high, thin, constant)',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-    rarity: { status: 'LC', population: 'about 4.3 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -225,7 +223,6 @@ export class BrownCreeper extends Certhia {
     call: 'tseee (one thin, high note)',
     song: 'tsee-tsee-tsee-tsoo-eet (thin, high, descending)',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-    rarity: { status: 'LC', population: 'about 11 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -340,7 +337,6 @@ export class PacificWren extends Troglodytes {
     call: 'kip! kip! (a hard double chip)',
     song: 'a very long, high, tumbling trill of rapid notes, ten seconds or more',
     presence: [2, 2, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2],
-    rarity: { status: 'LC', population: 'about 7.5 million', source: 'BirdLife International 2021' },
   };
 
   protected override songBursts = 7;
@@ -400,7 +396,6 @@ export class BewicksWren extends Thryomanes {
     call: 'jeeet (a harsh, buzzy note)',
     song: 'see-see-see-chrrr (thin, like a Song Sparrow’s)',
     presence: [1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1],
-    rarity: { status: 'LC', population: 'about 7.9 million', source: 'BirdLife International 2021' },
   };
 
   protected override songBursts = 2;
@@ -505,7 +500,6 @@ export class GoldenCrownedKinglet extends Regulus {
     call: 'tsee-tsee-tsee (extremely high and thin)',
     song: 'tsee tsee tsee, then a short chattering jumble',
     presence: [3, 3, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3],
-    rarity: { status: 'LC', population: 'about 140 million', source: 'BirdLife International 2022' },
   };
 
   // Spends more time hovering at branch tips than its cousin, which keeps lower.
@@ -537,7 +531,6 @@ export class RubyCrownedKinglet extends Regulus {
     call: 'je-dit (a dry, scolding chatter)',
     song: 'a thin start, then a long, rich, rolling tumble of notes',
     presence: [2, 2, 2, 2, 2, 0, 0, 1, 2, 3, 2, 2],
-    rarity: { status: 'LC', population: 'about 100 million', source: 'BirdLife International 2021' },
   };
 
   protected override hoverSeconds = 1;
@@ -649,7 +642,6 @@ export class VariedThrush extends Ixoreus {
     call: 'chup (soft and low)',
     song: 'one long, eerie, buzzy whistle, then a pause, then another',
     presence: [3, 3, 2, 1, 1, 1, 1, 1, 1, 2, 3, 3],
-    rarity: { status: 'LC', population: 'about 35 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -716,7 +708,6 @@ export class SwainsonsThrush extends Catharus {
     call: 'whit (a liquid, drip-like note)',
     song: 'whip-poor-will-a-will-a-zee-zee (a flute-like phrase spiraling upward)',
     presence: [0, 0, 0, 0, 2, 3, 3, 3, 1, 0, 0, 0],
-    rarity: { status: 'LC', source: 'BirdLife International 2021, as Russet-backed Thrush' },
   };
 
   static override look: Partial<Look> = {
@@ -766,7 +757,6 @@ export class HermitThrush extends Catharus {
     call: 'chup (low, dry)',
     song: 'a clear flute note, then a rising and falling spiral on different pitches',
     presence: [1, 1, 1, 2, 1, 0, 0, 0, 1, 2, 2, 1],
-    rarity: { status: 'LC', population: 'about 72 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -893,7 +883,6 @@ export class CedarWaxwing extends Bombycilla {
     habitat: 'yard',
     call: 'sreee (a high, thin, trilled hiss)',
     presence: [1, 1, 1, 2, 2, 3, 3, 3, 3, 2, 1, 1],
-    rarity: { status: 'LC', population: 'about 64 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -984,7 +973,6 @@ export class HuttonsVireo extends Vireo {
     call: 'a nasal, rising rah-weeee',
     song: 'zu-wee, zu-wee, zu-wee (monotonous, repeated)',
     presence: [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1],
-    rarity: { status: 'LC', population: 'about 2.7 million', source: 'BirdLife International 2021' },
   };
 
   protected override pace = 2;
@@ -1017,7 +1005,6 @@ export class WarblingVireo extends Vireo {
     call: 'a nasal, wheezy ehh',
     song: 'a rich, running warble that rises to a note at the end',
     presence: [0, 0, 0, 0, 2, 3, 3, 3, 1, 0, 0, 0],
-    rarity: { status: 'LC', population: 'about 53 million', source: 'BirdLife International 2021' },
   };
 
   protected override pace = 0.8;

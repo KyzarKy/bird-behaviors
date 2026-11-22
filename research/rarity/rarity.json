@@ -1,0 +1,1105 @@
+[
+  {
+    "common": "Chicken",
+    "scientific": "Gallus gallus domesticus"
+  },
+  {
+    "common": "California Quail",
+    "scientific": "Callipepla californica",
+    "status": "LC",
+    "population": "about 5.8 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Anna's Hummingbird",
+    "scientific": "Calypte anna",
+    "status": "LC",
+    "population": "about 9.6 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Rufous Hummingbird",
+    "scientific": "Selasphorus rufus",
+    "status": "NT",
+    "population": "about 22 million",
+    "source": "BirdLife International 2020"
+  },
+  {
+    "common": "Northern Flicker",
+    "scientific": "Colaptes auratus",
+    "status": "LC",
+    "source": "BirdLife International 2025, as Red-shafted Flicker"
+  },
+  {
+    "common": "Olive-sided Flycatcher",
+    "scientific": "Contopus cooperi",
+    "status": "LC",
+    "population": "1.6–2.3 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Steller's Jay",
+    "scientific": "Cyanocitta stelleri",
+    "status": "LC",
+    "population": "about 3 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Common Raven",
+    "scientific": "Corvus corax",
+    "status": "LC",
+    "population": "21–26 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "American Robin",
+    "scientific": "Turdus migratorius",
+    "status": "LC",
+    "population": "about 370 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Chestnut-backed Chickadee",
+    "scientific": "Poecile rufescens",
+    "status": "LC",
+    "population": "about 12 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Red-breasted Nuthatch",
+    "scientific": "Sitta canadensis",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Spotted Towhee",
+    "scientific": "Pipilo maculatus",
+    "status": "LC",
+    "population": "about 40 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "American Crow",
+    "scientific": "Corvus brachyrhynchos",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Bald Eagle",
+    "scientific": "Haliaeetus leucocephalus",
+    "status": "LC",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Belted Kingfisher",
+    "scientific": "Megaceryle alcyon",
+    "status": "LC",
+    "population": "about 1.8 million",
+    "source": "BirdLife International 2022"
+  },
+  {
+    "common": "Great Blue Heron",
+    "scientific": "Ardea herodias",
+    "status": "LC",
+    "population": "500,000–5 million",
+    "source": "BirdLife International 2020"
+  },
+  {
+    "common": "Glaucous-winged Gull",
+    "scientific": "Larus glaucescens",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Dark-eyed Junco",
+    "scientific": "Junco hyemalis",
+    "status": "LC",
+    "population": "about 220 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Song Sparrow",
+    "scientific": "Melospiza melodia",
+    "status": "LC",
+    "population": "about 130 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "White-crowned Sparrow",
+    "scientific": "Zonotrichia leucophrys",
+    "status": "LC",
+    "population": "about 79 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Golden-crowned Sparrow",
+    "scientific": "Zonotrichia atricapilla",
+    "status": "LC",
+    "population": "about 7.5 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Fox Sparrow",
+    "scientific": "Passerella iliaca",
+    "status": "LC",
+    "source": "BirdLife International 2018, as Sooty Fox Sparrow"
+  },
+  {
+    "common": "Savannah Sparrow",
+    "scientific": "Passerculus sandwichensis",
+    "status": "LC",
+    "population": "about 170 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "House Finch",
+    "scientific": "Haemorhous mexicanus",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Purple Finch",
+    "scientific": "Haemorhous purpureus",
+    "status": "LC",
+    "population": "about 6.5 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Pine Siskin",
+    "scientific": "Spinus pinus",
+    "status": "LC",
+    "population": "about 46 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "American Goldfinch",
+    "scientific": "Spinus tristis",
+    "status": "LC",
+    "population": "42–47 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Red Crossbill",
+    "scientific": "Loxia curvirostra",
+    "status": "LC",
+    "population": "30–48 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Evening Grosbeak",
+    "scientific": "Hesperiphona vespertina",
+    "status": "VU",
+    "population": "about 3.4 million",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Red-winged Blackbird",
+    "scientific": "Agelaius phoeniceus",
+    "status": "LC",
+    "population": "about 210 million",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Brewer’s Blackbird",
+    "scientific": "Euphagus cyanocephalus",
+    "status": "NT",
+    "population": "15–25 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Brown-headed Cowbird",
+    "scientific": "Molothrus ater",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "House Sparrow",
+    "scientific": "Passer domesticus",
+    "status": "LC",
+    "population": "896–1310 million",
+    "source": "BirdLife International 2016"
+  },
+  {
+    "common": "European Starling",
+    "scientific": "Sturnus vulgaris",
+    "status": "LC",
+    "population": "about 150 million",
+    "source": "BirdLife International 2019"
+  },
+  {
+    "common": "Osprey",
+    "scientific": "Pandion haliaetus",
+    "status": "LC",
+    "population": "100,000–1.2 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Red-tailed Hawk",
+    "scientific": "Buteo jamaicensis",
+    "status": "LC",
+    "population": "2.6–3.1 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Cooper’s Hawk",
+    "scientific": "Accipiter cooperii",
+    "status": "LC",
+    "population": "770,000–920,000",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Sharp-shinned Hawk",
+    "scientific": "Accipiter striatus",
+    "status": "LC",
+    "population": "300,000–520,000",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Northern Harrier",
+    "scientific": "Circus hudsonius",
+    "status": "LC",
+    "population": "730,000–920,000",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Turkey Vulture",
+    "scientific": "Cathartes aura",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Peregrine Falcon",
+    "scientific": "Falco peregrinus",
+    "status": "LC",
+    "population": "100,000–500,000",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Merlin",
+    "scientific": "Falco columbarius",
+    "status": "LC",
+    "population": "250,000–3.2 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "American Kestrel",
+    "scientific": "Falco sparverius",
+    "status": "LC",
+    "population": "about 9.2 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Barred Owl",
+    "scientific": "Strix varia",
+    "status": "LC",
+    "population": "3–3.9 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Great Horned Owl",
+    "scientific": "Bubo virginianus",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Northern Pygmy-Owl",
+    "scientific": "Glaucidium gnoma",
+    "status": "LC",
+    "population": "about 180,000",
+    "source": "BirdLife International 2023"
+  },
+  {
+    "common": "Barn Owl",
+    "scientific": "Tyto alba",
+    "status": "LC",
+    "source": "BirdLife International 2025, as Common Barn-owl"
+  },
+  {
+    "common": "Mallard",
+    "scientific": "Anas platyrhynchos",
+    "status": "LC",
+    "population": "17–19 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "American Wigeon",
+    "scientific": "Mareca americana",
+    "status": "LC",
+    "population": "about 2.7 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Northern Pintail",
+    "scientific": "Anas acuta",
+    "status": "LC",
+    "population": "4.7–4.8 million",
+    "source": "BirdLife International 2019"
+  },
+  {
+    "common": "Green-winged Teal",
+    "scientific": "Anas crecca",
+    "status": "LC",
+    "population": "about 3.9 million",
+    "source": "BirdLife International 2020"
+  },
+  {
+    "common": "Bufflehead",
+    "scientific": "Bucephala albeola",
+    "status": "LC",
+    "population": "about 1.3 million",
+    "source": "BirdLife International 2022"
+  },
+  {
+    "common": "Common Goldeneye",
+    "scientific": "Bucephala clangula",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Surf Scoter",
+    "scientific": "Melanitta perspicillata",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "White-winged Scoter",
+    "scientific": "Melanitta deglandi",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Harlequin Duck",
+    "scientific": "Histrionicus histrionicus",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Long-tailed Duck",
+    "scientific": "Clangula hyemalis",
+    "status": "VU",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Red-breasted Merganser",
+    "scientific": "Mergus serrator",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Common Merganser",
+    "scientific": "Mergus merganser",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Hooded Merganser",
+    "scientific": "Lophodytes cucullatus",
+    "status": "LC",
+    "population": "about 1.1 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Brant",
+    "scientific": "Branta bernicla",
+    "status": "LC",
+    "population": "about 490,000",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Canada Goose",
+    "scientific": "Branta canadensis",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Trumpeter Swan",
+    "scientific": "Cygnus buccinator",
+    "status": "LC",
+    "population": "about 50,000",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Killdeer",
+    "scientific": "Charadrius vociferus",
+    "status": "NT",
+    "population": "about 2.3 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Black-bellied Plover",
+    "scientific": "Pluvialis squatarola",
+    "status": "VU",
+    "population": "1–2.5 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Black Oystercatcher",
+    "scientific": "Haematopus bachmani"
+  },
+  {
+    "common": "Black Turnstone",
+    "scientific": "Arenaria melanocephala",
+    "status": "LC",
+    "population": "about 95,000",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Sanderling",
+    "scientific": "Calidris alba",
+    "status": "LC",
+    "population": "900,000–1.2 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Dunlin",
+    "scientific": "Calidris alpina",
+    "status": "NT",
+    "population": "3–7 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Western Sandpiper",
+    "scientific": "Calidris mauri",
+    "status": "LC",
+    "population": "about 3.5 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Least Sandpiper",
+    "scientific": "Calidris minutilla",
+    "status": "NT",
+    "population": "5–15 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Greater Yellowlegs",
+    "scientific": "Tringa melanoleuca",
+    "status": "NT",
+    "population": "137,000–6.9 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Spotted Sandpiper",
+    "scientific": "Actitis macularius",
+    "status": "LC",
+    "population": "about 660,000",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Short-billed (Mew) Gull",
+    "scientific": "Larus brachyrhynchus",
+    "status": "LC",
+    "source": "BirdLife International 2018, as Mew Gull"
+  },
+  {
+    "common": "California Gull",
+    "scientific": "Larus californicus",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Heermann’s Gull",
+    "scientific": "Larus heermanni",
+    "status": "NT",
+    "population": "about 350,000",
+    "source": "BirdLife International 2020"
+  },
+  {
+    "common": "Bonaparte’s Gull",
+    "scientific": "Chroicocephalus philadelphia",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Caspian Tern",
+    "scientific": "Hydroprogne caspia",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Pigeon Guillemot",
+    "scientific": "Cepphus columba",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Rhinoceros Auklet",
+    "scientific": "Cerorhinca monocerata",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Marbled Murrelet",
+    "scientific": "Brachyramphus marmoratus",
+    "status": "EN",
+    "population": "240,000–280,000",
+    "source": "BirdLife International 2020"
+  },
+  {
+    "common": "Common Murre",
+    "scientific": "Uria aalge",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Bewick’s Wren",
+    "scientific": "Thryomanes bewickii",
+    "status": "LC",
+    "population": "about 7.9 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Black-capped Chickadee",
+    "scientific": "Poecile atricapillus",
+    "status": "LC",
+    "population": "about 43 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Brown Creeper",
+    "scientific": "Certhia americana",
+    "status": "LC",
+    "population": "about 11 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Bushtit",
+    "scientific": "Psaltriparus minimus",
+    "status": "LC",
+    "population": "about 4.3 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Cedar Waxwing",
+    "scientific": "Bombycilla cedrorum",
+    "status": "LC",
+    "population": "about 64 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Golden-crowned Kinglet",
+    "scientific": "Regulus satrapa",
+    "status": "LC",
+    "population": "about 140 million",
+    "source": "BirdLife International 2022"
+  },
+  {
+    "common": "Hermit Thrush",
+    "scientific": "Catharus guttatus",
+    "status": "LC",
+    "population": "about 72 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Hutton’s Vireo",
+    "scientific": "Vireo huttoni",
+    "status": "LC",
+    "population": "about 2.7 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Pacific Wren",
+    "scientific": "Troglodytes pacificus",
+    "status": "LC",
+    "population": "about 7.5 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Ruby-crowned Kinglet",
+    "scientific": "Corthylio calendula",
+    "status": "LC",
+    "population": "about 100 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Swainson’s Thrush",
+    "scientific": "Catharus ustulatus",
+    "status": "LC",
+    "source": "BirdLife International 2021, as Russet-backed Thrush"
+  },
+  {
+    "common": "Varied Thrush",
+    "scientific": "Ixoreus naevius",
+    "status": "LC",
+    "population": "about 35 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Warbling Vireo",
+    "scientific": "Vireo gilvus",
+    "status": "LC",
+    "population": "about 53 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Common Loon",
+    "scientific": "Gavia immer",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Pacific Loon",
+    "scientific": "Gavia pacifica",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Red-throated Loon",
+    "scientific": "Gavia stellata",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Horned Grebe",
+    "scientific": "Podiceps auritus",
+    "status": "VU",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Red-necked Grebe",
+    "scientific": "Podiceps grisegena",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Western Grebe",
+    "scientific": "Aechmophorus occidentalis",
+    "status": "LC",
+    "population": "80,000–90,000",
+    "source": "BirdLife International 2019"
+  },
+  {
+    "common": "Pied-billed Grebe",
+    "scientific": "Podilymbus podiceps",
+    "status": "LC",
+    "population": "about 500,000",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Double-crested Cormorant",
+    "scientific": "Nannopterum auritum",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Pelagic Cormorant",
+    "scientific": "Urile pelagicus",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Brandt’s Cormorant",
+    "scientific": "Urile penicillatus",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Violet-green Swallow",
+    "scientific": "Tachycineta thalassina",
+    "status": "LC",
+    "population": "about 7.2 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Barn Swallow",
+    "scientific": "Hirundo rustica",
+    "status": "LC",
+    "population": "290–487 million",
+    "source": "BirdLife International 2019"
+  },
+  {
+    "common": "Tree Swallow",
+    "scientific": "Tachycineta bicolor",
+    "status": "LC",
+    "population": "about 19 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Orange-crowned Warbler",
+    "scientific": "Leiothlypis celata",
+    "status": "LC",
+    "population": "about 82 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Yellow-rumped Warbler",
+    "scientific": "Setophaga coronata",
+    "status": "LC",
+    "source": "BirdLife International 2023, as Audubon’s Warbler"
+  },
+  {
+    "common": "Wilson's Warbler",
+    "scientific": "Cardellina pusilla",
+    "status": "LC",
+    "population": "about 81 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Townsend's Warbler",
+    "scientific": "Setophaga townsendi",
+    "status": "LC",
+    "population": "about 21 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Black-throated Gray Warbler",
+    "scientific": "Setophaga nigrescens",
+    "status": "LC",
+    "population": "about 3.2 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Common Yellowthroat",
+    "scientific": "Geothlypis trichas",
+    "status": "LC",
+    "population": "about 77 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Western Tanager",
+    "scientific": "Piranga ludoviciana",
+    "status": "LC",
+    "population": "about 15 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Black-headed Grosbeak",
+    "scientific": "Pheucticus melanocephalus",
+    "status": "LC",
+    "population": "about 15 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Western Flycatcher",
+    "scientific": "Empidonax difficilis",
+    "status": "LC",
+    "population": "about 9.5 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Western Wood-Pewee",
+    "scientific": "Contopus sordidulus",
+    "status": "LC",
+    "population": "about 9.6 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Downy Woodpecker",
+    "scientific": "Dryobates pubescens",
+    "status": "LC",
+    "population": "about 13 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Hairy Woodpecker",
+    "scientific": "Dryobates villosus",
+    "status": "LC",
+    "population": "about 8.9 million",
+    "source": "BirdLife International 2020"
+  },
+  {
+    "common": "Pileated Woodpecker",
+    "scientific": "Dryocopus pileatus",
+    "status": "LC",
+    "population": "about 2.6 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Red-breasted Sapsucker",
+    "scientific": "Sphyrapicus ruber",
+    "status": "LC",
+    "population": "about 2.3 million",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Band-tailed Pigeon",
+    "scientific": "Patagioenas fasciata",
+    "status": "LC",
+    "population": "about 6.1 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Rock Pigeon",
+    "scientific": "Columba livia",
+    "status": "LC",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Eurasian Collared-Dove",
+    "scientific": "Streptopelia decaocto",
+    "status": "LC",
+    "population": "40–75 million",
+    "source": "BirdLife International 2019"
+  },
+  {
+    "common": "Mourning Dove",
+    "scientific": "Zenaida macroura",
+    "status": "LC",
+    "population": "120–140 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Vaux's Swift",
+    "scientific": "Chaetura vauxi",
+    "status": "LC",
+    "population": "about 860,000",
+    "source": "BirdLife International 2020"
+  },
+  {
+    "common": "Common Nighthawk",
+    "scientific": "Chordeiles minor",
+    "status": "LC",
+    "population": "about 23 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "American Coot",
+    "scientific": "Fulica americana",
+    "status": "LC",
+    "population": "about 7.1 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Ancient Murrelet",
+    "scientific": "Synthliboramphus antiquus",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Brown Pelican",
+    "scientific": "Pelecanus occidentalis",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Cackling Goose",
+    "scientific": "Branta hutchinsii",
+    "status": "LC",
+    "population": "about 4.5 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Common Tern",
+    "scientific": "Sterna hirundo",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Greater Scaup",
+    "scientific": "Aythya marila",
+    "status": "LC",
+    "population": "4.9–5.2 million",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Greater White-fronted Goose",
+    "scientific": "Anser albifrons",
+    "status": "LC",
+    "population": "5–6 million",
+    "source": "BirdLife International 2022"
+  },
+  {
+    "common": "Lesser Scaup",
+    "scientific": "Aythya affinis",
+    "status": "LC",
+    "population": "about 3.7 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Northern Shoveler",
+    "scientific": "Spatula clypeata",
+    "status": "LC",
+    "population": "4.3–4.7 million",
+    "source": "BirdLife International 2019"
+  },
+  {
+    "common": "Parasitic Jaeger",
+    "scientific": "Stercorarius parasiticus",
+    "status": "LC",
+    "population": "400,000–600,000",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Red-necked Phalarope",
+    "scientific": "Phalaropus lobatus",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Ring-necked Duck",
+    "scientific": "Aythya collaris",
+    "status": "LC",
+    "population": "about 2 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Ruddy Duck",
+    "scientific": "Oxyura jamaicensis",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Semipalmated Plover",
+    "scientific": "Charadrius semipalmatus",
+    "status": "LC",
+    "population": "500,000–1 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Short-billed Dowitcher",
+    "scientific": "Limnodromus griseus",
+    "status": "VU",
+    "population": "150,000–320,000",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Snow Goose",
+    "scientific": "Anser caerulescens",
+    "status": "LC",
+    "population": "about 16 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Whimbrel",
+    "scientific": "Numenius phaeopus",
+    "status": "LC",
+    "population": "1.8–2.6 million",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Wilson’s Snipe",
+    "scientific": "Gallinago delicata",
+    "status": "LC",
+    "population": "about 2 million",
+    "source": "BirdLife International 2020"
+  },
+  {
+    "common": "Chipping Sparrow",
+    "scientific": "Spizella passerina",
+    "status": "LC",
+    "population": "about 240 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "White-throated Sparrow",
+    "scientific": "Zonotrichia albicollis",
+    "status": "LC",
+    "population": "about 160 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Lincoln’s Sparrow",
+    "scientific": "Melospiza lincolnii",
+    "status": "LC",
+    "population": "about 88 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Western Meadowlark",
+    "scientific": "Sturnella neglecta",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Bullock’s Oriole",
+    "scientific": "Icterus bullockii",
+    "status": "LC",
+    "population": "about 7.7 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Lazuli Bunting",
+    "scientific": "Passerina amoena",
+    "status": "LC",
+    "population": "about 6.5 million",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Northern Shrike",
+    "scientific": "Lanius borealis",
+    "status": "LC",
+    "population": "about 180,000",
+    "source": "BirdLife International 2025"
+  },
+  {
+    "common": "Townsend’s Solitaire",
+    "scientific": "Myadestes townsendi",
+    "status": "LC",
+    "population": "about 1.1 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Western Bluebird",
+    "scientific": "Sialia mexicana",
+    "status": "LC",
+    "population": "about 7.1 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "American Pipit",
+    "scientific": "Anthus rubescens",
+    "status": "LC",
+    "source": "BirdLife International 2018"
+  },
+  {
+    "common": "Western Kingbird",
+    "scientific": "Tyrannus verticalis",
+    "status": "LC",
+    "population": "about 30 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Say’s Phoebe",
+    "scientific": "Sayornis saya",
+    "status": "LC",
+    "population": "about 5.9 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Rough-legged Hawk",
+    "scientific": "Buteo lagopus",
+    "status": "LC",
+    "population": "350,000–800,000",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Northern Saw-whet Owl",
+    "scientific": "Aegolius acadicus",
+    "status": "LC",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Western Screech-Owl",
+    "scientific": "Megascops kennicottii",
+    "status": "LC",
+    "population": "73,000–230,000",
+    "source": "BirdLife International 2024"
+  },
+  {
+    "common": "Short-eared Owl",
+    "scientific": "Asio flammeus",
+    "status": "LC",
+    "population": "1.2–2.1 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Ruffed Grouse",
+    "scientific": "Bonasa umbellus",
+    "status": "LC",
+    "population": "about 18 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Sooty Grouse",
+    "scientific": "Dendragapus fuliginosus",
+    "status": "LC",
+    "population": "about 2 million",
+    "source": "BirdLife International 2021"
+  },
+  {
+    "common": "Ring-necked Pheasant",
+    "scientific": "Phasianus colchicus",
+    "status": "LC",
+    "source": "BirdLife International 2025"
+  }
+]

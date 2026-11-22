@@ -282,7 +282,7 @@ export class CaliforniaQuail extends Callipepla {
     note: 'Common in the brushy edges of the Sequim–Gardiner rain shadow. Plump, gray, scaly-bellied, with a black teardrop plume.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'chi-CA-go!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], rarity: { status: 'LC', population: 'about 5.8 million', source: 'BirdLife International 2021' } };
+  static override ecology: Partial<Ecology> = { call: 'chi-CA-go!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.25,

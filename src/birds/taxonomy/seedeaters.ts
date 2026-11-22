@@ -64,7 +64,6 @@ export class DarkEyedJunco extends Junco {
     call: 'tsip, and a dry smacking tck',
     song: 'a flat, musical trill on one pitch',
     presence: [3, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3],
-    rarity: { status: 'LC', population: 'about 220 million', source: 'BirdLife International 2021' },
   };
 
   // The white outer tail feathers cannot be drawn separately, so the tail is gray rather than black.
@@ -125,7 +124,6 @@ export class SongSparrow extends Melospiza {
     call: 'chimp (a flat, nasal chip)',
     song: 'maids-maids-maids, put on your tea-kettle-ettle-ettle',
     presence: [2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2],
-    rarity: { status: 'LC', population: 'about 130 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -198,7 +196,6 @@ export class WhiteCrownedSparrow extends Zonotrichia {
     call: 'pink! (a sharp, metallic chip)',
     song: 'I-whistle-then-buzz-chee-zee (a clear whistle, then buzzy trills)',
     presence: [1, 1, 2, 3, 3, 3, 3, 3, 2, 2, 1, 1],
-    rarity: { status: 'LC', population: 'about 79 million', source: 'BirdLife International 2021' },
   };
 
   protected override alertPitch = 0.65;
@@ -233,7 +230,6 @@ export class GoldenCrownedSparrow extends Zonotrichia {
     call: 'tseep (a thin, sliding note)',
     song: 'oh dear me (three whistles, each lower than the last)',
     presence: [3, 3, 2, 1, 0, 0, 0, 0, 0, 2, 3, 3],
-    rarity: { status: 'LC', population: 'about 7.5 million', source: 'BirdLife International 2021' },
   };
 
   // Stays low and hunched where the White-crowned stands tall.
@@ -292,7 +288,6 @@ export class FoxSparrow extends Passerella {
     call: 'tchup (a loud smack)',
     song: 'sweet sweet swee-et chew chew (rich, slurred whistles, mostly in spring)',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2],
-    rarity: { status: 'LC', source: 'BirdLife International 2018, as Sooty Fox Sparrow' },
   };
 
   static override look: Partial<Look> = {
@@ -358,7 +353,6 @@ export class SavannahSparrow extends Passerculus {
     call: 'tsip (thin)',
     song: 'tip-tip-tip, see-see-see, say-whee (thin and buzzy)',
     presence: [0, 0, 1, 2, 3, 3, 3, 2, 2, 1, 0, 0],
-    rarity: { status: 'LC', population: 'about 170 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -451,7 +445,6 @@ export class HouseFinch extends Haemorhous {
     call: 'cheep (a sparrow-like chirp)',
     song: 'a long, jumbled warble that ends in a nasal zhweeer',
     presence: [2, 2, 2, 2, 3, 3, 3, 3, 3, 2, 2, 2],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   // A flock bird that eats steadily at one spot.
@@ -486,7 +479,6 @@ export class PurpleFinch extends Haemorhous {
     call: 'pik (a dry, metallic note)',
     song: 'a rich, fast warble, longer and smoother than a robin’s',
     presence: [1, 1, 2, 2, 3, 3, 3, 2, 2, 2, 1, 1],
-    rarity: { status: 'LC', population: 'about 6.5 million', source: 'BirdLife International 2025' },
   };
 
   // A forest bird that takes a few seeds and moves on.
@@ -579,7 +571,6 @@ export class PineSiskin extends Spinus {
     call: 'tit-i-tit, and a rising, buzzy zzzreeee',
     song: 'a rambling jumble of twitters and wheezy buzzes',
     presence: [2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2],
-    rarity: { status: 'LC', population: 'about 46 million', source: 'BirdLife International 2025' },
   };
 
   // Feeds in the conifer tops, calling rather less per bound than a goldfinch.
@@ -615,7 +606,6 @@ export class AmericanGoldfinch extends Spinus {
     call: 'po-ta-to-chip',
     song: 'a long, bright string of twitters and whistles',
     presence: [1, 1, 1, 2, 3, 3, 3, 3, 3, 2, 1, 1],
-    rarity: { status: 'LC', population: '42–47 million', source: 'BirdLife International 2025' },
   };
 
   protected override hangOn: PerchKind[] = ['flower'];
@@ -697,7 +687,6 @@ export class RedCrossbill extends Loxia {
     call: 'jip-jip-jip (hard and dry, usually heard overhead)',
     song: 'a jumble of warbles and chips',
     presence: [1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1],
-    rarity: { status: 'LC', population: '30–48 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -748,7 +737,6 @@ export class EveningGrosbeak extends Hesperiphona {
     call: 'peer! (a loud, ringing note, like a House Sparrow’s but louder)',
     song: 'a halting series of the same ringing notes',
     presence: [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1],
-    rarity: { status: 'VU', population: 'about 3.4 million', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 12, flapRate: 9 };
@@ -848,7 +836,6 @@ export class RedWingedBlackbird extends Agelaius {
     call: 'chack (a hard, dry note)',
     song: 'conk-la-reeee',
     presence: [1, 1, 2, 3, 3, 3, 3, 3, 2, 2, 1, 1],
-    rarity: { status: 'LC', population: 'about 210 million', source: 'BirdLife International 2018' },
   };
 
   // The epaulet cannot be drawn separately, so it is a red wing bar.
@@ -894,7 +881,6 @@ export class BrewersBlackbird extends Euphagus {
     call: 'tchk (a hard click)',
     song: 'a creaky, wheezy ksh-eeek',
     presence: [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1],
-    rarity: { status: 'NT', population: '15–25 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -953,7 +939,6 @@ export class BrownHeadedCowbird extends Molothrus {
     call: 'a dry chatter or rattle',
     song: 'glug-glug-gleee (a liquid gurgle, then a thin whistle)',
     presence: [0, 0, 1, 2, 2, 2, 2, 2, 1, 0, 0, 0],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -1027,7 +1012,6 @@ export class HouseSparrow extends Passer {
     call: 'cheep, chirrup (a harsh, repeated chatter)',
     song: 'a repeated cheep-cheep-cheep',
     presence: [1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1],
-    rarity: { status: 'LC', population: '896–1310 million', source: 'BirdLife International 2016' },
   };
 
   static override look: Partial<Look> = {
@@ -1108,7 +1092,6 @@ export class EuropeanStarling extends Sturnus {
     call: 'a drawn-out, descending sleeee',
     song: 'whistles, clicks and rattles mixed with mimicry of other birds',
     presence: [2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2],
-    rarity: { status: 'LC', population: 'about 150 million', source: 'BirdLife International 2019' },
   };
 
   static override look: Partial<Look> = {

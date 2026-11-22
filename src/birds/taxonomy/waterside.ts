@@ -111,7 +111,7 @@ export class BaldEagle extends Haliaeetus {
     note: 'Nests around Discovery Bay and sits for hours on bluff-top snags. Adults are unmistakable. The voice is the surprise: a thin, chittering whinny, not the scream films dub in.',
   };
 
-  static override ecology: Partial<Ecology> = { scenes: { yard: 2 }, habitat: 'beach', call: 'kleek-kik-ik-ik-ik (weak and squeaky)', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], rarity: { status: 'LC', source: 'BirdLife International 2024' } };
+  static override ecology: Partial<Ecology> = { scenes: { yard: 2 }, habitat: 'beach', call: 'kleek-kik-ik-ik-ik (weak and squeaky)', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.85,
@@ -272,7 +272,7 @@ export class BeltedKingfisher extends Megaceryle {
     note: 'Top-heavy, slate-blue, with a ragged crest and a white collar. On pilings and overhanging branches along Discovery Bay all year. The female, unusually, is the more colorful, with a second, rusty belly band.',
   };
 
-  static override ecology: Partial<Ecology> = { habitat: 'beach', call: 'k-k-k-k-k-k-k-k-k (a dry, mechanical rattle)', presence: [2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 2, 2], rarity: { status: 'LC', population: 'about 1.8 million', source: 'BirdLife International 2022' } };
+  static override ecology: Partial<Ecology> = { habitat: 'beach', call: 'k-k-k-k-k-k-k-k-k (a dry, mechanical rattle)', presence: [2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 2, 2] };
 
   static override look: Partial<Look> = {
     length: 0.32,
@@ -382,7 +382,7 @@ export class GreatBlueHeron extends Ardea {
     note: 'Four feet tall and motionless at the tideline. In the air: slow, deep wingbeats, neck folded, legs trailing well past the tail. Startled, it leaves with a croak like tearing canvas.',
   };
 
-  static override ecology: Partial<Ecology> = { habitat: 'beach', call: 'FRAAHNK!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], rarity: { status: 'LC', population: '500,000–5 million', source: 'BirdLife International 2020' } };
+  static override ecology: Partial<Ecology> = { habitat: 'beach', call: 'FRAAHNK!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 1.17,
@@ -512,7 +512,7 @@ export class GlaucousWingedGull extends Larus {
     note: 'The default big gull of the Salish Sea. Pale gray back with wingtips the same gray (no black), pink legs, and a red spot on the bill.',
   };
 
-  static override ecology: Partial<Ecology> = { scenes: { yard: 1 }, call: 'keow… keow… kyow-kyow-kyow-kyow!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], rarity: { status: 'LC', source: 'BirdLife International 2018' } };
+  static override ecology: Partial<Ecology> = { scenes: { yard: 1 }, call: 'keow… keow… kyow-kyow-kyow-kyow!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.6,

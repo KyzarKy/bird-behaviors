@@ -68,7 +68,6 @@ export class ChippingSparrow extends Spizella {
     call: 'tsip (a thin, dry chip)',
     song: 'a dry, mechanical trill, chi-chi-chi-chi-chi-chi',
     presence: [0, 0, 0, 1, 2, 2, 2, 2, 1, 0, 0, 0],
-    rarity: { status: 'LC', population: 'about 240 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -102,7 +101,6 @@ export class WhiteThroatedSparrow extends Zonotrichia {
     call: 'seep (a thin, sharp note) and a hard chink',
     song: 'old Sam Peabody Peabody Peabody (clear, quavering whistles)',
     presence: [1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1],
-    rarity: { status: 'LC', population: 'about 160 million', source: 'BirdLife International 2021' },
   };
 
   // Stands tall and still between pecks.
@@ -165,7 +163,6 @@ export class LincolnsSparrow extends Melospiza {
     call: 'tsup (a soft, flat chip)',
     song: 'a fast, bubbling jumble that rises and then falls',
     presence: [1, 1, 1, 2, 2, 0, 0, 1, 2, 2, 1, 1],
-    rarity: { status: 'LC', population: 'about 88 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -270,7 +267,6 @@ export class WesternMeadowlark extends Sturnella {
     call: 'chupp (a low, harsh chuck) and a dry rattle',
     song: 'a bubbling, flute-like series of gurgling whistles',
     presence: [2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -354,7 +350,6 @@ export class BullocksOriole extends Icterus {
     call: 'kip (a dry note) and a harsh chatter',
     song: 'a short, rough series of whistles and chatters',
     presence: [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-    rarity: { status: 'LC', population: 'about 7.7 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -423,7 +418,6 @@ export class LazuliBunting extends Passerina {
     call: 'tsit (a dry, sharp note)',
     song: 'sweet-sweet, chew-chew, sweer-sweer, zee-zee (paired notes, falling)',
     presence: [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
-    rarity: { status: 'LC', population: 'about 6.5 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -532,7 +526,6 @@ export class NorthernShrike extends Lanius {
     call: 'shek-shek (a harsh, grating scold)',
     song: 'a jumbled warble of squeaks and whistles, often mimicking other birds',
     presence: [1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-    rarity: { status: 'LC', population: 'about 180,000', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -600,7 +593,6 @@ export class TownsendsSolitaire extends Myadestes {
     call: 'heek (a clear, flute-like single note)',
     song: 'a long, rambling warble, sung in winter to defend a berry tree',
     presence: [1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1],
-    rarity: { status: 'LC', population: 'about 1.1 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -673,7 +665,6 @@ export class WesternBluebird extends Sialia {
     call: 'kew (a soft, falling note)',
     song: 'a few quiet, rolling phrases, chur-lee chur-lee',
     presence: [1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1],
-    rarity: { status: 'LC', population: 'about 7.1 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -768,7 +759,6 @@ export class AmericanPipit extends Anthus {
     call: 'pip-it (a thin, two-note call, often given in flight)',
     song: 'a rapid, repeated chwee-chwee-chwee on its breeding grounds',
     presence: [1, 1, 1, 2, 1, 0, 0, 0, 2, 2, 2, 1],
-    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -834,7 +824,6 @@ export class WesternKingbird extends Tyrannus {
     call: 'whit (a sharp, high note) and a twittering kit-kit-kit',
     song: 'a rapid, excited twitter that ends on a stressed note',
     presence: [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
-    rarity: { status: 'LC', population: 'about 30 million', source: 'BirdLife International 2021' },
   };
 
   // Longer and bolder sallies than a phoebe, and it mostly returns to its post.
@@ -903,7 +892,6 @@ export class SaysPhoebe extends Sayornis {
     call: 'pee-ur (a plaintive, downslurred whistle)',
     song: 'a harsh, rising pit-tsee-ar',
     presence: [0, 1, 2, 2, 1, 0, 0, 0, 1, 1, 0, 0],
-    rarity: { status: 'LC', population: 'about 5.9 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -956,7 +944,6 @@ export class RoughLeggedHawk extends Buteo {
   static override ecology: Partial<Ecology> = {
     call: 'peee-ur (a thin, catlike, descending squeal)',
     presence: [1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-    rarity: { status: 'LC', population: '350,000–800,000', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -1049,7 +1036,6 @@ export class NorthernSawWhetOwl extends Aegolius {
   static override ecology: Partial<Ecology> = {
     call: 'too-too-too-too-too-too (a steady, whistled toot, about two a second)',
     presence: [1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
-    rarity: { status: 'LC', source: 'BirdLife International 2024' },
   };
 
   // A long, even series of toots with no breaks.
@@ -1111,7 +1097,6 @@ export class WesternScreechOwl extends Megascops {
   static override ecology: Partial<Ecology> = {
     call: 'boo-boo-boo-boo-boo-boobooboo (a bouncing-ball series that speeds up)',
     presence: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    rarity: { status: 'LC', population: '73,000–230,000', source: 'BirdLife International 2024' },
   };
 
   // The hoots speed up like a ball coming to rest.
@@ -1198,7 +1183,6 @@ export class ShortEaredOwl extends Asio {
   static override ecology: Partial<Ecology> = {
     call: 'a raspy, barking kee-yow',
     presence: [1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-    rarity: { status: 'LC', population: '1.2–2.1 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -1274,7 +1258,6 @@ export class RuffedGrouse extends Bonasa {
   static override ecology: Partial<Ecology> = {
     call: 'a low, quiet pit-pit and a hiss',
     presence: [1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1],
-    rarity: { status: 'LC', population: 'about 18 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -1339,7 +1322,6 @@ export class SootyGrouse extends Dendragapus {
   static override ecology: Partial<Ecology> = {
     call: 'hoo-hoo-hoo-hoo-hoo (five low, muffled hoots)',
     presence: [1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1],
-    rarity: { status: 'LC', population: 'about 2 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -1407,7 +1389,6 @@ export class RingNeckedPheasant extends Phasianus {
   static override ecology: Partial<Ecology> = {
     call: 'KOR-kok! (a hoarse, two-note crow)',
     presence: [1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1],
-    rarity: { status: 'LC', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {

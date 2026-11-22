@@ -76,18 +76,6 @@ export interface Ecology {
   posture: number;
   call: string;
   song?: string;
-  /**
-   * How many there are worldwide, as opposed to how easy it is to find here (`presence`).
-   * IUCN Red List category and the number of mature individuals from the same assessment.
-   */
-  rarity?: Rarity;
-}
-
-export interface Rarity {
-  status: 'LC' | 'NT' | 'VU' | 'EN' | 'CR';
-  /** Mature individuals worldwide, as the source gives it: one number or a range. */
-  population?: string;
-  source: string;
 }
 
 /** Everything the renderer needs. Proportions are relative so they scale with `length`. */

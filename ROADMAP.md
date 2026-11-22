@@ -1,6 +1,6 @@
 # Roadmap
 
-Built so far: 165 species across 18 orders, 2 habitats, triggerable behaviors with slow motion and close-up, an auto mode where the bird chooses for itself and everything comes up every few minutes, one `forage` behavior per bird, a species list sorted by how likely each bird is this month, field notes with each species' Red List status and world population, the class hierarchy explorer, browser tests on a phone screen, and an interface on `@kyzarky/ui`.
+Built so far: 165 species across 18 orders, 2 habitats, triggerable behaviors with slow motion and close-up, an auto mode where the bird chooses for itself and everything comes up every few minutes, one `forage` behavior per bird, a species list sorted by how likely each bird is this month, the class hierarchy explorer, browser tests on a phone screen, and an interface on `@kyzarky/ui`.
 
 ## Next, in order
 
@@ -46,6 +46,9 @@ The site is static on GitHub Pages and species are TypeScript classes, so each p
 Still to decide when this starts: where the endpoint is hosted, and whether an admin page should replace PRs.
 
 ## Deferred
+
+### How likely you are to see it, here and today
+What field notes should eventually answer: the odds of actually seeing this bird where you are today. That depends on location, date, habitat, time of day and how detectable the bird is, which is mostly item 4's work. World population and Red List status alone did not answer it, so they were taken out of the app; the data for all 163 assessed species is kept in [`research/rarity/`](research/rarity/README.md) as one input.
 
 ### Side-by-side compare
 Two stages in split view, each with its own bird, running the same behavior in sync. The cases that motivated it:

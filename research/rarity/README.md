@@ -1,6 +1,8 @@
 # Rarity
 
-The "Worldwide" line in field notes says how many of a bird there are, as opposed to how easy it is to find on the Miller Peninsula this month (`presence`). Each species' `ecology.rarity` holds:
+How many of each bird there are worldwide, as opposed to how easy it is to find on the Miller Peninsula this month (`presence`). It was briefly a "Worldwide" line in field notes and was taken out because it did not say how likely you are to see the bird (see the roadmap). The app does not read this folder.
+
+[`rarity.json`](rarity.json) has one row per species in the app, with `common` and `scientific` names and, where assessed:
 
 - `status`: the IUCN Red List category.
 - `population`: the number of mature individuals worldwide, when there is an estimate.
