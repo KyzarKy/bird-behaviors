@@ -1,6 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <style>path { fill: #2f6b4f } @media (prefers-color-scheme: dark) { path { fill: #6cc79a } }</style>
-  <!-- A perched songbird facing left: head, cone beak, body, tail down to the right, legs on a twig. -->
-  <path d="M9.5 6.5a4.5 4.5 0 0 1 4.4 3.6c3.6.4 7 2.6 8.9 6l6.7 7.4-1 .9-6.6-4.2a9.5 9.5 0 0 1-6.9 4.6V27h-1v-2.2h-2V27h-1v-2.4A9 9 0 0 1 6 16.6c0-1.6.4-3 1.2-4.2L3 11.2l4.6-1.4A4.5 4.5 0 0 1 9.5 6.5Z"/>
-  <path d="M7 27h14v1.2H7z"/>
-</svg>
+<!-- Steller's Jay as src/render/drawBird.ts draws it at rest, recorded from its canvas calls, on the yard scene's sky and grass. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3.452 -6.391 7.704 7.704"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9cc4e4"/><stop offset="1" stop-color="#e6f1f7"/></linearGradient><clipPath id="tile"><rect x="-3.452" y="-6.391" width="7.704" height="7.704" rx="1.541"/></clipPath></defs><g clip-path="url(#tile)"><rect x="-3.452" y="-6.391" width="7.704" height="7.704" fill="url(#sky)"/><rect x="-3.452" y="0" width="7.704" height="7.704" fill="#6f9a54"/></g><g transform="scale(1,-1)"><defs><clipPath id="c0"><path transform="matrix(-0.989 0.149 0.149 0.989 0 2.297)" d="M1.728 0A1.728 1.196 0 0 1 -1.728 0A1.728 1.196 0 0 1 1.728 0"/></clipPath></defs><path transform="matrix(-1 0 0 1 0 0)" d="M0.013 1.633L-0.192 0M-0.384 0L0.384 0" fill="none" stroke="#111111" stroke-width="0.141" stroke-linecap="round" stroke-linejoin="round"/>
+<path transform="matrix(-1 0 0 1 0 0)" d="M0.013 1.633L0.192 0M0 0L0.768 0" fill="none" stroke="#111111" stroke-width="0.141" stroke-linecap="round" stroke-linejoin="round"/>
+<path transform="matrix(-0.989 0.149 0.149 0.989 1.385 2.209)" d="M0 0.359L-2.419 0.419L-2.419 -0.419L0 -0.359Z" fill="#17408a" stroke="rgba(0,0,0,0.35)" stroke-width="0.077"/>
+<path transform="matrix(-0.989 0.149 0.149 0.989 0 2.297)" d="M1.728 0A1.728 1.196 0 0 1 -1.728 0A1.728 1.196 0 0 1 1.728 0" fill="#1f4e9c" stroke="rgba(0,0,0,0.35)" stroke-width="0.077"/>
+<g clip-path="url(#c0)"><path transform="matrix(-0.989 0.149 0.149 0.989 0 2.297)" d="M1.814 -0.838A1.728 0.838 0 0 1 -1.641 -0.838A1.728 0.838 0 0 1 1.814 -0.838" fill="#2a62b8"/></g>
+<g clip-path="url(#c0)"><path transform="matrix(-0.989 0.149 0.149 0.989 0 2.297)" d="M2.088 -0.239A1.017 1.017 0 0 1 0.054 -0.239A1.017 1.017 0 0 1 2.088 -0.239" fill="#22252d"/></g>
+<path transform="matrix(-0.989 0.149 0.149 0.989 0 2.297)" d="M1.209 0.359L1.66 0.823" fill="none" stroke="#1c1f26" stroke-width="1.113" stroke-linecap="round" stroke-linejoin="round"/>
+<path transform="matrix(-1 0 0 1 -1.519 3.359)" d="M0.445 0.519L-0.964 0.89L-0.519 0.371Z" fill="#1c1f26" stroke="rgba(0,0,0,0.35)" stroke-width="0.077"/>
+<path transform="matrix(-1 0 0 1 -2.075 3.359)" d="M0 0.352L0.964 0L0 0Z" fill="#111111" stroke="rgba(0,0,0,0.35)" stroke-width="0.077"/>
+<path transform="matrix(-1 0 0 1 -2.075 3.359)" d="M0 0L0.926 0L0 -0.352Z" fill="#111111" stroke="rgba(0,0,0,0.35)" stroke-width="0.077"/>
+<path transform="matrix(-1 0 0 1 -1.519 3.359)" d="M0.742 0A0.742 0.742 0 0 1 -0.742 0A0.742 0.742 0 0 1 0.742 0" fill="#1c1f26" stroke="rgba(0,0,0,0.35)" stroke-width="0.077"/>
+<path transform="matrix(-1 0 0 1 -1.519 3.359)" d="M0.349 0.148A0.126 0.126 0 0 1 0.096 0.148A0.126 0.126 0 0 1 0.349 0.148" fill="#111111"/>
+<path transform="matrix(-0.989 0.149 0.149 0.989 0 2.297)" d="M1.028 -0.005A1.244 0.658 -6.875 0 1 -1.442 0.292A1.244 0.658 -6.875 0 1 1.028 -0.005" fill="#1a4fa8" stroke="rgba(0,0,0,0.35)" stroke-width="0.077"/>
+<path transform="matrix(-0.989 0.149 0.149 0.989 0 2.297)" d="M0.173 0.419L0.035 -0.179M-0.346 0.479L-0.484 -0.144" fill="none" stroke="#0e2a5c" stroke-width="0.144" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
