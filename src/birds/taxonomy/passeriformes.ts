@@ -73,6 +73,7 @@ export abstract class Corvidae extends Passeriformes {
   static override behaviors: BehaviorTable<Corvidae> = {
     cache: {
       label: 'Cache food',
+      feeding: true,
       cue: 'Carries food off, looks around to see who is watching, jabs it into the ground, then pulls a leaf over the spot.',
     },
   };
@@ -220,6 +221,7 @@ export class AmericanCrow extends Corvus {
   static override behaviors: BehaviorTable<AmericanCrow> = {
     dropShellfish: {
       label: 'Drop a clam on the rocks',
+      feeding: true,
       needs: 'rocks',
       cue: 'Digs a clam at the tideline, flies straight up over rock or pavement, lets go, and follows it down. If it does not break, it goes higher.',
     },
@@ -480,6 +482,7 @@ export abstract class Paridae extends Passeriformes {
     },
     seedHammer: {
       label: 'Hammer open a seed',
+      feeding: true,
       cue: 'Takes one seed and leaves. On a branch it pins the seed under both feet and hammers it open with its bill; it never sits at the feeder cracking seeds like a finch.',
     },
   };

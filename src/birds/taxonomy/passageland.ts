@@ -460,6 +460,7 @@ export abstract class Laniidae extends Passeriformes {
     },
     impale: {
       label: 'Impale prey on a thorn',
+      feeding: true,
       cue: 'Carries its catch to a thorn or twig fork and jams it on, then tears off pieces. Impaled prey left on a thorn or a wire fence is the sign of a shrike.',
     },
   };
@@ -914,6 +915,7 @@ export class SaysPhoebe extends Sayornis {
   static override behaviors: BehaviorTable<SaysPhoebe> = {
     hoverHunt: {
       label: 'Hover over the field',
+      feeding: true,
       cue: 'Leaves the post and hovers a few feet over short grass, bill pointing down, before dropping or snatching an insect and returning. The Eastern Phoebe and the pewees do not hover.',
     },
   };
@@ -974,6 +976,7 @@ export class RoughLeggedHawk extends Buteo {
     },    // Its second way to hunt, and the one the rest of its genus uses.
     perchHunt: {
       label: 'Hunt from a perch',
+      feeding: true,
       cue: 'Just as often it sits on a pole or a fence post at the edge of a field and drops on prey from there, like a Red-tailed Hawk.',
     },
   };

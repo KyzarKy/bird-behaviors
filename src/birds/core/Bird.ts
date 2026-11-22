@@ -151,6 +151,7 @@ export abstract class Bird {
     forage: {
       label: 'Forage',
       cue: 'How a bird feeds is usually its most reliable behavioral field mark.',
+      feeding: true,
       weight: 4,
     },
     preen: {

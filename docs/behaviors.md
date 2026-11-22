@@ -64,4 +64,6 @@ override forage(): Script {
 
 `berryPass` stays a public method but leaves the table, so the action is listed once and auto mode's `forage` weight covers it. A relabel keeps the weight of the entry it replaces unless it sets its own; `needs` is not carried down, since a relabel is often a different way of doing it. A test fails if a listed behavior's whole body returns another listed behavior.
 
+Field notes tag every feeding behavior "Feeding", since labels such as "Toss the leaf litter" don't say so. `forage` sets `feeding: true` once in `Bird` and a relabel keeps it; any other behavior about finding, catching, handling or eating food sets it itself.
+
 A species with a second, genuinely different way to feed lists that method too. The Rough-legged Hawk forages by hovering and still has the perch hunt of its genus; the Yellow-rumped Warbler flycatches and still gleans.
