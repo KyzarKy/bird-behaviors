@@ -778,6 +778,7 @@ export class ShortBilledGull extends Larus {
   static override behaviors: BehaviorTable<ShortBilledGull> = {
     dipFeed: {
       label: 'Dip-feed',
+      feeding: true,
       cue: 'Hovers on fast wingbeats a metre above the water and dips to take small food from the surface without landing. Larger gulls land or plunge.',
     },
   };
@@ -886,6 +887,7 @@ export class HeermannsGull extends Larus {
   static override behaviors: BehaviorTable<HeermannsGull> = {
     pirate: {
       label: 'Steal a fish',
+      feeding: true,
       cue: 'Chases another seabird low over the water, matching every twist, until the victim drops its catch. It lands with the stolen fish and swallows it fast.',
     },
   };
@@ -935,6 +937,7 @@ export abstract class Chroicocephalus extends Laridae {
   static override behaviors: BehaviorTable<Chroicocephalus> = {
     skimDips: {
       label: 'Skim and dip',
+      feeding: true,
       cue: 'Flutters low over the water and dips down three or four times in a row to pick from the surface, climbing between dips. Tern-like, and nothing a Larus gull does.',
     },
   };
@@ -1205,6 +1208,7 @@ export abstract class Cerorhinca extends Alcidae {
   static override behaviors: BehaviorTable<Cerorhinca> = {
     carryFishHome: {
       label: 'Carry fish to the colony',
+      feeding: true,
       cue: 'Surfaces with several small fish held crosswise in the bill and flies straight out toward the colony, low and fast. It does not eat them.',
     },
   };

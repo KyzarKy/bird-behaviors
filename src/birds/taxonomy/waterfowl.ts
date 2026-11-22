@@ -314,6 +314,7 @@ export abstract class Mareca extends Anatidae {
     },
     graze: {
       label: 'Graze ashore',
+      feeding: true,
       cue: 'Comes up the beach and crops short grass like a small goose, walking steadily with the head low. Mallards and Pintails seldom do this.',
     },
   };
@@ -751,6 +752,7 @@ export abstract class Mergus extends Anatidae {
     },
     snorkel: {
       label: 'Snorkel',
+      feeding: true,
       cue: 'Cruises along with the head down and the bill underwater, scanning for fish before committing to a dive. No other duck does this for long.',
     },
   };
@@ -933,6 +935,7 @@ export abstract class Branta extends Anatidae {
   static override behaviors: BehaviorTable<Branta> = {
     graze: {
       label: 'Graze',
+      feeding: true,
       cue: 'Walks up the beach in a loose group and crops with short, jerky pulls, head down, one or two birds always standing watch with the neck up.',
     },
   };

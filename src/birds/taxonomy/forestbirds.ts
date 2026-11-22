@@ -809,6 +809,7 @@ export abstract class Bombycillidae extends Passeriformes {
     },
     flycatch: {
       label: 'Flycatch over the water',
+      feeding: true,
       cue: 'Sits on an exposed treetop, darts out after an insect, and returns, often with several birds taking turns. It sallies like a flycatcher but is stockier and keeps a crest.',
     },
   };
@@ -1020,6 +1021,7 @@ export class WarblingVireo extends Vireo {
   static override behaviors: BehaviorTable<WarblingVireo> = {
     singWhileGleaning: {
       label: 'Sing while foraging',
+      feeding: true,
       cue: 'Warbles from inside the foliage and keeps working the leaves between phrases, often well above eye level. It sings from the nest too.',
     },
   };

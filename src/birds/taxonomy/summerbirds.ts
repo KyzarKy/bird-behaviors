@@ -323,6 +323,7 @@ export class YellowRumpedWarbler extends Setophaga {
     },    // It still gleans like the rest of its family, and in winter eats berries and seeds too.
     glean: {
       label: 'Glean from twig tips',
+      feeding: true,
       cue: 'Between sallies it works the twigs like any other warbler, pecking at leaves and buds.',
       weight: 2,
     },
@@ -561,6 +562,7 @@ export abstract class Cardinalidae extends Passeriformes {
   static override behaviors: BehaviorTable<Cardinalidae> = {
     pluckFruit: {
       label: 'Pluck a berry',
+      feeding: true,
       cue: 'Reaches out from a perch, snips a berry with the heavy bill, then tips its head back and swallows it whole. Fruit is a large part of the late-summer diet.',
     },
   };
@@ -657,6 +659,7 @@ export abstract class Pheucticus extends Cardinalidae {
   static override behaviors: BehaviorTable<Pheucticus> = {
     crackSeed: {
       label: 'Crack a seed',
+      feeding: true,
       cue: 'Takes a seed to a branch and works it between the two halves of the bill with a slow, rolling chewing motion, then drops the husk. A finch does the same on a smaller scale; the grosbeak takes visibly longer.',
     },
   };

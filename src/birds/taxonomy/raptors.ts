@@ -134,6 +134,7 @@ export abstract class Buteo extends Accipitridae {
   static override behaviors: BehaviorTable<Buteo> = {
     kite: {
       label: 'Kite on the wind',
+      feeding: true,
       cue: 'Hangs almost motionless over one spot on set wings with the tail fanned, riding the breeze, then slides sideways to a new spot. Gulls kite too, but a buteo’s wings are broad and rounded.',
     },
     forage: {
@@ -681,6 +682,7 @@ export class Merlin extends Falco {
   static override behaviors: BehaviorTable<Merlin> = {
     lowChase: {
       label: 'Low chase',
+      feeding: true,
       cue: 'Streaks across open ground a few feet up on rapid, shallow wingbeats, following every jink of a small bird, with no ambush and no cover. A Sharp-shinned Hawk waits hidden and comes through trees; the Merlin runs the prey down in the open.',
     },
   };
@@ -739,6 +741,7 @@ export class AmericanKestrel extends Falco {
   static override behaviors: BehaviorTable<AmericanKestrel> = {
     hoverHunt: {
       label: 'Hover-hunt',
+      feeding: true,
       cue: 'Hangs in one spot 30 feet up, head steady and tail fanned, wings beating fast, then slides down in steps and drops onto prey. Hovering over open ground is the field mark. A hawk soars or kites on set wings, and a kestrel flaps the whole time.',
     },
     tailPump: {

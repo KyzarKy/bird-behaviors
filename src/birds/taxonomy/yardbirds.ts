@@ -89,6 +89,7 @@ export class DownyWoodpecker extends Dryobates {
   static override behaviors: BehaviorTable<DownyWoodpecker> = {
     stemProbe: {
       label: 'Probe weed stems',
+      feeding: true,
       cue: 'Small enough to work thin stalks and shrub twigs that would bend under a Hairy. Hangs on the stem, taps lightly and moves on. A Hairy is almost always on a trunk or a big limb.',
     },
   };
@@ -435,6 +436,7 @@ export abstract class Patagioenas extends Columbidae {
   static override behaviors: BehaviorTable<Patagioenas> = {
     canopyFeed: {
       label: 'Reach for berries',
+      feeding: true,
       cue: 'A pigeon in the treetop, neck stretched out far and body tilted up, flapping to stay balanced on a thin twig. A ground-feeding dove or town pigeon almost never does this.',
     },
   };

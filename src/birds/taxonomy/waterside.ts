@@ -171,6 +171,7 @@ export abstract class Alcedinidae extends Coraciiformes {
     },
     hoverHunt: {
       label: 'Hover and plunge',
+      feeding: true,
       cue: 'With no perch handy it swings up and hovers 20 to 40 feet over the water, bill pointing straight down, body nearly vertical, then folds and drops. Compare the hummingbird’s level, effortless hover.',
     },
   };
@@ -433,11 +434,13 @@ export abstract class Laridae extends Charadriiformes {
     },
     dropShellfish: {
       label: 'Drop a clam on the rocks',
+      feeding: true,
       needs: 'rocks',
       cue: 'The same trick the crows use, learned independently: carry the clam up, drop it on something hard, follow it down.',
     },
     footPaddle: {
       label: 'Foot-paddle',
+      feeding: true,
       cue: 'Stands in the wet sand at the tideline and marches rapidly in place. The vibration brings worms and small clams to the surface; it steps back and picks them off.',
     },
   };

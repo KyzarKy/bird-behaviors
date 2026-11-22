@@ -63,6 +63,11 @@ describe('hierarchy', () => {
 });
 
 describe('behavior tables', () => {
+  it('keep forage tagged as feeding through every relabel', () => {
+    const untagged = SPECIES.filter((s) => !behaviorsOf(s).find((b) => b.key === 'forage')?.spec.feeding).map((s) => s.taxon.common);
+    expect(untagged).toEqual([]);
+  });
+
   // A method whose whole body is `return this.other();` is the same action listed twice.
   // Relabel the inherited behavior in the class's own table instead (see forage).
   const alias = (cls: BirdClass, key: string) => {

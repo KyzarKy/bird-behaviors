@@ -138,6 +138,8 @@ export interface BehaviorSpec {
   needs?: 'water' | 'rocks' | 'bark';
   /** Relative odds of the bird choosing this on its own. Defaults to 1. */
   weight?: number;
+  /** Finding, catching, handling or eating food. Shown as a tag, since many labels don't say so. */
+  feeding?: boolean;
 }
 
 /**
