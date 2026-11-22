@@ -65,3 +65,7 @@ override forage(): Script {
 `berryPass` stays a public method but leaves the table, so the action is listed once and auto mode's `forage` weight covers it. A relabel keeps the weight of the entry it replaces unless it sets its own; `needs` is not carried down, since a relabel is often a different way of doing it. A test fails if a listed behavior's whole body returns another listed behavior.
 
 A species with a second, genuinely different way to feed lists that method too. The Rough-legged Hawk forages by hovering and still has the perch hunt of its genus; the Yellow-rumped Warbler flycatches and still gleans.
+
+## Auto mode
+
+Left to itself, a bird draws its next behavior by `weight` (default 1) from everything the scene allows, never the same one twice running. Feeding is 6 and calls are 3, on `Bird`, so those are what you see most; `fly` and `preen` are 2, and displays and songs keep 1. A bird runs about 6–8 behaviors a minute, so a test holds every behavior to at least 1/20 of the total for every species in every scene it visits: everything a bird can do comes up every 2–3 minutes.

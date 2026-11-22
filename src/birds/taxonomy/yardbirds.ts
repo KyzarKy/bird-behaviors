@@ -725,7 +725,6 @@ export abstract class Apodidae extends Apodiformes {
     roostDrop: {
       label: 'Roost circle',
       cue: 'At dusk the birds gather in circling flocks above a hollow tree or chimney and drop into it one after another, wings held up. They roost clinging to the inside wall, never on a branch.',
-      weight: 0.5,
     },
     fly: {
       label: 'Fly to a new spot',
@@ -875,7 +874,6 @@ export abstract class Caprimulgidae extends Caprimulgiformes {
     roostStill: {
       label: 'Roost on a branch',
       cue: 'Sits lengthwise along a limb, not across it as other birds do, eyes nearly shut. It is nearly invisible and almost never seen this way.',
-      weight: 0.5,
     },
   };
 

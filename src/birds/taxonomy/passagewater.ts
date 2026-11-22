@@ -67,7 +67,6 @@ export class NorthernShoveler extends Spatula {
     forage: {
       label: 'Sieve the surface',
       cue: 'Swims in tight circles with the big bill laid flat on the water, sweeping it from side to side. Often several birds circle together, each stirring up food for the next. A Mallard upends; a shoveler rarely does.',
-      weight: 3,
     },
   };
 
@@ -1199,7 +1198,6 @@ export class BrownPelican extends Pelecanus {
     forage: {
       label: 'Plunge-dive',
       cue: 'Circles 30 feet or more above the water, then folds the wings and drops headfirst with a huge splash. It comes up with the pouch full, tips the bill down to drain the water, then swallows. No other large waterbird here dives from this height.',
-      weight: 3,
     },
   };
 
