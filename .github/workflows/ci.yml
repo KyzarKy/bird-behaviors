@@ -1,5 +1,5 @@
 # Runs on every push to main and every pull request. `verify` is typecheck, tests and a
-# production build. On main, the built site is then published to GitHub Pages.
+# production build; the browser tests then run against that build. On main, the built site is then published to GitHub Pages.
 name: CI
 
 on:
@@ -25,6 +25,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run verify
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
       - if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v4
         with:
