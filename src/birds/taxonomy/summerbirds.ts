@@ -90,6 +90,7 @@ export class VioletGreenSwallow extends Tachycineta {
     call: 'chit-chit, tsip',
     song: 'a soft, rapid twitter of tsiit-tsiit notes',
     presence: [0, 0, 1, 3, 3, 3, 3, 2, 1, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 7.2 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -123,6 +124,7 @@ export class TreeSwallow extends Tachycineta {
     call: 'chee-weet, chi-veet',
     song: 'liquid gurgling twitters, chee-ter-weet',
     presence: [0, 0, 2, 3, 3, 3, 2, 2, 1, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 19 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -166,6 +168,7 @@ export class BarnSwallow extends Hirundo {
     call: 'kvick-kvick, witt-witt',
     song: 'a long, rambling twitter ending in a dry rattle',
     presence: [0, 0, 0, 3, 3, 3, 3, 3, 2, 0, 0, 0],
+    rarity: { status: 'LC', population: '290–487 million', source: 'BirdLife International 2019' },
   };
 
   static override look: Partial<Look> = {
@@ -259,6 +262,7 @@ export class OrangeCrownedWarbler extends Leiothlypis {
     call: 'a sharp, dry chip',
     song: 'a weak trill that fades and drops in pitch at the end',
     presence: [0, 0, 1, 3, 3, 3, 2, 2, 2, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 82 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -302,6 +306,7 @@ export class YellowRumpedWarbler extends Setophaga {
     call: 'a loud, flat check',
     song: 'a slow, weak warble that rises or falls at the end',
     presence: [1, 1, 2, 3, 3, 1, 0, 1, 3, 3, 2, 1],
+    rarity: { status: 'LC', source: 'BirdLife International 2023, as Audubon’s Warbler' },
   };
 
   static override look: Partial<Look> = {
@@ -363,6 +368,7 @@ export class TownsendsWarbler extends Setophaga {
     call: 'a sharp, high chip',
     song: 'weezy weezy weezy tseet, wheezing and rising',
     presence: [1, 0, 0, 2, 2, 1, 1, 2, 2, 1, 0, 1],
+    rarity: { status: 'LC', population: 'about 21 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -397,6 +403,7 @@ export class BlackThroatedGrayWarbler extends Setophaga {
     call: 'a soft, flat tsip',
     song: 'weezy weezy weezy weezy-tee, buzzy and even',
     presence: [0, 0, 0, 2, 3, 3, 3, 2, 1, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 3.2 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -458,6 +465,7 @@ export class WilsonsWarbler extends Cardellina {
     call: 'a flat, nasal timp',
     song: 'chi-chi-chi-chi-chi-chi, a fast chatter that drops at the end',
     presence: [0, 0, 0, 2, 3, 3, 3, 2, 2, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 81 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -526,6 +534,7 @@ export class CommonYellowthroat extends Geothlypis {
     call: 'a dry, husky tchep',
     song: 'wichity-wichity-wichity-wich',
     presence: [0, 0, 0, 2, 3, 3, 3, 3, 2, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 77 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -626,6 +635,7 @@ export class WesternTanager extends Piranga {
     call: 'pit-ick, pit-er-ick',
     song: 'a hoarse, robin-like phrase, pirrit-pit-ter-it, rising and falling',
     presence: [0, 0, 0, 1, 3, 3, 3, 2, 1, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 15 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -689,6 +699,7 @@ export class BlackHeadedGrosbeak extends Pheucticus {
     call: 'a sharp, squeaky pik',
     song: 'a long, rich, robin-like warble, faster and more slurred than a robin’s',
     presence: [0, 0, 0, 2, 3, 3, 3, 2, 1, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 15 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -748,6 +759,7 @@ export class WesternFlycatcher extends Empidonax {
     call: 'a sharp, rising pseet',
     song: 'a three-part tsip, ptsick, seet repeated from a shaded perch',
     presence: [0, 0, 0, 1, 3, 3, 3, 2, 1, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 9.5 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -784,6 +796,7 @@ export class WesternWoodPewee extends Contopus {
     call: 'a nasal, descending peeer',
     song: 'pee-ur, pee-wee, peeer',
     presence: [0, 0, 0, 0, 3, 3, 3, 2, 1, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 9.6 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {

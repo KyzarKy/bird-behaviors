@@ -144,6 +144,7 @@ export class CommonLoon extends Gavia {
   static override ecology: Partial<Ecology> = {
     call: 'a tremolo laugh, ha-ha-ha-ha-ha (rare in winter); a mournful hoot',
     presence: [3, 3, 2, 2, 1, 1, 1, 0, 1, 2, 3, 3],
+    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 20, flapRate: 4.3 };
@@ -178,6 +179,7 @@ export class PacificLoon extends Gavia {
   static override ecology: Partial<Ecology> = {
     call: 'a croaking kwow; silent on migration',
     presence: [1, 1, 2, 3, 1, 0, 0, 0, 0, 1, 2, 1],
+    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 21, flapRate: 4.8 };
@@ -219,6 +221,7 @@ export class RedThroatedLoon extends Gavia {
   static override ecology: Partial<Ecology> = {
     call: 'a goose-like kak-kak-kak in flight; quiet in winter',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2],
+    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 20, power: 0.3, flapRate: 5.2 };
@@ -381,6 +384,7 @@ export class HornedGrebe extends Podiceps {
   static override ecology: Partial<Ecology> = {
     call: 'a rattling trill, krrrrr (mostly summer); silent in winter',
     presence: [3, 3, 2, 1, 0, 0, 0, 0, 1, 2, 3, 3],
+    rarity: { status: 'VU', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 8.5 };
@@ -423,6 +427,7 @@ export class RedNeckedGrebe extends Podiceps {
   static override ecology: Partial<Ecology> = {
     call: 'a loud, braying series, ah-ah-ah-kerr (summer); mostly silent in winter',
     presence: [2, 2, 2, 2, 0, 0, 0, 0, 1, 2, 3, 2],
+    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 18, flapRate: 6.5 };
@@ -507,6 +512,7 @@ export class WesternGrebe extends Aechmophorus {
   static override ecology: Partial<Ecology> = {
     call: 'a two-note, creaky krrreeet-kreet',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2],
+    rarity: { status: 'LC', population: '80,000–90,000', source: 'BirdLife International 2019' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 18, flapRate: 5.5 };
@@ -575,6 +581,7 @@ export class PiedBilledGrebe extends Podilymbus {
   static override ecology: Partial<Ecology> = {
     call: 'cuk-cuk-cuk-cow-cow-cow (a spring call from ponds); quiet in winter',
     presence: [1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1],
+    rarity: { status: 'LC', population: 'about 500,000', source: 'BirdLife International 2021' },
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 8, cruiseSpeed: 15 };
@@ -761,6 +768,7 @@ export class DoubleCrestedCormorant extends Nannopterum {
     perches: ['post', 'log', 'rock'],
     call: 'a low, pig-like grunt, urrrrk (at the nest and roost); silent otherwise',
     presence: [2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2],
+    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 17, flapRate: 4 };
@@ -826,6 +834,7 @@ export class PelagicCormorant extends Urile {
     perches: ['rock', 'post'],
     call: 'a soft, hissing croak at the nest; usually silent',
     presence: [2, 2, 2, 2, 2, 3, 3, 3, 2, 2, 2, 2],
+    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 16, flapRate: 5.5 };
@@ -865,6 +874,7 @@ export class BrandtsCormorant extends Urile {
     perches: ['rock', 'post'],
     call: 'a low grunt; silent away from the colony',
     presence: [2, 2, 1, 1, 0, 0, 0, 1, 2, 2, 2, 2],
+    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 17, flapRate: 4.5 };

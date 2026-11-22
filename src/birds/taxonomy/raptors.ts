@@ -100,6 +100,7 @@ export class Osprey extends Pandion {
     habitat: 'beach',
     call: 'chewk-chewk-chewk (a whistled, rising chirp)',
     presence: [0, 0, 0, 1, 2, 2, 2, 2, 1, 0, 0, 0],
+    rarity: { status: 'LC', population: '100,000–1.2 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -201,6 +202,7 @@ export class RedTailedHawk extends Buteo {
   static override ecology: Partial<Ecology> = { scenes: { beach: 1 },
     call: 'keeeeer (a hoarse, descending scream)',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+    rarity: { status: 'LC', population: '2.6–3.1 million', source: 'BirdLife International 2024' },
   };
 
   static override look: Partial<Look> = {
@@ -287,6 +289,7 @@ export class CoopersHawk extends Accipiter {
   static override ecology: Partial<Ecology> = {
     call: 'kak-kak-kak-kak (a fast, flicker-like chatter)',
     presence: [2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2],
+    rarity: { status: 'LC', population: '770,000–920,000', source: 'BirdLife International 2024' },
   };
 
   static override look: Partial<Look> = {
@@ -320,6 +323,7 @@ export class SharpShinnedHawk extends Accipiter {
   static override ecology: Partial<Ecology> = {
     call: 'kik-kik-kik-kik (higher and thinner than Cooper’s)',
     presence: [1, 1, 1, 1, 0, 0, 0, 1, 1, 2, 2, 1],
+    rarity: { status: 'LC', population: '300,000–520,000', source: 'BirdLife International 2024' },
   };
 
   static override look: Partial<Look> = {
@@ -404,6 +408,7 @@ export class NorthernHarrier extends Circus {
     habitat: 'beach',
     call: 'kek-kek-kek-kek (thin and rapid, rarely heard)',
     presence: [2, 2, 2, 1, 0, 0, 0, 1, 1, 2, 2, 2],
+    rarity: { status: 'LC', population: '730,000–920,000', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -526,6 +531,7 @@ export class TurkeyVulture extends Cathartes {
   static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
     call: 'hsss (a hiss; it has no true voice)',
     presence: [0, 0, 1, 2, 2, 2, 2, 2, 2, 1, 0, 0],
+    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -629,6 +635,7 @@ export class PeregrineFalcon extends Falco {
     perches: ['post', 'rock', 'treetop'],
     call: 'kak-kak-kak-kak (harsh and fast)',
     presence: [2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2],
+    rarity: { status: 'LC', population: '100,000–500,000', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -663,6 +670,7 @@ export class Merlin extends Falco {
   static override ecology: Partial<Ecology> = {
     call: 'ki-ki-ki-ki-ki (a shrill, rapid chatter)',
     presence: [2, 2, 1, 0, 0, 0, 0, 0, 1, 1, 2, 2],
+    rarity: { status: 'LC', population: '250,000–3.2 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
@@ -719,6 +727,7 @@ export class AmericanKestrel extends Falco {
     perches: ['post', 'branch', 'treetop'],
     call: 'killy-killy-killy (a thin, shrill laugh)',
     presence: [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+    rarity: { status: 'LC', population: 'about 9.2 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -916,6 +925,7 @@ export class BarredOwl extends Strix {
   static override ecology: Partial<Ecology> = {
     call: 'who-cooks-for-you, who-cooks-for-you-all',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+    rarity: { status: 'LC', population: '3–3.9 million', source: 'BirdLife International 2024' },
   };
 
   static override look: Partial<Look> = {
@@ -962,6 +972,7 @@ export class GreatHornedOwl extends Bubo {
   static override ecology: Partial<Ecology> = {
     call: 'hoo, hoo-hoo, hoo, hoo (deep and muffled)',
     presence: [2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2],
+    rarity: { status: 'LC', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -1057,6 +1068,7 @@ export class NorthernPygmyOwl extends Glaucidium {
   static override ecology: Partial<Ecology> = {
     call: 'toot… toot… toot (a steady, whistled series)',
     presence: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    rarity: { status: 'LC', population: 'about 180,000', source: 'BirdLife International 2023' },
   };
 
   static override look: Partial<Look> = {
@@ -1133,6 +1145,7 @@ export class BarnOwl extends Tyto {
   static override ecology: Partial<Ecology> = {
     call: 'kschhh (a harsh, raspy screech)',
     presence: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    rarity: { status: 'LC', source: 'BirdLife International 2025, as Common Barn-owl' },
   };
 
   static override look: Partial<Look> = {

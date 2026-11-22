@@ -82,6 +82,7 @@ export class DownyWoodpecker extends Dryobates {
   static override ecology: Partial<Ecology> = {
     call: 'pik! (soft); whinny that falls in pitch',
     presence: [3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3],
+    rarity: { status: 'LC', population: 'about 13 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = { length: 0.16, build: 0.55, beakLength: 0.5, tailLength: 0.4 };
@@ -120,6 +121,7 @@ export class HairyWoodpecker extends Dryobates {
   static override ecology: Partial<Ecology> = {
     call: 'PEEK! (sharp, loud); even rattle on one pitch',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+    rarity: { status: 'LC', population: 'about 8.9 million', source: 'BirdLife International 2020' },
   };
 
   static override look: Partial<Look> = { length: 0.23, build: 0.55, beakLength: 1, tailLength: 0.45 };
@@ -209,6 +211,7 @@ export class PileatedWoodpecker extends Dryocopus {
   static override ecology: Partial<Ecology> = {
     call: 'kuk-kuk-kuk-kuk-kuk-kuk (loud, ringing, wandering in pitch)',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+    rarity: { status: 'LC', population: 'about 2.6 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -313,6 +316,7 @@ export class RedBreastedSapsucker extends Sphyrapicus {
   static override ecology: Partial<Ecology> = {
     call: 'neeer (nasal mew)',
     presence: [2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2],
+    rarity: { status: 'LC', population: 'about 2.3 million', source: 'BirdLife International 2018' },
   };
 
   static override look: Partial<Look> = {
@@ -464,6 +468,7 @@ export class BandTailedPigeon extends Patagioenas {
   static override ecology: Partial<Ecology> = {
     call: 'whoo-whoo… whoo (low, owl-like, two or three notes)',
     presence: [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1],
+    rarity: { status: 'LC', population: 'about 6.1 million', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -531,6 +536,7 @@ export class RockPigeon extends Columba {
   static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
     call: "coo-roo-c'too-coo",
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+    rarity: { status: 'LC', source: 'BirdLife International 2025' },
   };
 
   static override look: Partial<Look> = {
@@ -595,6 +601,7 @@ export class EurasianCollaredDove extends Streptopelia {
   static override ecology: Partial<Ecology> = { scenes: { beach: 1 },
     call: 'koo-KOO-kook (three notes, middle one stressed); harsh hwaah in flight',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+    rarity: { status: 'LC', population: '40–75 million', source: 'BirdLife International 2019' },
   };
 
   static override look: Partial<Look> = {
@@ -657,6 +664,7 @@ export class MourningDove extends Zenaida {
   static override ecology: Partial<Ecology> = {
     call: 'cooOO-coo, coo, coo (mournful, slow)',
     presence: [1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1],
+    rarity: { status: 'LC', population: '120–140 million', source: 'BirdLife International 2024' },
   };
 
   static override look: Partial<Look> = {
@@ -808,6 +816,7 @@ export class VauxsSwift extends Chaetura {
   static override ecology: Partial<Ecology> = {
     call: 'chip-chip-chip (dry, insect-like twittering)',
     presence: [0, 0, 0, 1, 2, 3, 3, 3, 2, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 860,000', source: 'BirdLife International 2020' },
   };
 
   static override look: Partial<Look> = {
@@ -938,6 +947,7 @@ export class CommonNighthawk extends Chordeiles {
   static override ecology: Partial<Ecology> = {
     call: 'peent! (nasal, buzzy)',
     presence: [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+    rarity: { status: 'LC', population: 'about 23 million', source: 'BirdLife International 2021' },
   };
 
   static override look: Partial<Look> = {
