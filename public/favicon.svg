@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>path { fill: #2f6b4f } @media (prefers-color-scheme: dark) { path { fill: #6cc79a } }</style>
+  <!-- A perched songbird facing left: head, cone beak, body, tail down to the right, legs on a twig. -->
+  <path d="M9.5 6.5a4.5 4.5 0 0 1 4.4 3.6c3.6.4 7 2.6 8.9 6l6.7 7.4-1 .9-6.6-4.2a9.5 9.5 0 0 1-6.9 4.6V27h-1v-2.2h-2V27h-1v-2.4A9 9 0 0 1 6 16.6c0-1.6.4-3 1.2-4.2L3 11.2l4.6-1.4A4.5 4.5 0 0 1 9.5 6.5Z"/>
+  <path d="M7 27h14v1.2H7z"/>
+</svg>
