@@ -60,16 +60,6 @@ describe('hierarchy', () => {
   });
 });
 
-describe('field notes', () => {
-  // The chicken is domestic, so it has no Red List assessment. BirdLife's DataZone has no
-  // factsheet for the Black Oystercatcher under any name tried (see docs/rarity.md).
-  const exempt = ['Chicken', 'Black Oystercatcher'];
-  it('every wild species says how many there are worldwide, and where that comes from', () => {
-    const missing = SPECIES.filter((s) => !resolveTraits<Ecology>(s, 'ecology').rarity).map((s) => s.taxon.common);
-    expect(missing).toEqual(exempt);
-  });
-});
-
 describe('simulation', () => {
   // Every behavior of every species must run to completion and keep the bird on stage.
   for (const cls of SPECIES) {
@@ -156,4 +146,14 @@ describe('scene requirements', () => {
       });
     }
   }
+});
+
+describe('field notes', () => {
+  // The chicken is domestic, so it has no Red List assessment. BirdLife's DataZone has no
+  // factsheet for the Black Oystercatcher under any name tried (see docs/rarity.md).
+  const exempt = ['Chicken', 'Black Oystercatcher'];
+  it('every wild species says how many there are worldwide, and where that comes from', () => {
+    const missing = SPECIES.filter((s) => !resolveTraits<Ecology>(s, 'ecology').rarity).map((s) => s.taxon.common);
+    expect(missing).toEqual(exempt);
+  });
 });
