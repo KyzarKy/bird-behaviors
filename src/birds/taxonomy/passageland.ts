@@ -184,7 +184,7 @@ export class LincolnsSparrow extends Melospiza {
   };
 
   static override behaviors: BehaviorTable<LincolnsSparrow> = {
-    skulk: {
+    forage: {
       label: 'Skulk through cover',
       cue: 'Creeps with the body low and the head drawn in, stopping often, and stays under the brush. It pops up for a moment on a low stem, raises the crown and drops back out of sight. Song Sparrows sit up on top of the bush.',
     },
@@ -299,6 +299,10 @@ export abstract class Icterus extends Icteridae {
   static override look: Partial<Look> = { beakShape: 'dagger', beakLength: 0.75, tailLength: 0.6 };
 
   static override behaviors: BehaviorTable<Icterus> = {
+    forage: {
+      label: 'Glean in the canopy',
+      cue: 'Works along twigs and flower clusters high in a leafy tree, pecking at insects and nectar, then pauses to look around. The blackbirds it is related to walk on the ground.',
+    },
     weaveNest: {
       label: 'Weave the hanging nest',
       cue: 'Picks up a grass strand, flies to the drooping tip of a twig, hangs beneath it and threads the fiber through with the bill. The finished nest is a pouch that swings from the end of a branch.',
@@ -449,13 +453,14 @@ export abstract class Laniidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.65, headSize: 1.1, beakShape: 'hook', beakLength: 0.5, tailLength: 0.7 };
 
   static override behaviors: BehaviorTable<Laniidae> = {
-    perchHunt: {
+    forage: {
       label: 'Hunt from a high perch',
       cue: 'Sits bolt upright on the very top of a shrub, post or snag and scans the ground. Then a low swoop, a catch, and a climb back to a perch. A kestrel hovers to hunt; a shrike waits.',
       weight: 3,
     },
     impale: {
       label: 'Impale prey on a thorn',
+      feeding: true,
       cue: 'Carries its catch to a thorn or twig fork and jams it on, then tears off pieces. Impaled prey left on a thorn or a wire fence is the sign of a shrike.',
     },
   };
@@ -558,7 +563,7 @@ export abstract class Myadestes extends Turdidae {
   static override look: Partial<Look> = { build: 0.45, beakLength: 0.4, tailLength: 0.8, eyeRing: '#f1eee6' };
 
   static override behaviors: BehaviorTable<Myadestes> = {
-    guardBerries: {
+    forage: {
       label: 'Guard a berry tree',
       cue: 'Perches upright on the top of one tree and chases off any bird that comes near, then returns to the same spot. Robins and waxwings feed in flocks; a solitaire is always alone.',
     },
@@ -623,7 +628,7 @@ export abstract class Sialia extends Turdidae {
   static override look: Partial<Look> = { build: 0.6, legLength: 0.15, beakLength: 0.45, tailLength: 0.55 };
 
   static override behaviors: BehaviorTable<Sialia> = {
-    dropHunt: {
+    forage: {
       label: 'Hover and drop',
       cue: 'Watches the grass from a low post, then flies out and hovers for a second, head down, before dropping on an insect and returning to the same perch. A kingfisher hovers over water; a bluebird hovers over a lawn.',
       weight: 3,
@@ -695,7 +700,7 @@ export abstract class Motacillidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.45, headSize: 0.9, legLength: 0.2, tailLength: 0.7, beakShape: 'thin', beakLength: 0.6 };
 
   static override behaviors: BehaviorTable<Motacillidae> = {
-    tailBob: {
+    forage: {
       label: 'Walk, bobbing the tail',
       cue: 'Walks in short, quick steps and every few steps pumps the tail up and down. A sparrow hops and does not bob. A spotted sandpiper bobs the rear half of the body, a pipit only the tail.',
       weight: 4,
@@ -910,6 +915,7 @@ export class SaysPhoebe extends Sayornis {
   static override behaviors: BehaviorTable<SaysPhoebe> = {
     hoverHunt: {
       label: 'Hover over the field',
+      feeding: true,
       cue: 'Leaves the post and hovers a few feet over short grass, bill pointing down, before dropping or snatching an insect and returning. The Eastern Phoebe and the pewees do not hover.',
     },
   };
@@ -964,9 +970,14 @@ export class RoughLeggedHawk extends Buteo {
   };
 
   static override behaviors: BehaviorTable<RoughLeggedHawk> = {
-    hoverHunt: {
+    forage: {
       label: 'Hover over a field',
       cue: 'Hangs in one spot on rapidly beating wings, tail fanned and head down, then slides sideways and hangs again. A Red-tailed Hawk mostly sits and watches, or kites on a steady wind without flapping.',
+    },    // Its second way to hunt, and the one the rest of its genus uses.
+    perchHunt: {
+      label: 'Hunt from a perch',
+      feeding: true,
+      cue: 'Just as often it sits on a pole or a fence post at the edge of a field and drops on prey from there, like a Red-tailed Hawk.',
     },
   };
 
@@ -1144,7 +1155,7 @@ export abstract class Asio extends Strigidae {
   static override look: Partial<Look> = { build: 0.6, headSize: 1.2, wingSpan: 2.8 };
 
   static override behaviors: BehaviorTable<Asio> = {
-    quarter: {
+    forage: {
       label: 'Quarter the field',
       cue: 'Flies back and forth a few feet above the grass in a loose, wobbling, moth-like flight, tilting from wing to wing, then drops. A harrier does the same by day with a white rump and a steadier tilt; a short-eared owl hunts at dusk.',
       weight: 4,

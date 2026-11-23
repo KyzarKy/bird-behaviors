@@ -64,11 +64,6 @@ export abstract class Haliaeetus extends Accipitridae {
 
   static override behaviors: BehaviorTable<Haliaeetus> = {
     forage: {
-      label: 'Forage',
-      needs: 'water',
-      cue: 'Feeds mostly on fish, taken from the surface of open water.',
-    },
-    snatchFish: {
       label: 'Snatch a fish',
       needs: 'water',
       cue: 'A long, shallow glide low over the water, feet swung forward at the last second, and the fish is lifted off the surface. The eagle barely gets wet. An Osprey plunges in feet-first with a splash.',
@@ -170,12 +165,13 @@ export abstract class Alcedinidae extends Coraciiformes {
   static override look: Partial<Look> = { build: 0.6, headSize: 1.3, beakShape: 'dagger', beakLength: 1, tailLength: 0.3, crest: 'shaggy' };
 
   static override behaviors: BehaviorTable<Alcedinidae> = {
-    plungeDive: {
+    forage: {
       label: 'Plunge from a perch',
       cue: 'Sits over the water staring down, bobs its head, then drops headfirst and goes right under. Back on the perch it beats the fish against the wood before swallowing it head first.',
     },
     hoverHunt: {
       label: 'Hover and plunge',
+      feeding: true,
       cue: 'With no perch handy it swings up and hovers 20 to 40 feet over the water, bill pointing straight down, body nearly vertical, then folds and drops. Compare the hummingbird’s level, effortless hover.',
     },
   };
@@ -312,7 +308,7 @@ export abstract class Ardeidae extends Pelecaniformes {
   static override look: Partial<Look> = { build: 0.35, headSize: 0.42, neckLength: 0.8, legLength: 0.5, tailLength: 0.2, wingSpan: 1.9, beakShape: 'dagger', beakLength: 1.6, legsTrail: true };
 
   static override behaviors: BehaviorTable<Ardeidae> = {
-    stalk: {
+    forage: {
       label: 'Stalk and strike',
       cue: 'Wades in slow motion, one foot placed at a time, neck easing forward. Freezes completely. The strike itself is too fast to follow; then the head comes up and the fish goes down whole.',
     },
@@ -438,11 +434,13 @@ export abstract class Laridae extends Charadriiformes {
     },
     dropShellfish: {
       label: 'Drop a clam on the rocks',
+      feeding: true,
       needs: 'rocks',
       cue: 'The same trick the crows use, learned independently: carry the clam up, drop it on something hard, follow it down.',
     },
     footPaddle: {
       label: 'Foot-paddle',
+      feeding: true,
       cue: 'Stands in the wet sand at the tideline and marches rapidly in place. The vibration brings worms and small clams to the surface; it steps back and picks them off.',
     },
   };

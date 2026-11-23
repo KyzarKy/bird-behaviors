@@ -1,4 +1,4 @@
-import { Button, Card, Checkbox, Link, List, ListRow, Meter, SegmentedControl, Select } from '@kyzarky/ui';
+import { Button, Card, Checkbox, Link, List, ListRow, Meter, SegmentedControl, Select, Tag } from '@kyzarky/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { behaviorsOf, lineage, traitSources, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
 import type { Ecology, FlightProfile, HabitatId } from '../birds/core/traits';
@@ -139,7 +139,7 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
                 </Button>
                 <p className="mt-1 px-1 text-muted-foreground text-xs">
                   {why(b.key) && <span className="block text-warning">{why(b.key)}</span>}
-                  <ClassLink cls={b.declaredIn} />
+                  {b.spec.feeding && <Tag>Feeding</Tag>} <ClassLink cls={b.declaredIn} />
                   {b.implementedIn !== b.declaredIn && (
                     <>
                       , overridden in <ClassLink cls={b.implementedIn} />

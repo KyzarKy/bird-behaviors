@@ -36,7 +36,7 @@ export abstract class Galliformes extends Bird {
   };
 
   static override behaviors: BehaviorTable<Galliformes> = {
-    scratch: {
+    forage: {
       label: 'Scratch and peck',
       cue: 'One foot at a time rakes backward, then the bird steps back and inspects what it uncovered. Compare the towhee, which kicks with both feet at once.',
     },
