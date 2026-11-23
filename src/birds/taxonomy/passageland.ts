@@ -94,7 +94,7 @@ export class WhiteThroatedSparrow extends Zonotrichia {
     rank: 'species',
     name: 'Zonotrichia albicollis',
     common: 'White-throated Sparrow',
-    note: 'Black and white crown stripes, a yellow spot before the eye and a crisp white throat patch on a gray breast. A scarce winter bird at Gardiner feeders and brush piles, usually singly in a flock of juncos and White-crowned Sparrows.',
+    note: 'Black and white crown stripes, a yellow spot before the eye and a crisp white throat patch on a gray breast. A scarce winter bird in Gardiner brush piles and weedy edges, usually singly in a flock of juncos and White-crowned Sparrows.',
   };
 
   static override ecology: Partial<Ecology> = {

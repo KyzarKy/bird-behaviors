@@ -74,7 +74,7 @@ export class DownyWoodpecker extends Dryobates {
     rank: 'species',
     name: 'Dryobates pubescens',
     common: 'Downy Woodpecker',
-    note: 'The smallest woodpecker here, with a bill about a third the length of its head. Resident at Gardiner and around the Miller Peninsula yards, often at suet; adult males have a red patch on the nape.',
+    note: 'The smallest woodpecker here, with a bill about a third the length of its head. Resident at Gardiner and around the Miller Peninsula yards, often on weed stalks and alder twigs; adult males have a red patch on the nape.',
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 11 };
@@ -115,7 +115,7 @@ export class HairyWoodpecker extends Dryobates {
     rank: 'species',
     name: 'Dryobates villosus',
     common: 'Hairy Woodpecker',
-    note: 'A near copy of the Downy at robin size, with a bill as long as its head. Uncommon but regular in the conifers at the yard edge around the Miller Peninsula and Discovery Bay; it is less often at feeders.',
+    note: 'A near copy of the Downy at robin size, with a bill as long as its head. Uncommon but regular in the conifers at the yard edge around the Miller Peninsula and Discovery Bay; it keeps more to big trunks than the Downy does.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -589,7 +589,7 @@ export class EurasianCollaredDove extends Streptopelia {
     rank: 'species',
     name: 'Streptopelia decaocto',
     common: 'Eurasian Collared-Dove',
-    note: 'Pale buff-gray with a thin black collar and a broad square tail tipped in white. Introduced; common year-round around farms, feeders and rooftops from Sequim to Gardiner, and on the edge of the Miller Peninsula.',
+    note: 'Pale buff-gray with a thin black collar and a broad square tail tipped in white. Introduced; common year-round around farms, fields and rooftops from Sequim to Gardiner, and on the edge of the Miller Peninsula.',
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 6.5 };

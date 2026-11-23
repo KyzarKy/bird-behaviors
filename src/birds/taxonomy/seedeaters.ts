@@ -57,7 +57,7 @@ export class DarkEyedJunco extends Junco {
     rank: 'species',
     name: 'Junco hyemalis',
     common: 'Dark-eyed Junco',
-    note: 'The Oregon form here: dark slate hood, brown back, pinkish sides, pale pink bill. Present all year on the Miller Peninsula; the flocks under the feeder and along the forest edge are largest from fall to spring.',
+    note: 'The Oregon form here: dark slate hood, brown back, pinkish sides, pale pink bill. Present all year on the Miller Peninsula; the flocks on lawns and along the forest edge are largest from fall to spring.',
   };
 
   static override ecology: Partial<Ecology> = { scenes: { beach: 1 },
@@ -223,7 +223,7 @@ export class GoldenCrownedSparrow extends Zonotrichia {
     rank: 'species',
     name: 'Zonotrichia atricapilla',
     common: 'Golden-crowned Sparrow',
-    note: 'A yellow crown patch edged in black, on a dull gray-brown bird with a dark bill. A winter visitor from October to April under brush piles and at feeders around Gardiner; gone by May to nest in Alaska and northern British Columbia.',
+    note: 'A yellow crown patch edged in black, on a dull gray-brown bird with a dark bill. A winter visitor from October to April under brush piles and in weedy edges around Gardiner; gone by May to nest in Alaska and northern British Columbia.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -428,7 +428,7 @@ export abstract class Haemorhous extends Fringillidae {
     rank: 'genus',
     name: 'Haemorhous',
     common: 'American rosefinches',
-    note: 'Males are washed in red, from the head down. House and Purple Finches look alike in a feeder flock and are told apart by head pattern and habitat.',
+    note: 'Males are washed in red, from the head down. House and Purple Finches look alike in a mixed flock and are told apart by head pattern and habitat.',
   };
 }
 
@@ -437,7 +437,7 @@ export class HouseFinch extends Haemorhous {
     rank: 'species',
     name: 'Haemorhous mexicanus',
     common: 'House Finch',
-    note: 'Males have a red head and breast and brown-streaked flanks; females are plain streaked brown. Regular at feeders and on the wires and fence posts around Gardiner and the Miller Peninsula homes, in flocks.',
+    note: 'Males have a red head and breast and brown-streaked flanks; females are plain streaked brown. Regular in weedy fields and on the wires and fence posts around Gardiner and the Miller Peninsula homes, in flocks.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -564,7 +564,7 @@ export class PineSiskin extends Spinus {
     rank: 'species',
     name: 'Spinus pinus',
     common: 'Pine Siskin',
-    note: 'A small, heavily streaked brown finch with a sharp bill and yellow in the wing and tail. Flocks come and go with the cone crop: scarce some years, abundant at Gardiner and the Miller Peninsula feeders in others, mostly outside summer.',
+    note: 'A small, heavily streaked brown finch with a sharp bill and yellow in the wing and tail. Flocks come and go with the cone crop: scarce some years, abundant in the Gardiner and Miller Peninsula alders and conifers in others, mostly outside summer.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -730,7 +730,7 @@ export class EveningGrosbeak extends Hesperiphona {
     rank: 'species',
     name: 'Hesperiphona vespertina',
     common: 'Evening Grosbeak',
-    note: 'A chunky finch: the male has a dark head with a yellow brow, a yellow body, black wings with a large white patch, and a pale ivory bill. Irregular at Gardiner and the Miller Peninsula; most records are of small flocks at feeders in winter and spring.',
+    note: 'A chunky finch: the male has a dark head with a yellow brow, a yellow body, black wings with a large white patch, and a pale ivory bill. Irregular at Gardiner and the Miller Peninsula; most records are of small flocks in maples and conifers in winter and spring, cracking seeds.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -1005,7 +1005,7 @@ export class HouseSparrow extends Passer {
     rank: 'species',
     name: 'Passer domesticus',
     common: 'House Sparrow',
-    note: 'The male has a gray crown, black bib and chestnut nape; the female is plain buff with a pale eyebrow. Scarce on the Miller Peninsula and around Gardiner, regular near farms and buildings toward Sequim, at feeders and in the weedy edges of yards.',
+    note: 'The male has a gray crown, black bib and chestnut nape; the female is plain buff with a pale eyebrow. Scarce on the Miller Peninsula and around Gardiner, regular near farms and buildings toward Sequim, in the weedy edges of yards and around grain spilled at farms.',
   };
 
   static override ecology: Partial<Ecology> = {
