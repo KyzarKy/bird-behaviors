@@ -53,10 +53,10 @@ export abstract class Hirundinidae extends Passeriformes {
 
   *hawk(): Script {
     for (let i = 0; i < 5; i++) {
-      const bug = this.world.emit('insect', rand(15, 85), rand(this.hawkLow, this.hawkHigh), { life: 4 });
+      const bug = this.preySpot({ x: rand(15, 85), y: rand(this.hawkLow, this.hawkHigh) });
       this.pose.beakOpen = 1;
       yield* this.flyTo(bug, { land: false, speed: this.swoopSpeed, glide: i % this.glideEvery === this.glideEvery - 1 });
-      bug.life = 0;
+      this.take(0.3, bug);
       this.pose.beakOpen = 0;
     }
     yield* this.toPerch();
@@ -222,7 +222,8 @@ export abstract class Parulidae extends Passeriformes {
 
   *glean(): Script {
     for (let i = 0; i < 4; i++) {
-      const stop = this.findPerch(this.gleanPerches, 'any') ?? this.groundSpot(this.pos.x, 6);
+      // Down in the grass if that is where its insects are, else from twig to twig.
+      const stop = (this.mealRange(true) && this.foodSpot(8)) || (this.findPerch(this.gleanPerches, 'any') ?? this.groundSpot(this.pos.x, 6));
       yield* this.flyOver(stop);
       for (let j = 0; j < 2; j++) {
         yield* this.peck(Math.ceil(rand(1, 2)), 0.6);
@@ -342,10 +343,9 @@ export class YellowRumpedWarbler extends Setophaga {
     for (let i = 0; i < 3; i++) {
       const home = { ...this.pos };
       const dir = home.x > 60 ? -1 : 1;
-      const bug = this.world.emit('insect', home.x + dir * rand(4, 9), home.y + rand(-1, 5), { life: 4 });
-      this.pose.facing = dir;
-      yield* this.flyTo(bug, { land: false, speed: 1.2 });
-      bug.life = 0;
+      const bug = this.preySpot({ x: home.x + dir * rand(4, 9), y: home.y + rand(-1, 5) });
+      this.pose.facing = bug.x >= home.x ? 1 : -1;
+      yield* this.strikeAt(bug, { speed: 1.2, hold: 0.5 });
       this.say('snap!', 0.6);
       yield* this.poseTo({ roll: 0.7 * dir, tailFan: 1, beakOpen: 1 }, 0.1);
       yield* this.poseTo({ roll: 0, tailFan: 0, beakOpen: 0 }, 0.1);
@@ -493,6 +493,11 @@ export abstract class Geothlypis extends Parulidae {
   };
 
   static override behaviors: BehaviorTable<Geothlypis> = {
+    forage: {
+      eats: 'grassBugs',
+      label: 'Glean low',
+      cue: 'Works low through grass and weeds, mostly out of sight, hopping and picking insects off stems near the ground.',
+    },
     popUp: {
       label: 'Pop up and sing',
       cue: 'Skulks in the low cover, then flies up to an open post or twig, throws its head back to sing, and drops straight back in. The song is the best way to find one.',
@@ -573,14 +578,16 @@ export abstract class Cardinalidae extends Passeriformes {
   };
 
   *pluckFruit(): Script {
-    yield* this.toPerch(['shrub']);
+    // Into the shrub, beside a berry.
+    const berry = this.preySpot(this.findPerch(['shrub']) ?? { ...this.pos });
+    yield* this.flyTo(berry);
     for (let i = 0; i < 2; i++) {
       yield* this.poseTo({ neck: 1.1, head: -0.5, pitch: 0.5 }, 0.2);
-      this.pose.carry = 'seed';
+      this.take(Infinity, berry);
       yield* this.poseTo({ neck: 0.95, head: 0, pitch: this.restingPose().pitch }, 0.2);
       yield* this.wait(0.3);
       yield* this.poseTo({ head: 0.8, neck: 1.2 }, 0.15);
-      this.pose.carry = null;
+      this.hold(null);
       yield* this.relax(0.2);
       yield* this.wait(0.3);
     }
@@ -672,15 +679,15 @@ export abstract class Pheucticus extends Cardinalidae {
   };
 
   *crackSeed(): Script {
-    yield* this.travelTo(this.findPerch(['shrub']) ?? this.groundSpot(this.pos.x, 8));
+    yield* this.travelTo(this.preySpot(this.findPerch(['shrub']) ?? this.groundSpot(this.pos.x, 8)));
     yield* this.peck(1);
-    this.pose.carry = 'seed';
+    this.hold(this.pose.carry);
     yield* this.toPerch(['branch']);
     for (let i = 0; i < 6; i++) {
       yield* this.poseTo({ beakOpen: 0.6, head: -0.3 }, 0.12);
       yield* this.poseTo({ beakOpen: 0, head: 0 }, 0.12);
     }
-    this.pose.carry = null;
+    this.hold(null);
     this.world.burst('chip', this.pos.x, this.pos.y, 3);
     yield* this.relax();
   }

@@ -1,4 +1,4 @@
-import { EXTRAS, FOOD_SITES, REGROW, type FoodKind, type FoodSite } from './food';
+import { EXTRAS, FOOD_SITES, FOODS, REGROW, type FoodKind, type FoodSite } from './food';
 import type { HabitatId, Item, PerchKind, Vec } from './traits';
 
 /**
@@ -57,15 +57,23 @@ export interface FoodPatch {
   units: (Vec & { left: number })[];
   /** Seconds before it peeks again, after a bird has just fed on it. */
   quiet: number;
+  /** Seconds since a hunter last startled it. The flock takes cover for a while after. */
+  startled: number;
 }
 
-/** A small animal showing itself, or a plant stirring, for a moment. */
+/** A small animal that keeps out of sight showing itself for a moment. */
 export interface Peek extends Vec {
   kind: FoodKind;
   /** Seconds since it began. */
   t: number;
   seconds: number;
 }
+
+/** Seconds a startled flock stays away before it drifts back in. */
+export const FLUSH = 22;
+
+/** How far from the bill a piece of food can be and still be taken. */
+const REACH = 4;
 
 export class World {
   particles: Particle[] = [];
@@ -85,7 +93,7 @@ export class World {
     const sites = FOOD_SITES[this.habitat.id];
     this.food = [...new Set([...EXTRAS[this.habitat.id], ...kinds])].flatMap((kind) => {
       const site = sites[kind];
-      return site ? [{ kind, site, units: (site.units ?? []).map((u) => ({ ...u, left: 1 })), quiet: 0 }] : [];
+      return site ? [{ kind, site, units: (site.units ?? []).map((u) => ({ ...u, left: 1 })), quiet: 0, startled: Infinity }] : [];
     });
   }
 
@@ -93,25 +101,35 @@ export class World {
     return this.food.find((f) => f.kind === kind)?.site ?? null;
   }
 
-  /** A bird fed here: a piece or two near x goes, and the food keeps out of sight for a while. */
-  eat(kind: FoodKind, x: number) {
+  /** A bird took some at `at`: the nearest whole piece within reach goes, and the food keeps out of sight for a while. */
+  eat(kind: FoodKind, at: Vec) {
     const patch = this.food.find((f) => f.kind === kind);
     if (!patch) return;
     patch.quiet = 20;
-    const whole = patch.units.filter((u) => u.left >= 1).sort((a, b) => Math.abs(a.x - x) - Math.abs(b.x - x));
-    for (const u of whole.slice(0, 1 + Math.round(Math.random()))) u.left = 0;
+    const d = (u: Vec) => Math.hypot(u.x - at.x, u.y - at.y);
+    const piece = patch.units.filter((u) => u.left >= 1 && d(u) < REACH).sort((a, b) => d(a) - d(b))[0];
+    if (piece) piece.left = 0;
+  }
+
+  /** A hunter is coming in at x: the flock bursts out of cover, a vole bolts, fish flash as they scatter. */
+  startle(kind: FoodKind, x: number) {
+    const patch = this.food.find((f) => f.kind === kind);
+    if (!patch) return;
+    patch.startled = 0;
+    if (FOODS[kind].hidden) this.peek = { kind, x, y: patch.site.y, t: 0, seconds: 1.5 };
   }
 
   step(dt: number) {
     this.time += dt;
     for (const f of this.food) {
       f.quiet -= dt;
+      f.startled += dt;
       for (const u of f.units) u.left = Math.min(1, u.left + dt / REGROW);
     }
     if (this.peek && (this.peek.t += dt) > this.peek.seconds) this.peek = null;
     if ((this.nextPeek -= dt) <= 0) {
-      // Carrion stays still and out of sight.
-      const ready = this.food.filter((f) => f.quiet <= 0 && f.kind !== 'carrion');
+      // Only small animals that keep out of sight peek. Plants and the flock are always in view.
+      const ready = this.food.filter((f) => f.quiet <= 0 && FOODS[f.kind].hidden);
       const f = ready[Math.floor(Math.random() * ready.length)];
       if (f) {
         const [lo, hi] = f.site.x;

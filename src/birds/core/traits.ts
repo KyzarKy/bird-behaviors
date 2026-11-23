@@ -17,7 +17,25 @@ export interface Vec {
 
 export type HabitatId = 'yard' | 'beach';
 export type PerchKind = 'treetop' | 'branch' | 'twig' | 'shrub' | 'post' | 'rock' | 'log' | 'flower';
-export type Item = 'worm' | 'clam' | 'fish' | 'insect' | 'seed' | 'acorn';
+/** Something a bird holds in its bill or feet. */
+export type Item =
+  | 'worm'
+  | 'clam'
+  | 'mussel'
+  | 'crab'
+  | 'fish'
+  | 'insect'
+  | 'caterpillar'
+  | 'grasshopper'
+  | 'seed'
+  | 'acorn'
+  | 'berry'
+  | 'cone'
+  | 'grass'
+  | 'weed'
+  | 'vole'
+  /** A small bird, drawn only as a vague dark shape. */
+  | 'prey';
 
 /**
  * The parameters Bird.flyTo() and Bird.hoverFor() read. Two birds with the

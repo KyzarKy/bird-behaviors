@@ -66,7 +66,11 @@ export abstract class Trochilidae extends Apodiformes {
   }
 
   *hoverFeed(): Script {
-    const flowers = this.world.habitat.perches.filter((q) => q.kind === 'flower');
+    const all = this.world.habitat.perches.filter((q) => q.kind === 'flower');
+    // The flowers in bloom, where the nectar is.
+    const m = this.mealRange();
+    const open = m ? all.filter((q) => q.x >= m[0] - 2 && q.x <= m[1] + 2) : all;
+    const flowers = open.length ? open : all;
     for (const flower of flowers) {
       const dir = flower.x >= this.pos.x ? 1 : -1;
       // Where the feet must be for the bill tip to meet the flower.
@@ -75,6 +79,7 @@ export abstract class Trochilidae extends Apodiformes {
       this.pose.facing = dir;
       yield* this.hoverFor(0.35);
       yield* this.hoverFor(0.25, { drift: { x: feed.x - this.pos.x, y: feed.y - this.pos.y } });
+      if (open.length) this.take(0.5, flower);
       yield* this.hoverFor(rand(0.9, 1.5));
       yield* this.hoverFor(0.3, { drift: { x: -dir * this.size * 1.2, y: 0.5 } });
       yield* this.hoverFor(0.2);

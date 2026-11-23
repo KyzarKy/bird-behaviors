@@ -128,7 +128,7 @@ export abstract class Colaptes extends Picidae {
   *antProbe(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-5, 5)));
+      yield* this.moveOnGround(this.foodSpot(5).x);
       yield* this.lookAround(0.5);
       for (let j = 0; j < 3; j++) {
         yield* this.peck(Math.ceil(rand(2, 5)), 1.2);

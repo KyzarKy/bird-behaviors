@@ -5,7 +5,7 @@
  * shows the foods its current bird eats, plus a fixed extra or two so it never
  * looks bare. Everything here is natural food: see CLAUDE.md.
  */
-import type { BehaviorSpec, HabitatId, Vec } from './traits';
+import type { BehaviorSpec, HabitatId, Item, Vec } from './traits';
 
 export type FoodKind =
   // Plants
@@ -29,6 +29,7 @@ export type FoodKind =
   | 'sandCritters'
   | 'clams'
   | 'mussels'
+  | 'shellfish'
   | 'wrack'
   | 'plankton'
   | 'minnows'
@@ -38,12 +39,52 @@ export type FoodKind =
   | 'flock'
   | 'carrion';
 
+export interface FoodSpec {
+  /** What shows in the bill or feet after a bird takes some. Null when nothing would: a sip of nectar or sap, a mouthful of plankton, carrion. */
+  item: Item | null;
+  /** A small animal that keeps out of sight and shows itself now and then (a peek). Plants and the flock are always in view and never peek. */
+  hidden?: boolean;
+}
+
+export const FOODS: Record<FoodKind, FoodSpec> = {
+  berries: { item: 'berry' },
+  acorns: { item: 'acorn' },
+  // The cone stays on the tree; the bird comes away with its seed.
+  cones: { item: 'seed' },
+  seedHeads: { item: 'seed' },
+  fallenSeed: { item: 'seed' },
+  nectar: { item: null },
+  sap: { item: null },
+  grass: { item: 'grass' },
+  eelgrass: { item: 'weed' },
+  worms: { item: 'worm', hidden: true },
+  ants: { item: 'insect', hidden: true },
+  grassBugs: { item: 'grasshopper', hidden: true },
+  litterBugs: { item: 'insect', hidden: true },
+  barkBugs: { item: 'insect', hidden: true },
+  leafBugs: { item: 'caterpillar', hidden: true },
+  swarm: { item: 'insect' },
+  sandCritters: { item: 'crab', hidden: true },
+  clams: { item: 'clam' },
+  mussels: { item: 'mussel' },
+  shellfish: { item: 'mussel' },
+  wrack: { item: 'insect', hidden: true },
+  plankton: { item: null },
+  minnows: { item: 'fish', hidden: true },
+  baitfish: { item: 'fish', hidden: true },
+  voles: { item: 'vole', hidden: true },
+  flock: { item: 'prey' },
+  carrion: { item: null },
+};
+
 /** Where a food is. */
 export interface FoodSite {
   /** The x range birds go to for it. */
   x: [number, number];
   /** Height: 0 on the ground, negative under water, higher in a plant or on a trunk. */
   y: number;
+  /** How far above or below `y` it reaches, for food without pieces: insects through a tree crown, a swarm. Defaults to 3. */
+  spread?: number;
   /** Pieces drawn in place, eaten one or two at a time and grown back. Small animals have none and only peek. */
   units?: Vec[];
 }
@@ -84,22 +125,22 @@ const FIR: [number, number, number][] = [[12, 32.5, 5.4], [11.5, 26, 7], [12.5, 
 export const FOOD_SITES: Record<HabitatId, Partial<Record<FoodKind, FoodSite>>> = {
   yard: {
     berries: { x: [45, 56], y: 6, units: inCrowns(16, SHRUB).map((p) => ({ x: p.x, y: Math.max(1.2, p.y + 1.2) })) },
-    acorns: { x: [76, 96], y: 21, units: [...inCrowns(12, OAK), ...along(3, 82, 91)] },
+    acorns: { x: [80, 92], y: 0, units: [...inCrowns(12, OAK), ...along(3, 82, 91)] },
     cones: { x: [5, 21], y: 22, units: inCrowns(9, FIR) },
     sap: { x: [85, 87], y: 9, units: [6.5, 8, 9.5, 11].flatMap((y) => [{ x: 85.5, y }, { x: 86.5, y: y + 0.4 }]) },
     seedHeads: { x: [37, 42], y: 6, units: along(6, 37.6, 41.8).map((p, i) => ({ x: p.x, y: 4.6 + ((i * 5) % 3) * 0.9 })) },
     fallenSeed: { x: [33, 43], y: 0, units: along(14, 33, 43, 0.12) },
-    nectar: { x: [43, 57], y: 8 },
+    nectar: { x: [43, 57], y: 8.5, spread: 2.5 },
     grass: { x: [16, 44], y: 0 },
     worms: { x: [14, 44], y: 0 },
     ants: { x: [24, 27], y: 0 },
     grassBugs: { x: [15, 30], y: 0 },
     litterBugs: { x: [60, 73], y: 0 },
-    barkBugs: { x: [31, 33], y: 14 },
-    leafBugs: { x: [68, 98], y: 20 },
-    swarm: { x: [34, 60], y: 15 },
+    barkBugs: { x: [31, 33], y: 15, spread: 14 },
+    leafBugs: { x: [68, 98], y: 24, spread: 12 },
+    swarm: { x: [34, 60], y: 15, spread: 6 },
     voles: { x: [16, 44], y: 0 },
-    flock: { x: [44, 56], y: 6 },
+    flock: { x: [44, 56], y: 4, spread: 4 },
     carrion: { x: [91, 95], y: 0 },
   },
   beach: {
@@ -110,9 +151,11 @@ export const FOOD_SITES: Record<HabitatId, Partial<Record<FoodKind, FoodSite>>> 
     ants: { x: [21, 31], y: 1.6 },
     wrack: { x: [33, 42], y: 0 },
     carrion: { x: [36, 39], y: 0 },
-    swarm: { x: [31, 45], y: 4 },
-    mussels: { x: [41, 51], y: 1.5, units: [[46.4, 0.3], [47, 0.7], [47.6, 0.35], [48.2, 0.75], [50.4, 0.3], [51, 0.25], [50.8, 0.7], [41, 0.35]].map(([x, y]) => ({ x, y })) },
-    sandCritters: { x: [50, 57], y: 0 },
+    swarm: { x: [31, 45], y: 5, spread: 5 },
+    // A mussel bed on the bottom of the shallows, for the diving ducks.
+    shellfish: { x: [62, 82], y: -2, spread: 2, units: along(9, 62, 82).map((u) => ({ x: u.x, y: 0.15 - Math.min(2.4, (u.x - 58) * 0.22) })) },
+    mussels: { x: [41, 51], y: 1.5, units: [[40.4, 0.3], [41, 0.7], [41.6, 0.3], [46.4, 0.3], [47, 0.7], [47.6, 0.35], [48.2, 0.75], [50.4, 0.3], [51, 0.25], [50.8, 0.7]].map(([x, y]) => ({ x, y })) },
+    sandCritters: { x: [46, 64], y: 0 },
     clams: { x: [52, 57.5], y: 0, units: along(6, 52, 57.5, 0.05) },
     flock: { x: [50, 56], y: 0 },
     minnows: { x: [59, 66], y: -0.5 },

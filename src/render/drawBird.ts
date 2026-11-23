@@ -20,40 +20,119 @@ function shape(ctx: Ctx, fill: string, path: () => void, outline = true) {
   if (outline) ctx.stroke();
 }
 
+/** Each thing a bird can hold, drawn at the bill (or feet), hanging down from there. Keyed by Item so none is missed. */
+const ITEMS: Record<Item, (ctx: Ctx, s: number) => void> = {
+  worm(ctx, s) {
+    ctx.strokeStyle = '#c9788a';
+    ctx.lineWidth = s * 0.035;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(s * 0.05, -s * 0.12, -s * 0.02, -s * 0.24);
+    ctx.stroke();
+  },
+  fish(ctx, s) {
+    shape(ctx, '#aeb9c2', () => ctx.ellipse(0, -s * 0.09, s * 0.04, s * 0.12, 0, 0, TAU));
+    shape(ctx, '#aeb9c2', () => {
+      ctx.moveTo(0, -s * 0.2);
+      ctx.lineTo(s * 0.05, -s * 0.27);
+      ctx.lineTo(-s * 0.05, -s * 0.27);
+      ctx.closePath();
+    });
+  },
+  clam(ctx, s) {
+    shape(ctx, '#d8d2c4', () => ctx.ellipse(0, 0, s * 0.07, s * 0.05, 0, 0, TAU));
+  },
+  mussel(ctx, s) {
+    shape(ctx, '#2c3142', () => ctx.ellipse(0, -s * 0.02, s * 0.035, s * 0.08, 0.3, 0, TAU));
+  },
+  crab(ctx, s) {
+    ctx.strokeStyle = '#9a5a35';
+    ctx.lineWidth = s * 0.012;
+    ctx.beginPath();
+    for (const side of [-1, 1]) {
+      for (const k of [0, 1]) {
+        ctx.moveTo(side * s * 0.03, -s * (0.02 + k * 0.025));
+        ctx.lineTo(side * s * 0.07, -s * (0.04 + k * 0.03));
+      }
+    }
+    ctx.stroke();
+    ctx.strokeStyle = OUTLINE;
+    shape(ctx, '#b86a3c', () => ctx.ellipse(0, -s * 0.03, s * 0.045, s * 0.03, 0, 0, TAU));
+  },
+  insect(ctx, s) {
+    shape(ctx, 'rgba(235,240,245,0.8)', () => ctx.ellipse(-s * 0.012, s * 0.02, s * 0.022, s * 0.012, -0.6, 0, TAU), false);
+    shape(ctx, '#2a2622', () => ctx.ellipse(0, 0, s * 0.025, s * 0.013, 0, 0, TAU), false);
+  },
+  caterpillar(ctx, s) {
+    for (let i = 0; i < 4; i++) shape(ctx, '#7c9a3c', () => ctx.arc(Math.sin(i * 0.9) * s * 0.015, -i * s * 0.026, s * 0.016, 0, TAU), false);
+  },
+  grasshopper(ctx, s) {
+    shape(ctx, '#8a8f3a', () => ctx.ellipse(0, -s * 0.05, s * 0.016, s * 0.055, 0, 0, TAU), false);
+    ctx.strokeStyle = '#6e7230';
+    ctx.lineWidth = s * 0.01;
+    ctx.beginPath();
+    ctx.moveTo(0, -s * 0.07);
+    ctx.lineTo(s * 0.04, -s * 0.05);
+    ctx.lineTo(s * 0.02, -s * 0.11);
+    ctx.stroke();
+  },
+  seed(ctx, s) {
+    shape(ctx, '#3a3530', () => ctx.ellipse(0, 0, s * 0.035, s * 0.02, 0, 0, TAU));
+  },
+  acorn(ctx, s) {
+    shape(ctx, '#8a5a2b', () => ctx.arc(0, 0, s * 0.045, 0, TAU));
+  },
+  berry(ctx, s) {
+    shape(ctx, '#8e1f35', () => ctx.arc(0, -s * 0.02, s * 0.03, 0, TAU));
+  },
+  cone(ctx, s) {
+    shape(ctx, '#7a5534', () => ctx.ellipse(0, -s * 0.06, s * 0.03, s * 0.065, 0, 0, TAU));
+  },
+  grass(ctx, s) {
+    ctx.strokeStyle = '#6f9a45';
+    ctx.lineWidth = s * 0.012;
+    ctx.beginPath();
+    for (const lean of [-0.03, 0, 0.035]) {
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(lean * s, -s * 0.06, lean * s * 1.6, -s * 0.13);
+    }
+    ctx.stroke();
+  },
+  weed(ctx, s) {
+    ctx.strokeStyle = '#3f6b3a';
+    ctx.lineWidth = s * 0.018;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(s * 0.04, -s * 0.07, -s * 0.04, -s * 0.13, s * 0.02, -s * 0.2);
+    ctx.stroke();
+  },
+  vole(ctx, s) {
+    // Kept plain: a small brown shape and a tail, nothing more.
+    ctx.strokeStyle = '#6b5440';
+    ctx.lineWidth = s * 0.01;
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.05, -s * 0.03);
+    ctx.lineTo(-s * 0.09, -s * 0.06);
+    ctx.stroke();
+    ctx.strokeStyle = OUTLINE;
+    shape(ctx, '#7a634c', () => ctx.ellipse(0, -s * 0.03, s * 0.06, s * 0.032, 0, 0, TAU));
+  },
+  prey(ctx, s) {
+    // A bird caught by a hawk is only a dark, shapeless bundle in the feet.
+    shape(ctx, '#4a4038', () => {
+      ctx.ellipse(0, -s * 0.04, s * 0.06, s * 0.04, 0.2, 0, TAU);
+    }, false);
+    shape(ctx, '#5a4e44', () => ctx.ellipse(s * 0.03, -s * 0.06, s * 0.035, s * 0.025, -0.4, 0, TAU), false);
+  },
+};
+
 export function drawItem(ctx: Ctx, kind: Item | string, s: number) {
   ctx.save();
   ctx.lineWidth = s * 0.02;
   ctx.strokeStyle = OUTLINE;
-  switch (kind) {
-    case 'worm':
-      ctx.strokeStyle = '#c9788a';
-      ctx.lineWidth = s * 0.035;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.quadraticCurveTo(s * 0.05, -s * 0.12, -s * 0.02, -s * 0.24);
-      ctx.stroke();
-      break;
-    case 'fish':
-      shape(ctx, '#aeb9c2', () => ctx.ellipse(0, -s * 0.09, s * 0.04, s * 0.12, 0, 0, TAU));
-      shape(ctx, '#aeb9c2', () => {
-        ctx.moveTo(0, -s * 0.2);
-        ctx.lineTo(s * 0.05, -s * 0.27);
-        ctx.lineTo(-s * 0.05, -s * 0.27);
-        ctx.closePath();
-      });
-      break;
-    case 'clam':
-      shape(ctx, '#d8d2c4', () => ctx.ellipse(0, 0, s * 0.07, s * 0.05, 0, 0, TAU));
-      break;
-    case 'acorn':
-      shape(ctx, '#8a5a2b', () => ctx.arc(0, 0, s * 0.045, 0, TAU));
-      break;
-    case 'seed':
-      shape(ctx, '#3a3530', () => ctx.ellipse(0, 0, s * 0.035, s * 0.02, 0, 0, TAU));
-      break;
-    default:
-      shape(ctx, '#222', () => ctx.arc(0, 0, s * 0.02, 0, TAU), false);
-  }
+  const draw = ITEMS[kind as Item];
+  if (draw) draw(ctx, s);
+  else shape(ctx, '#222', () => ctx.arc(0, 0, s * 0.02, 0, TAU), false);
   ctx.restore();
 }
 

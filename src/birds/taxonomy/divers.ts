@@ -112,14 +112,8 @@ export abstract class Gaviidae extends Gaviiformes {
     for (let i = 0; i < this.dives; i++) {
       yield* this.poseTo({ neck: 0.1, head: -1.3, pitch: -0.1 }, 0.25);
       yield* this.wait(this.peekTime);
-      const dir = this.pos.x > 80 ? -1 : this.pos.x < 68 ? 1 : Math.random() < 0.5 ? -1 : 1;
-      yield* this.diveUnder(this.diveTime, dir * this.diveSpan * rand(0.7, 1.1));
-      if (Math.random() < 0.5) {
-        this.pose.carry = 'fish';
-        yield* this.poseTo({ neck: 1.2, head: 0.5 }, 0.15);
-        yield* this.wait(0.5);
-        this.pose.carry = null;
-      }
+      yield* this.diveUnder(this.diveTime, this.diveDx(this.diveSpan));
+      yield* this.swallowCatch();
       yield* this.relax(0.2);
     }
   }
@@ -339,14 +333,8 @@ export abstract class Podicipedidae extends Podicipediformes {
     for (let i = 0; i < this.dives; i++) {
       yield* this.poseTo({ neck: 0.3, head: -1, pitch: -0.05 }, 0.2);
       yield* this.wait(rand(0.2, 0.5));
-      const dir = this.pos.x > 80 ? -1 : this.pos.x < 68 ? 1 : Math.random() < 0.5 ? -1 : 1;
-      yield* this.diveUnder(this.diveTime, dir * this.diveSpan * rand(0.7, 1.1), this.diveLeap);
-      if (Math.random() < 0.4) {
-        this.pose.carry = 'fish';
-        yield* this.poseTo({ neck: 1.1, head: 0.4 }, 0.15);
-        yield* this.wait(0.5);
-        this.pose.carry = null;
-      }
+      yield* this.diveUnder(this.diveTime, this.diveDx(this.diveSpan), this.diveLeap);
+      yield* this.swallowCatch();
     }
     yield* this.relax();
   }
@@ -559,7 +547,8 @@ export abstract class Podilymbus extends Podicipedidae {
     for (let i = 0; i < this.dives; i++) {
       yield* this.poseTo({ crouch: 0.8, pitch: 0.1, neckExt: 0.9 }, 1.1);
       yield* this.wait(0.3);
-      yield* this.diveUnder(this.diveTime, (Math.random() < 0.5 ? -1 : 1) * this.diveSpan * rand(0.5, 1), 0);
+      yield* this.diveUnder(this.diveTime, this.diveDx(this.diveSpan), 0);
+      yield* this.swallowCatch();
       yield* this.wait(rand(0.4, 1));
     }
     yield* this.relax();
@@ -691,14 +680,13 @@ export abstract class Phalacrocoracidae extends Suliformes {
     if (!this.world.habitat.water) return;
     yield* this.toWater();
     for (let i = 0; i < this.dives; i++) {
-      yield* this.moveOnGround(clamp(this.pos.x + rand(-4, 4), (this.world.habitat.water?.from ?? 0) + 4, 94), 0.8);
-      const dir = this.pos.x > 80 ? -1 : this.pos.x < 68 ? 1 : Math.random() < 0.5 ? -1 : 1;
-      yield* this.diveUnder(this.diveTime, dir * this.diveSpan * rand(0.7, 1.1), 0.5);
-      if (Math.random() < 0.5) {
-        this.pose.carry = 'fish';
+      yield* this.moveOnGround(this.foodSpot(4).x, 0.8);
+      yield* this.diveUnder(this.diveTime, this.diveDx(this.diveSpan), 0.5);
+      if (this.pose.carry) {
+        this.hold(this.pose.carry);
         yield* this.poseTo({ neck: 1.3, head: 0.6 }, 0.2);
         yield* this.wait(0.6);
-        this.pose.carry = null;
+        this.hold(null);
       }
     }
     yield* this.relax();

@@ -273,11 +273,10 @@ export abstract class Troglodytidae extends Passeriformes {
   }
 
   *creep(): Script {
-    const [from, to] = this.world.habitat.litter ?? [this.pos.x - 4, this.pos.x + 4];
-    yield* this.travelTo({ x: this.world.clampLand(rand(from, to)), y: 0 });
+    yield* this.travelTo(this.foodSpot(4));
     for (let i = 0; i < 5; i++) {
       yield* this.poseTo({ crouch: 0.35, pitch: 0.05 }, 0.1);
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-4, 4)), 1.5);
+      yield* this.moveOnGround(this.foodSpot(4).x, 1.5);
       yield* this.peck(Math.ceil(rand(1, 2)), 0.8);
       yield* this.wait(rand(0.05, 0.3));
     }
@@ -456,8 +455,11 @@ export abstract class Regulidae extends Passeriformes {
     for (let visit = 0; visit < 3; visit++) {
       const twig = this.findPerch(undefined, 'any');
       if (!twig) return;
-      yield* this.flyTo({ x: twig.x, y: twig.y + 0.5 }, { land: false, speed: 0.8 });
+      // Hovers at a leaf where the caterpillars are.
+      yield* this.flyTo(this.preySpot({ x: twig.x, y: twig.y + 0.5 }), { land: false, speed: 0.8 });
       yield* this.hoverFor(this.hoverSeconds, { aim: -0.6 });
+      // Picks a caterpillar off the leaf tip in the hover.
+      if (!this.pose.carry && this.atFood()) this.take(0.5);
       yield* this.flyTo(twig);
       yield* this.flickWings();
     }
@@ -600,10 +602,9 @@ export abstract class Ixoreus extends Turdidae {
   }
 
   *leafToss(): Script {
-    const [from, to] = this.world.habitat.litter ?? [this.pos.x - 4, this.pos.x + 4];
-    yield* this.travelTo({ x: this.world.clampLand(rand(from, to)), y: 0 });
+    yield* this.travelTo(this.foodSpot(4));
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-4, 4)), 0.8);
+      yield* this.moveOnGround(this.foodSpot(4).x, 0.8);
       const dir = this.pose.facing;
       yield* this.poseTo({ pitch: -0.3, neck: 0.2, head: -0.9 }, 0.1);
       this.world.burst('leaf', this.pos.x + dir * this.size * 0.5, 0.2, 5, dir);
@@ -687,7 +688,7 @@ export abstract class Catharus extends Turdidae {
   *hopFreeze(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * rand(2.5, 5)), 0.8);
+      yield* this.moveOnGround(this.foodSpot(5).x, 0.8);
       yield* this.poseTo({ pitch: 0.55, neck: 1.2 }, 0.1);
       yield* this.wait(rand(0.8, 1.5));
       yield* this.relax(0.1);
@@ -831,25 +832,27 @@ export abstract class Bombycillidae extends Passeriformes {
     const onShrub = this.world.habitat.perches.some((q) => q.kind === 'shrub' && Math.hypot(q.x - this.pos.x, q.y - this.pos.y) <= 3);
     const shrub = onShrub ? null : this.findPerch(['shrub'], 'near');
     if (!onShrub && !shrub) return;
-    if (shrub) yield* this.flyTo(shrub);
+    // Beside a berry.
+    yield* this.flyTo(this.preySpot(shrub ?? { ...this.pos }));
     yield* this.peck(1, 0.8);
-    this.pose.carry = 'seed';
+    this.hold(this.pose.carry);
     yield* this.poseTo({ neck: 1.2, head: 0.2, crest: 0.6 }, 0.2);
     yield* this.wait(0.4);
     // Sidle toward the neighbor and hand the berry over.
     const x0 = this.pos.x;
     yield* this.tween(0.5, (t) => (this.pos.x = x0 + this.pose.facing * 2 * t));
     yield* this.poseTo({ neck: 1.5, head: 0.4 }, 0.15);
-    this.pose.carry = null;
-    const berry = this.world.emit('seed', this.pos.x + this.pose.facing * this.size * 0.7, this.pos.y + 0.5, { life: 1.2 });
+    const item = this.pose.carry;
+    this.hold(null);
+    const berry = item && this.world.emit(item, this.pos.x + this.pose.facing * this.size * 0.7, this.pos.y + 0.5, { life: 1.2 });
     yield* this.wait(0.9);
-    berry.life = 0;
+    if (berry) berry.life = 0;
     // Take another and swallow it whole.
     yield* this.relax(0.15);
     yield* this.peck(1, 0.8);
-    this.pose.carry = 'seed';
+    this.hold(this.pose.carry);
     yield* this.poseTo({ head: 0.8, neck: 1.3, beakOpen: 1 }, 0.12);
-    this.pose.carry = null;
+    this.hold(null);
     yield* this.relax();
   }
 
@@ -858,10 +861,9 @@ export abstract class Bombycillidae extends Passeriformes {
     for (let i = 0; i < 3; i++) {
       const perch = { ...this.pos };
       const dir = perch.x > 60 ? -1 : 1;
-      const bug = this.world.emit('insect', clamp(perch.x + dir * rand(8, 18), 4, 96), clamp(perch.y + rand(-2, 5), 4, 50), { life: 6 });
+      const bug = this.preySpot({ x: clamp(perch.x + dir * rand(8, 18), 4, 96), y: clamp(perch.y + rand(-2, 5), 4, 50) });
       yield* this.lookAround(rand(0.8, 1.6));
-      yield* this.flyTo(bug, { land: false, speed: 1.2 });
-      bug.life = 0;
+      yield* this.strikeAt(bug, { speed: 1.2, hold: 0.5 });
       this.say('snap!', 0.5);
       yield* this.flyTo(perch);
       yield* this.relax(0.15);
@@ -949,9 +951,8 @@ export abstract class Vireonidae extends Passeriformes {
       yield* this.wait(this.pace / 2);
       // Reach under the leaf.
       yield* this.poseTo({ neck: 0.3, head: -1.1, pitch: -0.3 }, 0.25);
-      this.pose.carry = 'insect';
+      if (this.atFood()) this.take(0.4);
       yield* this.wait(0.3);
-      this.pose.carry = null;
       yield* this.relax(0.2);
     }
   }

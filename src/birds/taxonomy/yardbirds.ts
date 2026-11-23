@@ -99,8 +99,8 @@ export class DownyWoodpecker extends Dryobates {
   protected override drumSecs = 1.4;
 
   *stemProbe(): Script {
-    const stem = this.findPerch(['flower', 'twig', 'shrub'], 'any');
-    if (!stem) return;
+    // A seed-head stem, to dig out the grubs inside.
+    const stem = this.preySpot(this.findPerch(['flower', 'twig', 'shrub'], 'any') ?? { ...this.pos });
     yield* this.flyOver(stem);
     for (let i = 0; i < 4; i++) {
       yield* this.poseTo({ pitch: 0.7 }, 0.12);
@@ -170,6 +170,8 @@ export abstract class Dryocopus extends Picidae {
         yield* this.poseTo({ neck: 1.1, head: 0.4 }, 0.12);
       }
       yield* this.wait(rand(0.3, 0.7));
+      // The hole reaches the carpenter ants' gallery.
+      if (round === 3) this.take(0.8);
     }
     yield* this.relax(0.2);
   }
@@ -402,7 +404,7 @@ export abstract class Columbidae extends Columbiformes {
   override *forage(): Script {
     yield* this.toGround();
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-5, 5)));
+      yield* this.moveOnGround(this.foodSpot(5).x);
       for (let j = 0; j < 3; j++) yield* this.peck(1, 0.8);
     }
     yield* this.relax();
@@ -450,9 +452,12 @@ export abstract class Patagioenas extends Columbidae {
   };
 
   *canopyFeed(): Script {
-    yield* this.toPerch(['branch', 'treetop'], 'any');
+    // Clambers into the shrub to reach the berries.
+    const berry = this.preySpot(this.findPerch(['shrub', 'branch'], 'any') ?? { ...this.pos });
+    yield* this.flyTo(berry);
     for (let i = 0; i < 4; i++) {
       yield* this.poseTo({ pitch: 0.7, neckExt: 1.7, head: 0.3 }, 0.2);
+      if (i % 2 === 0) this.take(0.5, berry);
       yield* this.wait(rand(0.3, 0.6));
       yield* this.poseTo({ pitch: this.restingPose().pitch, neckExt: 1, head: 0 }, 0.2);
       yield* this.lookAround(0.6);
@@ -787,7 +792,11 @@ export abstract class Apodidae extends Apodiformes {
   }
 
   *hawkInsects(): Script {
-    for (let i = 0; i < 6; i++) yield* this.flyTo(this.airSpot(), { land: false, speed: rand(0.9, 1.2) });
+    for (let i = 0; i < 6; i++) {
+      const at = this.preySpot(this.airSpot());
+      yield* this.flyTo(at, { land: false, speed: rand(0.9, 1.2) });
+      this.take(0.3, at);
+    }
   }
 
   *roostDrop(): Script {
@@ -895,8 +904,9 @@ export abstract class Caprimulgidae extends Caprimulgiformes {
 
   *hawkInsects(): Script {
     for (let i = 0; i < 7; i++) {
-      const to = { x: clamp(this.pos.x + rand(-22, 22), 8, 92), y: rand(22, 42) };
+      const to = this.preySpot({ x: clamp(this.pos.x + rand(-22, 22), 8, 92), y: rand(22, 42) });
       yield* this.flyTo(to, { land: false, speed: rand(0.9, 1.3) });
+      this.take(0.3, to);
     }
     yield* this.toPerch();
     yield* this.relax();

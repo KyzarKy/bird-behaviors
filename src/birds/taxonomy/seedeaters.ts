@@ -41,7 +41,7 @@ export abstract class Junco extends Passerellidae {
   *tailFlash(): Script {
     yield* this.toGround(8);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-4, 4)));
+      yield* this.moveOnGround(this.foodSpot(4).x);
       yield* this.peck(2);
       yield* this.poseTo({ tailFan: 1, tailAngle: this.look.tailCock + 0.3 }, 0.06);
       yield* this.wait(0.2);
@@ -175,7 +175,7 @@ export abstract class Zonotrichia extends Passerellidae {
   *hopFeed(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * rand(1.5, 4)));
+      yield* this.moveOnGround(this.foodSpot(4).x);
       yield* this.peck(Math.ceil(rand(1, 3)));
       yield* this.poseTo({ pitch: this.alertPitch, neck: 1.2, head: 0.2 }, 0.1);
       yield* this.lookAround(rand(0.5, 1));
@@ -333,11 +333,10 @@ export abstract class Passerculus extends Passerellidae {
 
   *runAndDrop(): Script {
     yield* this.toGround(10);
-    const dir = this.pos.x > 50 ? -1 : 1;
-    yield* this.moveOnGround(this.world.clampLand(this.pos.x + dir * rand(6, 12)), 1.4);
+    yield* this.moveOnGround(this.foodSpot(12).x, 1.4);
     yield* this.poseTo({ crouch: 0.5, neck: 0.5 }, 0.12);
     yield* this.wait(rand(0.8, 1.4));
-    yield* this.flyOver(this.groundSpot(this.pos.x + dir * 12, 3));
+    yield* this.flyOver(this.foodSpot(12));
     yield* this.peck(2);
     yield* this.relax();
   }
@@ -408,15 +407,15 @@ export abstract class Fringillidae extends Passeriformes {
   }
 
   *seedHusk(): Script {
-    yield* this.travelTo(this.findPerch(['flower', 'shrub']) ?? this.groundSpot(this.pos.x, 8));
+    yield* this.travelTo(this.preySpot(this.findPerch(['flower', 'shrub']) ?? this.groundSpot(this.pos.x, 8)));
     for (let i = 0; i < this.huskCount; i++) {
       yield* this.peck(1, 0.5);
-      this.pose.carry = 'seed';
+      this.hold(this.pose.carry);
       for (let turn = 0; turn < 4; turn++) {
         yield* this.poseTo({ beakOpen: 0.8, head: -0.3 }, 0.07);
         yield* this.poseTo({ beakOpen: 0, head: -0.5 }, 0.07);
       }
-      this.pose.carry = null;
+      this.hold(null);
       this.world.burst('chip', this.pos.x, this.pos.y + 0.5, 2);
       yield* this.relax(0.1);
     }
@@ -550,8 +549,8 @@ export abstract class Spinus extends Fringillidae {
   }
 
   *hangFeed(): Script {
-    const perch = this.findPerch(this.hangOn);
-    if (!perch) return;
+    // Hangs upside down from a seed head.
+    const perch = this.preySpot(this.findPerch(this.hangOn) ?? { ...this.pos });
     yield* this.flyTo(perch);
     yield* this.poseTo({ rotation: Math.PI * this.pose.facing }, 0.18);
     for (let i = 0; i < 3; i++) {
@@ -655,8 +654,8 @@ export abstract class Loxia extends Fringillidae {
   }
 
   *pryCones(): Script {
-    const top = this.findPerch(['treetop'], 'any');
-    if (!top) return;
+    // To a cone in the crown of a conifer.
+    const top = this.preySpot(this.findPerch(['treetop'], 'any') ?? { ...this.pos });
     yield* this.flyTo(top);
     for (let i = 0; i < 3; i++) {
       const side = i % 2 ? -1 : 1;
@@ -670,6 +669,7 @@ export abstract class Loxia extends Fringillidae {
       });
       for (let pry = 0; pry < 4; pry++) {
         yield* this.poseTo({ beakOpen: 1, head: -0.9 }, 0.1);
+        if (i === 0 && pry === 0) this.take(0.6, top);
         yield* this.poseTo({ beakOpen: 0.2, head: -0.5 }, 0.1);
         this.world.emit('seed', this.pos.x, this.pos.y, { vx: rand(-2, 2), gravity: 25, life: 3 });
       }
@@ -791,7 +791,7 @@ export abstract class Icteridae extends Passeriformes {
   *walkForage(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * rand(2, 6)));
+      yield* this.moveOnGround(this.foodSpot(6).x);
       yield* this.peck(Math.ceil(rand(1, 2)), 0.8);
     }
     yield* this.relax();
@@ -1067,9 +1067,11 @@ export abstract class Sturnidae extends Passeriformes {
   *gapeProbe(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * rand(2, 5)));
+      yield* this.moveOnGround(this.foodSpot(5).x);
       yield* this.poseTo({ pitch: -0.35, neck: -0.2, head: -0.9 }, 0.1);
       yield* this.poseTo({ beakOpen: 1 }, 0.25);
+      // Prising the soil open with the bill, it finds a grub.
+      if (!this.pose.carry && this.atFood()) this.take();
       yield* this.wait(0.2);
       yield* this.poseTo({ beakOpen: 0 }, 0.1);
       yield* this.relax(0.1);

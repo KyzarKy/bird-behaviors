@@ -5,7 +5,7 @@
  * numbers, so a teal and a swan upend by the same code and look nothing alike.
  */
 import { Bird, clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Item, Look, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
 
 type Feeding = 'dabble' | 'dive' | 'graze';
 
@@ -76,7 +76,6 @@ export abstract class Anatidae extends Anseriformes {
   /** Seconds spent looking underwater, face down, before each dive. */
   protected lookFirst = 0;
   /** What it brings up, if anything. */
-  protected prey: Item | null = null;
   /** Stage units of surface run before it leaves the water. */
   protected runUp = 8;
   protected grazeBites = 4;
@@ -117,13 +116,15 @@ export abstract class Anatidae extends Anseriformes {
     yield* this.toWater();
     const p = this.pose;
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(clamp(this.pos.x + rand(-6, 6), water.from + 3, 94));
+      yield* this.moveOnGround(this.foodSpot(6).x);
       yield* this.poseTo({ pitch: -clamp(0.5 + 0.5 * this.reach, 0.5, 1.4), neck: -0.5, neckExt: 0.8 + 0.4 * this.reach, head: -0.9 }, 0.35);
       for (let t = 0; t < 0.8 + 0.6 * this.reach; ) {
         t += yield;
         p.stride = Math.sin(t * 10) * 0.6;
       }
       p.stride = 0;
+      // Up with a beakful of weed.
+      if (this.atFood()) this.take();
       yield* this.relax(0.3);
       yield* this.wait(rand(0.2, 0.6));
     }
@@ -134,9 +135,10 @@ export abstract class Anatidae extends Anseriformes {
     yield* this.toWater();
     for (let i = 0; i < this.diveCount; i++) {
       yield* this.beforeDive();
-      const dir = this.pos.x > 80 ? -1 : this.pos.x < 68 ? 1 : Math.random() < 0.5 ? -1 : 1;
-      yield* this.diveUnder(this.diveTime, dir * this.diveSpan * rand(0.7, 1.1), this.diveLeap);
-      if (this.prey && Math.random() < 0.6) yield* this.swallow(this.prey);
+      const m = this.mealRange();
+      const dir = m ? ((m[0] + m[1]) / 2 > this.pos.x ? 1 : -1) : this.pos.x > 80 ? -1 : this.pos.x < 68 ? 1 : Math.random() < 0.5 ? -1 : 1;
+      yield* this.diveUnder(this.diveTime, dir * Math.min(this.diveSpan * rand(0.7, 1.1), m ? Math.abs((m[0] + m[1]) / 2 - this.pos.x) + 4 : Infinity), this.diveLeap);
+      if (this.pose.carry) yield* this.swallow();
     }
   }
 
@@ -147,19 +149,20 @@ export abstract class Anatidae extends Anseriformes {
     yield* this.wait(this.lookFirst);
   }
 
-  protected *swallow(item: Item): Script {
-    this.pose.carry = item;
+  /** Swallow what it came up with, head back, at the surface. */
+  protected *swallow(): Script {
+    this.hold(this.pose.carry);
     yield* this.poseTo({ neck: 1.2, head: 0.5 }, 0.15);
     yield* this.wait(0.4);
-    this.pose.carry = null;
+    this.hold(null);
     yield* this.relax(0.15);
   }
 
   /** Walk ashore and crop low plants. */
   protected *grazeOnLand(): Script {
-    yield* this.travelTo({ x: this.world.clampLand(this.world.habitat.land[1] - rand(2, 18)), y: 0 });
+    yield* this.travelTo(this.mealRange(true) ? this.foodSpot(4) : { x: this.world.clampLand(this.world.habitat.land[1] - rand(2, 18)), y: 0 });
     for (let i = 0; i < this.grazeBites; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-5, 5)));
+      yield* this.moveOnGround(this.foodSpot(5).x);
       yield* this.peck(Math.ceil(rand(2, 4)), 0.9);
     }
     yield* this.lookAround(1.2);
@@ -379,6 +382,7 @@ export abstract class Bucephala extends Anatidae {
 
   static override behaviors: BehaviorTable<Bucephala> = {
     forage: {
+      eats: 'shellfish',
       label: 'Dive',
       cue: 'Pops up and down with a small forward jump, spending only a few seconds under. It surfaces within a few yards of where it went down.',
     },
@@ -446,7 +450,6 @@ export class Bufflehead extends Bucephala {
   protected override diveTime = 1.2;
   protected override diveSpan = 4;
   protected override diveCount = 5;
-  protected override prey: Item = 'insect';
   protected override runUp = 5;
   protected override throwForce = 0.5;
 }
@@ -485,7 +488,6 @@ export class CommonGoldeneye extends Bucephala {
 
   protected override diveTime = 2.4;
   protected override diveSpan = 8;
-  protected override prey: Item = 'clam';
   protected override throwForce = 1;
 }
 
@@ -502,15 +504,15 @@ export abstract class Melanitta extends Anatidae {
 
   static override behaviors: BehaviorTable<Melanitta> = {
     forage: {
+      eats: 'shellfish',
       label: 'Dive for mussels',
-      cue: 'A quick flick of the wings, then under. Dives are long for the depth, with the bird hunting along the bottom for mussels. Coming up, a clam may be swallowed at the surface with a few jerks of the neck.',
+      cue: 'A quick flick of the wings, then under. Dives are long for the depth, with the bird hunting along the bottom for mussels. Coming up, a mussel may be swallowed whole at the surface with a few jerks of the neck.',
     },
   };
 
   protected override feeding: Feeding = 'dive';
   protected override diveTime = 3;
   protected override diveSpan = 10;
-  protected override prey: Item = 'clam';
   protected override runUp = 12;
   /** Keeps the wings partly open while under. */
   protected diveWings = false;
@@ -600,6 +602,7 @@ export abstract class Histrionicus extends Anatidae {
 
   static override behaviors: BehaviorTable<Histrionicus> = {
     forage: {
+      eats: 'shellfish',
       label: 'Dive in the surf',
       cue: 'Bobs like a cork in the wash around rocks and goes under between waves, working the rock face for crabs and mussels. Other ducks stay out of the surf zone.',
     },
@@ -613,7 +616,6 @@ export abstract class Histrionicus extends Anatidae {
   protected override diveTime = 2.4;
   protected override diveSpan = 5;
   protected override diveLeap = 0.4;
-  protected override prey: Item = 'clam';
   protected override runUp = 5;
 
   *haulOut(): Script {
@@ -671,6 +673,7 @@ export abstract class Clangula extends Anatidae {
 
   static override behaviors: BehaviorTable<Clangula> = {
     forage: {
+      eats: 'shellfish',
       label: 'Dive deep',
       cue: 'Leaps clear of the water to go under and stays down longer than the other ducks, using the wings underwater. It comes up well away from where it went down.',
     },
@@ -684,7 +687,6 @@ export abstract class Clangula extends Anatidae {
   protected override diveTime = 3.6;
   protected override diveSpan = 12;
   protected override diveLeap = 0.6;
-  protected override prey: Item = 'clam';
   protected override runUp = 8;
 
   *yodel(): Script {
@@ -749,6 +751,7 @@ export abstract class Mergus extends Anatidae {
 
   static override behaviors: BehaviorTable<Mergus> = {
     forage: {
+      eats: 'minnows',
       label: 'Pursuit dive',
       cue: 'Swims with the face in the water, then dives in a smooth forward roll and chases fish underwater. Fish are swallowed head first at the surface.',
     },
@@ -764,16 +767,17 @@ export abstract class Mergus extends Anatidae {
   protected override diveTime = 2.2;
   protected override diveSpan = 9;
   protected override lookFirst = 1;
-  protected override prey: Item = 'fish';
   protected override runUp = 10;
 
   *snorkel(): Script {
     yield* this.toWater();
     yield* this.poseTo({ neck: 0.1, neckExt: 0.9, head: -1.3, pitch: -0.1 }, 0.3);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(clamp(this.pos.x + this.pose.facing * 3, 62, 94), 0.7);
+      yield* this.moveOnGround(this.foodSpot(3).x, 0.7);
       yield* this.wait(this.lookFirst * 0.6);
     }
+    // A minnow spotted: a quick lunge with the face still under.
+    yield* this.peck(1, 1);
     yield* this.relax();
   }
 }
@@ -861,6 +865,7 @@ export abstract class Lophodytes extends Anatidae {
 
   static override behaviors: BehaviorTable<Lophodytes> = {
     forage: {
+      eats: 'minnows',
       label: 'Look and dive',
       cue: 'Short looks underwater, then a quick dive after small fish and crayfish in shallow water. It stays in sheltered coves, not open bay.',
     },
@@ -874,7 +879,6 @@ export abstract class Lophodytes extends Anatidae {
   protected override diveTime = 1.8;
   protected override diveSpan = 6;
   protected override lookFirst = 0.7;
-  protected override prey: Item = 'fish';
   protected override runUp = 4;
 
   *crestFan(): Script {
@@ -936,6 +940,11 @@ export abstract class Branta extends Anatidae {
   static override look: Partial<Look> = { neckLength: 0.45, headSize: 0.6, beakLength: 0.7, tailLength: 0.15 };
 
   static override behaviors: BehaviorTable<Branta> = {
+    forage: {
+      eats: 'grass',
+      label: 'Feed',
+      cue: 'Feeds by walking and cropping grass ashore with the head down, rather than dabbling or diving like the ducks.',
+    },
     graze: {
       eats: 'grass',
       label: 'Graze',
@@ -989,6 +998,7 @@ export class Brant extends Branta {
 
   static override behaviors: BehaviorTable<Brant> = {
     forage: {
+      eats: 'eelgrass',
       label: 'Feed on eelgrass',
       cue: 'Tips up like a dabbling duck in the shallows to pull eelgrass, with the tail in the air. Canada Geese graze on land; Brant stay on the water and the tideline.',
     },

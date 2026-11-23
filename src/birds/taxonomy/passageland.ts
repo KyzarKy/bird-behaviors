@@ -185,7 +185,7 @@ export class LincolnsSparrow extends Melospiza {
 
   static override behaviors: BehaviorTable<LincolnsSparrow> = {
     forage: {
-      eats: 'seedHeads',
+      eats: 'fallenSeed',
       label: 'Skulk through cover',
       cue: 'Creeps with the body low and the head drawn in, stopping often, and stays under the brush. It pops up for a moment on a low stem, raises the crown and drops back out of sight. Song Sparrows sit up on top of the bush.',
     },
@@ -196,10 +196,9 @@ export class LincolnsSparrow extends Melospiza {
   }
 
   *skulk(): Script {
-    const [from, to] = this.world.habitat.litter ?? [this.pos.x - 4, this.pos.x + 4];
-    yield* this.travelTo({ x: this.world.clampLand(rand(from, to)), y: 0 });
+    yield* this.travelTo(this.foodSpot(4));
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * rand(1.5, 3)), 0.6);
+      yield* this.moveOnGround(this.foodSpot(3).x, 0.6);
       yield* this.poseTo({ crouch: 0.55, neck: 0.5, pitch: -0.05 }, 0.12);
       yield* this.wait(rand(0.3, 0.7));
       yield* this.peck(1, 0.8);
@@ -461,7 +460,7 @@ export abstract class Laniidae extends Passeriformes {
       cue: 'Sits bolt upright on the very top of a shrub, post or snag and scans the ground. Then a low swoop, a catch, and a climb back to a perch. A kestrel hovers to hunt; a shrike waits.',
     },
     impale: {
-      eats: 'voles',
+      eats: 'grassBugs',
       label: 'Impale prey on a thorn',
       feeding: true,
       cue: 'Carries its catch to a thorn or twig fork and jams it on, then tears off pieces. Impaled prey left on a thorn or a wire fence is the sign of a shrike.',
@@ -478,33 +477,28 @@ export abstract class Laniidae extends Passeriformes {
     yield* this.lookAround(2);
     yield* this.poseTo({ head: -0.5, neck: 0.8 }, 0.2);
     yield* this.wait(0.6);
-    const spot = this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * 9, 2);
-    yield* this.flyTo(spot, { speed: 1.2 });
+    yield* this.strikeAt(this.preySpot(this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * 9, 2)), { land: true, speed: 1.2, hold: Infinity });
     yield* this.peck(2, 1.2);
-    this.pose.carry = 'insect';
     yield* this.flyTo(perch);
-    this.pose.carry = null;
     yield* this.relax();
   }
 
   *impale(): Script {
     yield* this.toGround(8);
+    this.take(Infinity);
     yield* this.peck(2, 1.2);
-    this.pose.carry = 'insect';
     const thorn = this.findPerch(['shrub'], 'near') ?? this.findPerch(['post'], 'near');
-    if (!thorn) {
-      this.pose.carry = null;
-      return;
-    }
+    if (!thorn) return;
+    const item = this.pose.carry;
     yield* this.flyTo(thorn);
     const rest = this.restingPose();
     for (let i = 0; i < 3; i++) {
       yield* this.poseTo({ pitch: rest.pitch - 0.3, head: -0.9, neck: 0.3 }, 0.08);
       yield* this.poseTo({ pitch: rest.pitch, head: -0.2, neck: 0.9 }, 0.1);
     }
-    this.pose.carry = null;
-    // The prey stays on the thorn for a few seconds.
-    this.world.emit('insect', thorn.x + this.pose.facing * this.size * 0.4, thorn.y - 0.3, { life: 8 });
+    this.hold(null);
+    // The grasshopper stays on the thorn for a few seconds.
+    if (item) this.world.emit(item, thorn.x + this.pose.facing * this.size * 0.4, thorn.y - 0.3, { life: 8 });
     yield* this.wait(0.4);
     yield* this.peck(3, 1);
     yield* this.relax();
@@ -584,6 +578,9 @@ export abstract class Myadestes extends Turdidae {
     const dir = post.x < 50 ? 1 : -1;
     this.say(this.ecology.call, 1.2);
     yield* this.flyTo({ x: clamp(post.x + dir * 14, 6, 94), y: Math.max(8, post.y - 4) }, { land: false, speed: 1.4 });
+    // The intruder gone, it takes a berry for itself and goes back on guard.
+    yield* this.flyTo(this.preySpot(this.findPerch(['shrub']) ?? post));
+    yield* this.peck(2);
     yield* this.flyTo(post);
     yield* this.poseTo({ tailAngle: this.look.tailCock + 0.3 }, 0.08);
     yield* this.relax(0.2);
@@ -647,17 +644,14 @@ export abstract class Sialia extends Turdidae {
     yield* this.toPerch(['post', 'shrub'], 'any');
     const perch = { ...this.pos };
     yield* this.lookAround(1.6);
-    const dir = perch.x < 50 ? 1 : -1;
-    const spot = this.groundSpot(perch.x + dir * rand(4, 8), 1);
-    this.pose.facing = dir;
+    const spot = this.preySpot(this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * rand(4, 8), 1));
+    this.pose.facing = spot.x > perch.x ? 1 : -1;
     yield* this.poseTo({ head: -0.6, neck: 0.8 }, 0.15);
     yield* this.flyTo({ x: spot.x, y: 3 }, { land: false });
     yield* this.hoverFor(1.2, { aim: -1 });
-    yield* this.flyTo(spot, { speed: 0.7 });
+    yield* this.strikeAt(spot, { land: true, speed: 0.7, hold: Infinity });
     yield* this.peck(1, 1.2);
-    this.pose.carry = 'insect';
     yield* this.flyTo(perch);
-    this.pose.carry = null;
     yield* this.relax();
   }
 }
@@ -718,7 +712,7 @@ export abstract class Motacillidae extends Passeriformes {
   *tailBob(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * rand(2, 5)));
+      yield* this.moveOnGround(this.foodSpot(5).x);
       for (let j = 0; j < 3; j++) {
         yield* this.poseTo({ tailAngle: this.look.tailCock + 0.5 }, 0.1);
         yield* this.poseTo({ tailAngle: this.look.tailCock - 0.1 }, 0.1);
@@ -929,10 +923,10 @@ export class SaysPhoebe extends Sayornis {
     yield* this.toPerch(['post', 'shrub']);
     const perch = { ...this.pos };
     yield* this.lookAround(1.5);
-    const x = clamp(perch.x + (perch.x < 50 ? 1 : -1) * rand(8, 14), 6, 94);
+    const x = this.preySpot({ x: clamp(perch.x + (perch.x < 50 ? 1 : -1) * rand(8, 14), 6, 94), y: 0 }).x;
     yield* this.flyTo({ x, y: 4 }, { land: false });
     yield* this.hoverFor(1.2, { aim: -0.9 });
-    yield* this.flyTo({ x, y: 0.5 }, { land: false, speed: 0.8 });
+    yield* this.strikeAt({ x, y: 0.5 }, { speed: 0.8 });
     this.say('snap!', 0.6);
     yield* this.flyTo(perch);
     yield* this.relax(0.2);
@@ -993,19 +987,12 @@ export class RoughLeggedHawk extends Buteo {
   }
 
   *hoverHunt(): Script {
-    yield* this.flyTo({ x: this.pos.x < 50 ? 62 : 38, y: 16 }, { land: false });
+    yield* this.flyTo(this.huntSpot(16) ?? { x: this.pos.x < 50 ? 62 : 38, y: 16 }, { land: false });
     for (let i = 0; i < 2; i++) {
       yield* this.hoverFor(i ? 3 : 4, { aim: -1 });
       yield* this.flyTo({ x: clamp(this.pos.x + this.pose.facing * 10, 6, 94), y: 14 }, { land: false, glide: true });
     }
-    const spot = this.groundSpot(this.pos.x + this.pose.facing * 8, 2);
-    yield* this.flyTo(spot, { glide: true });
-    this.world.burst('dust', spot.x, 0, 5);
-    this.pose.wings = 'open';
-    yield* this.poseTo({ crouch: 0.6, flap: -0.4 }, 0.15);
-    yield* this.wait(1);
-    yield* this.relax();
-    yield* this.peck(3, 1.1);
+    yield* this.grab(this.preySpot(this.groundSpot(this.pos.x + this.pose.facing * 8, 2)), 3);
     yield* this.toPerch();
   }
 }
@@ -1178,14 +1165,15 @@ export abstract class Asio extends Strigidae {
   }
 
   *quarter(): Script {
-    let dir = this.pos.x > 50 ? -1 : 1;
+    const m = this.mealRange(true);
+    let dir = (m ? (m[0] + m[1]) / 2 > this.pos.x : this.pos.x < 50) ? 1 : -1;
     yield* this.flyTo({ x: clamp(this.pos.x + dir * 6, 8, 92), y: 2.5 }, { land: false });
     for (let leg = 0; leg < 4; leg++) {
       const x = clamp(this.pos.x + dir * rand(10, 16), 8, 92);
       if (x <= 8 || x >= 92) dir = -dir;
       yield* this.flyTo({ x, y: rand(2, 4) }, { land: false, speed: 0.7 });
     }
-    yield* this.strike(this.groundSpot(this.pos.x + dir * 4, 2));
+    yield* this.grab(this.preySpot(this.groundSpot(this.pos.x + dir * 4, 2)));
     yield* this.toPerch();
   }
 }

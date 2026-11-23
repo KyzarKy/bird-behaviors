@@ -71,7 +71,7 @@ export abstract class Galliformes extends Bird {
         this.pose.stride = Math.sin(t * Math.PI * 2);
       });
       yield* this.peck(Math.ceil(rand(1, 4)));
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * this.size * rand(0.6, 1.4)));
+      yield* this.moveOnGround(this.foodSpot(this.size * 1.4).x);
     }
     yield* this.relax();
   }

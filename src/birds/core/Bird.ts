@@ -1,4 +1,4 @@
-import { eatsIn, type FoodKind, type FoodSite } from './food';
+import { eatsIn, FOODS, type FoodKind, type FoodSite } from './food';
 import { behaviorsOf, resolveTraits, type BirdClass } from './reflect';
 import type { BehaviorTable, Ecology, FlightProfile, Item, Look, PerchKind, Script, Taxon, Vec } from './traits';
 import type { Trunk, World } from './World';
@@ -190,8 +190,12 @@ export abstract class Bird {
   /** Seconds of idling left before an autonomous bird does something. */
   private pause = 0;
   private last: string | null = null;
-  /** The food the running behavior is after, so the bird goes where it is and eats some when done. */
+  /** The food the running behavior is after, so the bird goes where it is and takes it there. */
   private meal: { kind: FoodKind; site: FoodSite } | null = null;
+  /** How many times this bird has taken food (see take()). */
+  taken = 0;
+  /** Seconds left before the bird lets go of what it holds. */
+  private holdTimer = 0;
 
   constructor(readonly world: World) {
     const cls = this.constructor as BirdClass;
@@ -227,8 +231,7 @@ export abstract class Bird {
     if (typeof method !== 'function') throw new Error(`${this.constructor.name} has no behavior "${key}"`);
     const p = this.pose;
     p.kickNear = p.kickFar = p.stride = p.headThrust = p.roll = p.beakOpen = p.crest = 0;
-    p.carry = null;
-    p.carryInFeet = false;
+    this.hold(null);
     this.current = this.last = key;
     const spec = behaviorsOf(this.constructor as BirdClass).find((b) => b.key === key)?.spec;
     const kind = spec && eatsIn(spec, this.world.habitat.id);
@@ -269,8 +272,9 @@ export abstract class Bird {
     } else if (this.auto && this.current === null && (this.pause -= dt) <= 0) {
       this.perform(this.choose());
     }
+    if (this.holdTimer > 0 && (this.holdTimer -= dt) <= 0) this.hold(null);
     if (this.script.next(dt).done) {
-      if (this.meal) this.world.eat(this.meal.kind, this.pos.x);
+      if (this.current) this.hold(null);
       this.meal = null;
       this.script = null;
     }
@@ -287,7 +291,7 @@ export abstract class Bird {
   *forage(): Script {
     yield* this.toGround();
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-6, 6)));
+      yield* this.moveOnGround(this.foodSpot(6).x);
       yield* this.peck(Math.ceil(rand(1, 3)));
     }
     yield* this.relax();
@@ -592,7 +596,9 @@ export abstract class Bird {
   /** Get onto the water, flying there if need be. Paddling about is moveOnGround(). */
   protected *toWater(): Script {
     const spot = this.waterSpot();
-    if (spot && !this.afloat) yield* this.flyOver(spot);
+    const m = this.mealRange();
+    const offFood = !!m && (this.pos.x < m[0] - 2 || this.pos.x > m[1] + 2);
+    if (spot && (!this.afloat || offFood)) yield* this.flyOver(spot);
   }
 
   /**
@@ -621,6 +627,7 @@ export abstract class Bird {
     });
     this.pos = { x: to, y: 0 };
     p.stride = 0;
+    if (this.atFood()) this.take(1);
     this.world.burst('splash', to, 0, 3);
     yield* this.relax(0.25);
   }
@@ -682,8 +689,9 @@ export abstract class Bird {
   }
 
   protected *toPerch(kinds: PerchKind[] = this.ecology.perches, pick: PerchPick = 'near'): Script {
+    const m = this.mealRange();
     const here = this.world.habitat.perches.some(
-      (q) => kinds.includes(q.kind) && Math.hypot(q.x - this.pos.x, q.y - this.pos.y) < 0.5,
+      (q) => kinds.includes(q.kind) && Math.hypot(q.x - this.pos.x, q.y - this.pos.y) < 0.5 && (!m || (q.x >= m[0] - 4 && q.x <= m[1] + 4)),
     );
     if (here && !this.airborne) return;
     const perch = this.findPerch(kinds, pick);
@@ -699,8 +707,14 @@ export abstract class Bird {
 
   protected *peck(times = 1, depth = 1): Script {
     const rest = this.restingPose();
+    // Food just behind it: turn round to it first.
+    if (this.meal && !this.pose.carry && !this.atFood()) {
+      this.pose.facing = this.pose.facing === 1 ? -1 : 1;
+      if (!this.atFood()) this.pose.facing = this.pose.facing === 1 ? -1 : 1;
+    }
     for (let i = 0; i < times; i++) {
       yield* this.poseTo({ pitch: rest.pitch - 0.55 * depth, neck: -0.6 * depth, head: -1.1 * depth }, 0.09);
+      if (i === 0 && !this.pose.carry && this.atFood()) this.take();
       yield* this.wait(0.04);
       yield* this.poseTo({ pitch: rest.pitch, neck: rest.neck, head: 0 }, 0.11);
       yield* this.wait(rand(0.08, 0.22));
@@ -721,16 +735,17 @@ export abstract class Bird {
    * Crows and gulls are unrelated and both do this, so the routine lives here
    * and each family exposes it under its own behavior.
    */
-  protected *dropOnRocks(item: Item): Script {
+  protected *dropOnRocks(): Script {
     // Any rock will do, including one the bird is already standing on.
     const rock = this.world.habitat.perches.find((q) => q.kind === 'rock');
     if (!rock) return;
-    yield* this.travelTo({ x: this.world.clampLand(rock.x + 9), y: 0 });
+    const item = (this.meal && FOODS[this.meal.kind].item) || 'clam';
+    yield* this.travelTo(this.mealRange(true) ? this.foodSpot(4) : { x: this.world.clampLand(rock.x + 9), y: 0 });
     yield* this.peck(3);
-    this.pose.carry = item;
+    this.hold(item);
     for (let tries = Math.random() < 0.5 ? 2 : 1; tries > 0; tries--) {
       yield* this.flyTo({ x: rock.x, y: rock.y + 17 }, { land: false });
-      this.pose.carry = null;
+      this.hold(null);
       const shell = this.world.emit(item, this.pos.x, this.pos.y, { gravity: 30, floor: rock.y, life: 6 });
       yield* this.flyTo({ x: rock.x + 3, y: 0 });
       this.pose.facing = -1;
@@ -739,7 +754,7 @@ export abstract class Bird {
       if (tries > 1) {
         // Not broken. Pick it up and go again, higher.
         yield* this.peck(1);
-        this.pose.carry = item;
+        this.hold(item);
       }
     }
     this.world.burst('chip', rock.x, rock.y, 5);
@@ -816,6 +831,168 @@ export abstract class Bird {
     if (pick === 'near') return options[0];
     if (pick === 'far') return options[options.length - 1];
     return options[Math.floor(Math.random() * options.length)];
+  }
+
+  // ------------------------------------------------------------- feeding
+
+  /**
+   * Take some of the food the running behavior is after. A piece goes from
+   * the scene where the bill (or the feet) are, and the catch shows for
+   * `hold` seconds; Infinity holds it until the behavior lets go with hold(null).
+   * peck(), diveUnder() and strikeAt() call this when they land on the food.
+   */
+  protected take(hold = 0.7, at: Vec = this.takesInFeet ? this.pos : this.billTip()) {
+    if (!this.meal) return;
+    this.taken++;
+    this.world.eat(this.meal.kind, at);
+    const item = FOODS[this.meal.kind].item;
+    if (item) this.hold(item, hold);
+  }
+
+  /** Hold an item in the bill or feet for `seconds`, or let go with null. */
+  protected hold(item: Item | null, seconds = Infinity) {
+    this.pose.carry = item;
+    this.pose.carryInFeet = !!item && this.takesInFeet;
+    this.holdTimer = item ? seconds : 0;
+  }
+
+  /** Raptors and owls take prey in their feet; other birds use the bill. */
+  protected get takesInFeet(): boolean {
+    return false;
+  }
+
+  /** Roughly where the bill tip is. On a trunk it is close enough to say the body. */
+  protected billTip(): Vec {
+    if (this.pose.rotation !== 0) return { ...this.pos };
+    return { x: this.pos.x + this.pose.facing * this.size * 0.45, y: this.pos.y + this.size * 0.15 };
+  }
+
+  /** Whether the bill (or feet) are at the food the running behavior is after. */
+  protected atFood(): boolean {
+    const site = this.meal?.site;
+    if (!site) return false;
+    const b = this.takesInFeet ? this.pos : this.billTip();
+    if (b.x < site.x[0] - 2 || b.x > site.x[1] + 2) return false;
+    return site.units ? site.units.some((u) => Math.hypot(u.x - b.x, u.y - b.y) < 4) : Math.abs(b.y - site.y) <= (site.spread ?? 3);
+  }
+
+  /**
+   * The catch at the end of a pounce, plunge, sally or stoop: the prey is
+   * startled as the hunter comes in, and the hunter takes it at `target`.
+   */
+  protected *strikeAt(target: Vec, { land = false, speed = 1.3, hold = 1.2 }: { land?: boolean; speed?: number; hold?: number } = {}): Script {
+    this.startlePrey(target.x);
+    yield* this.flyTo(target, { land, speed });
+    this.take(hold, target);
+  }
+
+  /**
+   * Plunge-dive at x from wherever the bird is in the air, come up with a
+   * fish and burst back out. Ospreys, kingfishers, terns and pelicans.
+   * `miss` comes up empty, as many plunges do; the last one of a behavior should not.
+   */
+  protected *plungeAt(x: number, { speed = 1.6, depth = 1.2, miss = false } = {}): Script {
+    yield* this.flyTo({ x, y: -depth }, { land: false, speed });
+    this.world.burst('splash', x, 0, 12);
+    yield* this.wait(0.35);
+    if (!miss) this.take(Infinity, { x, y: 0 });
+    this.vel = { x: 0, y: 8 };
+    this.world.burst('splash', x, 0, 6);
+  }
+
+  /** How far to swim underwater, up to `span`: to come up with the bill on the food, else away from the nearer end of the water. */
+  protected diveDx(span: number): number {
+    if (this.mealRange()) return clamp(this.foodSpot(span).x - this.pos.x, -span, span);
+    const dir = this.pos.x > 80 ? -1 : this.pos.x < 68 ? 1 : Math.random() < 0.5 ? -1 : 1;
+    return dir * span * rand(0.7, 1.1);
+  }
+
+  /** Tear at a catch held in the feet, bite by bite, until it is gone. Hawks, falcons and owls on a perch. */
+  protected *eatCatch(bites = 4): Script {
+    for (let i = 0; i < bites; i++) {
+      yield* this.peck(1, 1.1);
+      yield* this.wait(0.25);
+    }
+    this.hold(null);
+  }
+
+  /** Swallow what it came up with, head back. */
+  protected *swallowCatch(): Script {
+    if (!this.pose.carry) return;
+    this.hold(this.pose.carry);
+    yield* this.poseTo({ neck: 1.2, head: 0.5 }, 0.15);
+    yield* this.wait(0.5);
+    this.hold(null);
+  }
+
+  /** Warn the prey: a hunter is coming in at x. */
+  protected startlePrey(x: number) {
+    if (this.meal) this.world.startle(this.meal.kind, x);
+  }
+
+  /** Drop onto prey on the ground, mantle over it with wings spread, then tear at it. Hawks, owls and the harrier. */
+  protected *grab(spot: Vec, bites = 2): Script {
+    yield* this.strikeAt(spot, { land: true, speed: 0.9, hold: Infinity });
+    this.world.burst('dust', spot.x, 0, 4);
+    this.pose.wings = 'open';
+    yield* this.poseTo({ crouch: 0.5, flap: -0.5 }, 0.15);
+    yield* this.wait(0.8);
+    yield* this.relax();
+    yield* this.peck(bites, 0.9);
+  }
+
+  /** Somewhere within `range` to move to on foot or on the water: on the food while feeding, else around here. */
+  protected foodSpot(range: number): Vec {
+    const site = this.meal?.site;
+    const water = this.world.habitat.water;
+    const land = this.world.habitat.land;
+    const wet: [number, number] | null = water ? [water.from + 4, 94] : null;
+    const over = (r: [number, number]) => !!site && site.x[1] >= r[0] && site.x[0] <= r[1];
+    // Afloat it stays on the water unless the food is only ashore (geese coming up to graze).
+    const [lo, hi] = this.afloat && wet && (!site || over(wet) || !over(land)) ? wet : land;
+    const at = (x: number) => ({ x, y: this.restY(x) });
+    if (!site || !over([lo, hi])) return at(clamp(this.pos.x + rand(-range, range), lo, hi));
+    // Walking turns the bird to face the way it goes, so it reaches a bill point b by walking toward
+    // it and stopping a head-and-bill short: from the right of here if b is far enough right, and so on.
+    const off = this.size * 0.45;
+    const gap = off + 0.2;
+    const bodyFor = (b: number) => (b > this.pos.x ? b - off : b + off);
+    const ok = (b: number) => Math.abs(b - this.pos.x) >= gap && bodyFor(b) >= lo && bodyFor(b) <= hi;
+    const pieces = site.units?.filter((u) => Math.abs(u.y - this.restY(u.x)) < 1.5).map((u) => u.x);
+    let options: number[];
+    if (pieces?.length) options = pieces.filter(ok);
+    else {
+      // Sample the stretch of food; the reachable part of it is at most two intervals.
+      options = [];
+      for (let i = 0; i <= 24; i++) {
+        const b = site.x[0] + ((site.x[1] - site.x[0]) * i) / 24;
+        if (ok(b)) options.push(b);
+      }
+    }
+    // A patch too small to walk up to facing it: stand on it; peck() turns round to it.
+    if (!options.length) return at(clamp((site.x[0] + site.x[1]) / 2, lo, hi));
+    const near = options.filter((b) => Math.abs(b - this.pos.x) <= range + off);
+    const pool = near.length ? near : options;
+    const b = pool[Math.floor(Math.random() * pool.length)] + (pieces?.length ? 0 : rand(-0.2, 0.2));
+    return at(clamp(bodyFor(b), lo, hi));
+  }
+
+  /** A point `height` above the food, for a bird that hunts from the air; null when not feeding. */
+  protected huntSpot(height: number): Vec | null {
+    const site = this.meal?.site;
+    if (!site) return null;
+    return { x: rand(site.x[0], site.x[1]), y: Math.min(this.flight.ceiling, site.y + height) };
+  }
+
+  /** The point a strike aims at: on the food, else `fallback`. */
+  protected preySpot(fallback: Vec): Vec {
+    const site = this.meal?.site;
+    if (!site) return fallback;
+    const piece = site.units?.[Math.floor(Math.random() * site.units.length)];
+    if (piece) return { ...piece };
+    // Anywhere through a loose swarm or flock's depth, but not into the ground under it.
+    const y = site.y + (site.spread ? rand(-1, 1) * site.spread : 0);
+    return { x: rand(site.x[0], site.x[1]), y: site.y > 0 ? Math.max(1, y) : y };
   }
 
   /** The x range of the food the running behavior is after, optionally only if it lies on dry ground. */

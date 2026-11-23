@@ -46,31 +46,19 @@ export abstract class Pandionidae extends Accipitriformes {
   *plungeDive(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x = water.from + rand(12, 26);
+    const x = clamp(this.preySpot({ x: water.from + rand(12, 26), y: 0 }).x, water.from + 6, 94);
     const dir = this.pos.x < x ? 1 : -1;
     yield* this.flyTo({ x: x - dir * 10, y: 15 }, { land: false });
     yield* this.flyTo({ x, y: 14 }, { land: false, speed: 0.5 });
     yield* this.hoverFor(2.5, { aim: -0.9 });
-    yield* this.flyTo({ x: x + dir * 2, y: -1 }, { land: false, speed: 1.7 });
-    this.world.burst('splash', this.pos.x, 0, 14);
-    yield* this.wait(0.4);
-    // Many plunges come up empty.
-    const caught = Math.random() < 0.6;
-    if (caught) {
-      this.pose.carry = 'fish';
-      this.pose.carryInFeet = true;
-    }
-    this.world.burst('splash', this.pos.x, 0, 8);
+    yield* this.plungeAt(x + dir * 2, { speed: 1.7, depth: 1 });
     yield* this.flyTo({ x: x + dir * 6, y: 9 }, { land: false });
-    if (caught) {
-      const p = this.pose;
-      yield* this.tween(0.6, (t) => (p.roll = 0.35 * Math.sin(t * Math.PI * 6)));
-      p.roll = 0;
-    }
+    // A shake in the air to throw off the water, with the fish held head-first.
+    const p = this.pose;
+    yield* this.tween(0.6, (t) => (p.roll = 0.35 * Math.sin(t * Math.PI * 6)));
+    p.roll = 0;
     yield* this.toPerch();
-    if (caught) for (let i = 0; i < 3; i++) yield* this.peck(1, 1.2);
-    this.pose.carry = null;
-    this.pose.carryInFeet = false;
+    for (let i = 0; i < 3; i++) yield* this.peck(1, 1.2);
     yield* this.relax();
   }
 }
@@ -151,7 +139,8 @@ export abstract class Buteo extends Accipitridae {
   }
 
   *kite(): Script {
-    yield* this.flyTo({ x: this.pos.x < 50 ? 62 : 38, y: 26 }, { land: false });
+    const over = this.huntSpot(24);
+    yield* this.flyTo(over ?? { x: this.pos.x < 50 ? 62 : 38, y: 26 }, { land: false });
     const home = { ...this.pos };
     const p = this.pose;
     this.vel = { x: 0, y: 0 };
@@ -168,6 +157,8 @@ export abstract class Buteo extends Accipitridae {
       p.tailFan = 1;
     }
     p.tailFan = 0;
+    // Hanging in the wind pays off: a steep drop onto a vole below.
+    yield* this.grab(this.groundSpot(this.pos.x, 2));
     yield* this.toPerch();
   }
 
@@ -177,14 +168,7 @@ export abstract class Buteo extends Accipitridae {
     yield* this.lookAround(2.5);
     yield* this.poseTo({ head: -0.7, neck: 0.6 }, 0.3);
     yield* this.wait(1.2);
-    const spot = this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * 10, 2);
-    yield* this.flyTo(spot, { glide: true });
-    this.world.burst('dust', spot.x, 0, 5);
-    this.pose.wings = 'open';
-    yield* this.poseTo({ crouch: 0.6, flap: -0.4 }, 0.15);
-    yield* this.wait(1);
-    yield* this.relax();
-    yield* this.peck(3, 1.1);
+    yield* this.grab(this.preySpot(this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * 10, 2)), 3);
     yield* this.toPerch();
   }
 }
@@ -263,15 +247,20 @@ export abstract class Accipiter extends Accipitridae {
   *ambushDash(): Script {
     yield* this.toPerch();
     const perch = { ...this.pos };
-    const dir = perch.x < 50 ? 1 : -1;
     yield* this.lookAround(2);
+    const mark = this.preySpot({ x: clamp(perch.x + (perch.x < 50 ? 1 : -1) * this.dashSpan, 6, 94), y: 3 });
+    const dir = mark.x > perch.x ? 1 : -1;
     yield* this.poseTo({ pitch: 0.25, neck: 0.5, crouch: 0.3 }, 0.2);
-    for (let i = 1; i <= this.dashLegs; i++) {
-      const x = clamp(perch.x + (dir * this.dashSpan * i) / this.dashLegs, 6, 94);
-      yield* this.flyTo({ x, y: 3 + (i % 2 ? -1 : 1) * this.dashJink }, { land: false, speed: this.dashSpeed });
+    // A fast, low, jinking run at the flock, which bursts out of cover as it comes.
+    this.startlePrey(mark.x);
+    for (let i = 1; i < this.dashLegs; i++) {
+      const x = perch.x + ((mark.x - perch.x) * i) / this.dashLegs;
+      yield* this.flyTo({ x, y: Math.max(1, mark.y + (i % 2 ? -1 : 1) * this.dashJink) }, { land: false, speed: this.dashSpeed });
     }
+    yield* this.strikeAt(mark, { speed: this.dashSpeed, hold: Infinity });
     this.world.burst('leaf', this.pos.x, this.pos.y, 6, dir);
     yield* this.toPerch();
+    yield* this.eatCatch();
     yield* this.relax();
   }
 }
@@ -369,19 +358,13 @@ export abstract class Circus extends Accipitridae {
   }
 
   *quarter(): Script {
-    const x0 = this.pos.x;
-    const end = x0 < 30 ? 52 : 8;
-    for (let i = 1; i <= 6; i++) {
-      yield* this.flyTo({ x: x0 + ((end - x0) * i) / 6, y: i % 2 ? 1.6 : 3.2 }, { land: false, speed: 0.7 });
+    // Low back-and-forth over open ground, then a drop onto what it heard.
+    const [a, b] = this.mealRange(true) ?? (this.pos.x < 30 ? [this.pos.x, 52] : [8, this.pos.x]);
+    const [from, to] = Math.abs(this.pos.x - a) < Math.abs(this.pos.x - b) ? [a, b] : [b, a];
+    for (let i = 0; i <= 6; i++) {
+      yield* this.flyTo({ x: from + ((to - from) * i) / 6, y: i % 2 ? 1.6 : 3.2 }, { land: false, speed: 0.7 });
     }
-    const spot = this.groundSpot(this.pos.x, 3);
-    yield* this.flyTo(spot);
-    this.world.burst('dust', spot.x, 0, 5);
-    this.pose.wings = 'open';
-    yield* this.poseTo({ crouch: 0.5, flap: 0.5 }, 0.15);
-    yield* this.wait(1);
-    yield* this.relax();
-    yield* this.peck(2, 1);
+    yield* this.grab(this.groundSpot(this.pos.x, 2));
   }
 
   /** Low over the ground the wings are held up in a V and the bird rocks on them. */
@@ -501,7 +484,7 @@ export abstract class Cathartidae extends Cathartiformes {
     // Down short of the carrion, then walk up to it.
     const spot = at ? { x: this.world.clampLand(at - dir * 4), y: 0 } : this.groundSpot(this.pos.x, 3);
     yield* this.flyTo(spot);
-    yield* this.moveOnGround(this.world.clampLand(spot.x + dir * 4));
+    yield* this.moveOnGround(at ? this.foodSpot(8).x : this.world.clampLand(spot.x + dir * 4));
     yield* this.peck(3, 1.2);
     yield* this.relax();
   }
@@ -554,6 +537,10 @@ export class TurkeyVulture extends Cathartes {
 // ================================================================ Falcons
 
 export abstract class Falconiformes extends Bird {
+  protected override get takesInFeet() {
+    return true;
+  }
+
   static override taxon: Taxon = {
     rank: 'order',
     name: 'Falconiformes',
@@ -604,13 +591,14 @@ export abstract class Falconidae extends Falconiformes {
 
   *stoop(): Script {
     yield* this.toPerch();
-    const dir = this.pos.x < 50 ? 1 : -1;
-    const mark = { x: this.world.clampLand(this.pos.x + dir * 30), y: 1 };
-    yield* this.flyTo({ x: clamp(this.pos.x + dir * 10, 10, 90), y: this.stoopHeight }, { land: false });
-    yield* this.flyTo(mark, { land: false, speed: 2.8 });
-    this.world.burst('dust', mark.x, 1, 6);
+    const mark = this.preySpot({ x: this.world.clampLand(this.pos.x + (this.pos.x < 50 ? 30 : -30)), y: 1 });
+    const dir = mark.x > this.pos.x ? 1 : -1;
+    yield* this.flyTo({ x: clamp(mark.x - dir * 20, 10, 90), y: this.stoopHeight }, { land: false });
+    yield* this.strikeAt(mark, { speed: 2.8, hold: Infinity });
+    this.world.burst('leaf', mark.x, mark.y, 6, dir);
     yield* this.flyTo({ x: clamp(mark.x + dir * 8, 6, 94), y: this.stoopHeight / 2 }, { land: false });
     yield* this.toPerch();
+    yield* this.eatCatch();
     yield* this.relax();
   }
 }
@@ -705,14 +693,18 @@ export class Merlin extends Falco {
   *lowChase(): Script {
     yield* this.toPerch();
     yield* this.lookAround(1);
-    const dir = this.pos.x < 50 ? 1 : -1;
     const x0 = this.pos.x;
-    for (const [dx, y] of [[20, 2.5], [38, 1.5], [55, 3.5]]) {
-      yield* this.flyTo({ x: clamp(x0 + dir * dx, 6, 94), y }, { land: false, speed: 1.4 });
+    const mark = this.preySpot({ x: clamp(x0 + (x0 < 50 ? 55 : -55), 6, 94), y: 2 });
+    // Low and fast at the flock, which scatters; it stays on one bird through every turn.
+    this.startlePrey(mark.x);
+    for (const [f, y] of [[0.35, 2.5], [0.7, 1.5]]) {
+      yield* this.flyTo({ x: x0 + (mark.x - x0) * f, y }, { land: false, speed: 1.4 });
     }
-    this.world.burst('dust', this.pos.x, 1, 4);
-    yield* this.flyTo({ x: clamp(this.pos.x + dir * 6, 6, 94), y: 18 }, { land: false });
+    yield* this.strikeAt({ x: mark.x, y: mark.y + 3 }, { speed: 1.6, hold: Infinity });
+    yield* this.flyTo({ x: clamp(this.pos.x + (mark.x > x0 ? 6 : -6), 6, 94), y: 18 }, { land: false });
+    // Plucks it on the perch and eats it.
     yield* this.toPerch();
+    yield* this.eatCatch();
     yield* this.relax();
   }
 }
@@ -767,12 +759,10 @@ export class AmericanKestrel extends Falco {
   };
 
   *hoverHunt(): Script {
-    const x = clamp(this.pos.x + rand(-15, 15), 12, 88);
-    yield* this.flyTo({ x, y: 14 }, { land: false });
+    const over = this.huntSpot(14) ?? { x: clamp(this.pos.x + rand(-15, 15), 12, 88), y: 14 };
+    yield* this.flyTo(over, { land: false });
     for (let i = 0; i < 3; i++) yield* this.hoverFor(1.2, { aim: -1, drift: { x: 0, y: -3 } });
-    const spot = this.groundSpot(this.pos.x, 1);
-    yield* this.flyTo({ x: spot.x, y: 0.5 }, { land: false, speed: 1.5 });
-    this.world.burst('dust', spot.x, 0, 4);
+    yield* this.grab(this.groundSpot(this.pos.x, 1));
     yield* this.toPerch();
     yield* this.relax();
   }
@@ -791,6 +781,10 @@ export class AmericanKestrel extends Falco {
 // ================================================================== Owls
 
 export abstract class Strigiformes extends Bird {
+  protected override get takesInFeet() {
+    return true;
+  }
+
   static override taxon: Taxon = {
     rank: 'order',
     name: 'Strigiformes',
@@ -858,21 +852,13 @@ export abstract class Strigiformes extends Bird {
     yield* this.lookAround(1.5);
     yield* this.poseTo({ neck: 0.3, head: -1, pitch: 0.3 }, 0.25);
     yield* this.wait(0.6);
-    yield* this.strike(this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * this.pounceRange, 2));
+    yield* this.grab(this.preySpot(this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * this.pounceRange, 2)));
     yield* this.flyTo(perch);
     yield* this.relax();
   }
 
   /** Glide down on set wings, land on the prey and mantle over it. */
-  protected *strike(spot: { x: number; y: number }): Script {
-    yield* this.flyTo(spot, { glide: true, speed: 0.8 });
-    this.world.burst('dust', spot.x, 0, 4);
-    this.pose.wings = 'open';
-    yield* this.poseTo({ crouch: 0.5, flap: -0.5 }, 0.15);
-    yield* this.wait(0.8);
-    yield* this.relax();
-    yield* this.peck(2, 0.8);
-  }
+
 }
 
 export abstract class Strigidae extends Strigiformes {
@@ -1054,10 +1040,11 @@ export abstract class Glaucidium extends Strigidae {
     yield* this.toPerch();
     yield* this.lookAround(2);
     yield* this.poseTo({ tailAngle: 0.9 }, 0.1);
-    const dir = this.pos.x < 50 ? 1 : -1;
-    yield* this.flyTo({ x: clamp(this.pos.x + dir * 25, 8, 92), y: 8 }, { land: false, speed: 1.3 });
-    this.world.burst('leaf', this.pos.x, this.pos.y, 5, dir);
+    const mark = this.preySpot({ x: clamp(this.pos.x + (this.pos.x < 50 ? 25 : -25), 8, 92), y: 8 });
+    yield* this.strikeAt(mark, { hold: Infinity });
+    this.world.burst('leaf', this.pos.x, this.pos.y, 5, mark.x > this.pos.x ? 1 : -1);
     yield* this.toPerch();
+    yield* this.eatCatch();
     yield* this.relax();
   }
 }
@@ -1118,13 +1105,13 @@ export abstract class Tytonidae extends Strigiformes {
 
   *quarterSearch(): Script {
     yield* this.toPerch();
-    const dir = this.pos.x < 50 ? 1 : -1;
     const x0 = this.pos.x;
+    const mark = this.preySpot(this.groundSpot(clamp(x0 + (x0 < 50 ? 48 : -48), 8, 92), 2));
     for (let i = 1; i <= 4; i++) {
-      yield* this.flyTo({ x: clamp(x0 + dir * 12 * i, 8, 92), y: i % 2 ? 3.5 : 2.5 }, { land: false, speed: 0.55 });
+      yield* this.flyTo({ x: x0 + ((mark.x - x0) * i) / 4, y: i % 2 ? 3.5 : 2.5 }, { land: false, speed: 0.55 });
     }
     yield* this.hoverFor(1.2, { aim: -1 });
-    yield* this.strike(this.groundSpot(this.pos.x, 2));
+    yield* this.grab(mark);
     yield* this.toPerch();
     yield* this.relax();
   }

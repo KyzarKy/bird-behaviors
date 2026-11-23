@@ -72,7 +72,7 @@ export abstract class Corvidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Corvidae> = {
     cache: {
-      eats: { yard: 'acorns', beach: 'wrack' },
+      eats: { yard: 'acorns', beach: 'clams' },
       label: 'Cache food',
       feeding: true,
       cue: 'Carries food off, looks around to see who is watching, jabs it into the ground, then pulls a leaf over the spot.',
@@ -82,7 +82,7 @@ export abstract class Corvidae extends Passeriformes {
   override *forage(): Script {
     yield* this.toGround();
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-7, 7)));
+      yield* this.moveOnGround(this.foodSpot(7).x);
       yield* this.poseTo({ head: -0.5 }, 0.15);
       yield* this.wait(rand(0.3, 0.7));
       yield* this.peck(Math.ceil(rand(0, 2)));
@@ -92,13 +92,15 @@ export abstract class Corvidae extends Passeriformes {
 
   *cache(): Script {
     yield* this.toGround();
+    yield* this.moveOnGround(this.foodSpot(6).x);
     yield* this.peck(2);
-    this.pose.carry = 'acorn';
+    this.hold(this.pose.carry);
     yield* this.lookAround(1.2);
+    // Away from where it found it, out of sight of other jays.
     yield* this.moveOnGround(this.world.clampLand(this.pos.x + (this.pos.x > 50 ? -1 : 1) * rand(7, 12)));
     yield* this.lookAround(1);
     yield* this.peck(1, 1.2);
-    this.pose.carry = null;
+    this.hold(null);
     yield* this.peck(3, 1.2);
     // Cover it.
     for (let i = 0; i < 2; i++) {
@@ -230,7 +232,7 @@ export class AmericanCrow extends Corvus {
   };
 
   dropShellfish(): Script {
-    return this.dropOnRocks('clam');
+    return this.dropOnRocks();
   }
 }
 
@@ -321,12 +323,11 @@ export abstract class Tyrannidae extends Passeriformes {
       const perch = { ...this.pos };
       yield* this.lookAround(rand(1, 2.2));
       const dir = perch.x > 75 ? -1 : perch.x < 25 ? 1 : Math.random() < 0.5 ? -1 : 1;
-      const bug = this.world.emit('insect', perch.x + dir * rand(5, this.sallyRange), Math.min(50, Math.max(3, perch.y + rand(-5, 5))), { life: 8 });
-      this.pose.facing = dir;
+      const bug = this.preySpot({ x: perch.x + dir * rand(5, this.sallyRange), y: Math.min(50, Math.max(3, perch.y + rand(-5, 5))) });
+      this.pose.facing = bug.x > perch.x ? 1 : -1;
       yield* this.poseTo({ head: bug.y > perch.y ? 0.4 : -0.4 }, 0.08);
       yield* this.wait(0.15);
-      yield* this.flyTo(bug, { land: false, speed: 1.3 });
-      bug.life = 0;
+      yield* this.strikeAt(bug, { hold: 0.5 });
       this.say('snap!', 0.6);
       this.pose.beakOpen = 1;
       yield* this.wait(0.06);
@@ -420,7 +421,7 @@ export abstract class Turdus extends Turdidae {
   *wormHunt(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + (Math.random() < 0.7 ? this.pose.facing : -this.pose.facing) * rand(3.5, 7)));
+      yield* this.moveOnGround(this.foodSpot(7).x);
       yield* this.poseTo({ pitch: 0.55, neck: 1.2 }, 0.08);
       yield* this.wait(rand(0.4, 0.8));
       yield* this.poseTo({ pitch: 0.15, neck: 0.5, head: -0.6 }, 0.15);
@@ -428,14 +429,14 @@ export abstract class Turdus extends Turdidae {
     }
     yield* this.peck(1, 1.1);
     yield* this.poseTo({ pitch: -0.4, neck: -0.6, head: -1.1 }, 0.08);
-    this.pose.carry = 'worm';
+    this.hold(this.pose.carry);
     // Tug of war.
     for (let i = 0; i < 3; i++) {
       yield* this.poseTo({ pitch: 0.1 + i * 0.15, neck: 0.3 + i * 0.3, head: -0.5 + i * 0.25 }, 0.25);
       yield* this.wait(0.15);
     }
     yield* this.poseTo({ head: 0.5 }, 0.12);
-    this.pose.carry = null;
+    this.hold(null);
     yield* this.relax();
   }
 }
@@ -516,12 +517,13 @@ export abstract class Paridae extends Passeriformes {
   }
 
   *seedHammer(): Script {
-    yield* this.travelTo(this.findPerch(['shrub']) ?? this.groundSpot(this.pos.x, 8));
+    // Onto a seed head, take one seed, and off to a branch to hammer it open.
+    yield* this.travelTo(this.preySpot(this.findPerch(['shrub']) ?? this.groundSpot(this.pos.x, 8)));
     yield* this.peck(1);
-    this.pose.carry = 'seed';
+    this.hold(this.pose.carry);
     yield* this.wait(0.2);
     yield* this.toPerch(['branch']);
-    this.pose.carry = null;
+    this.hold(null);
     for (let i = 0; i < 3; i++) {
       for (let hit = 0; hit < 5; hit++) {
         yield* this.poseTo({ pitch: -0.5, neck: -0.9, head: -1.4 }, 0.05);
@@ -682,8 +684,7 @@ export abstract class Passerellidae extends Passeriformes {
   }
 
   *doubleScratch(): Script {
-    const [from, to] = this.world.habitat.litter ?? [this.pos.x - 4, this.pos.x + 4];
-    yield* this.travelTo({ x: this.world.clampLand(rand(from, to)), y: 0 });
+    yield* this.travelTo(this.foodSpot(4));
     const hop = this.size * 0.3;
     for (let i = 0; i < 6; i++) {
       const f = this.pose.facing;
