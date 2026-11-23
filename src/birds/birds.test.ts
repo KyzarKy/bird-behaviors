@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { drawnFlapRate } from './core/Bird';
 import { behaviorsOf, buildTree, lineage, resolveTraits, traitSources, type BirdClass } from './core/reflect';
 import { HABITATS, World } from './core/World';
+import { EXTRAS, FOOD_SITES, REGROW, eatsIn } from './core/food';
 import type { Ecology, HabitatId } from './core/traits';
 import { inScene } from '../ui/season';
 import { SPECIES } from './taxonomy';
@@ -9,6 +10,8 @@ import { Galliformes, Chicken, CaliforniaQuail } from './taxonomy/galliformes';
 import { AnnasHummingbird, Trochilidae } from './taxonomy/apodiformes';
 import { Colaptes, NorthernFlicker, Picidae } from './taxonomy/piciformes';
 import { BaldEagle, BeltedKingfisher } from './taxonomy/waterside';
+import { TurkeyVulture } from './taxonomy/raptors';
+import { RedBreastedSapsucker } from './taxonomy/yardbirds';
 
 const names = (classes: BirdClass[]) => classes.map((c) => c.taxon.name);
 const make = (cls: (typeof SPECIES)[number], scene?: HabitatId) => {
@@ -191,5 +194,78 @@ describe('natural food only', () => {
       lineage(s).flatMap((c) => [c.taxon.note, ...behaviorsOf(c).map((b) => b.spec.cue), ...Object.values(resolveTraits<Ecology>(c, 'ecology')).filter((v) => typeof v === 'string')]),
     );
     expect([...new Set(texts)].filter((t) => FEEDING_STATION.test(t))).toEqual([]);
+  });
+});
+
+describe('food in the scene', () => {
+  // Every feeding behavior names what it eats, and every scene the bird visits has it.
+  for (const cls of SPECIES) {
+    for (const scene of (Object.keys(HABITATS) as HabitatId[]).filter((h) => inScene(cls, h))) {
+      it(`${cls.taxon.common} (${scene}) finds its food`, () => {
+        const bird = make(cls, scene);
+        for (const b of behaviorsOf(cls).filter((b) => b.spec.feeding && !bird.missing(b.key))) {
+          const kind = eatsIn(b.spec, scene);
+          expect(kind, `${b.key} names no food`).not.toBeNull();
+          expect(bird.world.site(kind), `${b.key}: no ${kind} in the ${scene}`).not.toBeNull();
+        }
+      });
+    }
+  }
+
+  it('shows only the fixed extras when no bird eats anything else', () => {
+    for (const id of Object.keys(HABITATS) as HabitatId[]) {
+      const world = new World(HABITATS[id]);
+      expect(world.food.map((f) => f.kind)).toEqual(EXTRAS[id]);
+      for (const kind of EXTRAS[id]) expect(FOOD_SITES[id][kind]).toBeDefined();
+    }
+  });
+
+  it('peeks within 10 seconds, then one to three times a minute', () => {
+    for (let run = 0; run < 20; run++) {
+      const world = new World(HABITATS.yard);
+      world.stock(['worms', 'voles']);
+      let first = -1;
+      let peeks = 0;
+      for (let t = 0; t < 600; t += 0.1) {
+        const before = world.peek;
+        world.step(0.1);
+        if (world.peek && world.peek !== before) {
+          peeks++;
+          if (first < 0) first = t;
+        }
+      }
+      expect(first).toBeGreaterThanOrEqual(0);
+      expect(first).toBeLessThan(10);
+      expect(peeks).toBeGreaterThanOrEqual(10);
+      expect(peeks).toBeLessThanOrEqual(30);
+    }
+  });
+
+  // The bird goes where its food is: the oak with the sap wells, the carrion behind its tussock.
+  for (const [cls, scene] of [[RedBreastedSapsucker, 'yard'], [TurkeyVulture, 'yard'], [TurkeyVulture, 'beach']] as const) {
+    it(`${cls.taxon.common} (${scene}) feeds at its food`, () => {
+      const bird = make(cls, scene);
+      const site = bird.world.site(eatsIn(behaviorsOf(cls).find((b) => b.key === 'forage')!.spec, scene))!;
+      bird.update(1 / 60);
+      bird.perform('forage');
+      let closest = Infinity;
+      for (let frames = 0; bird.current !== null && frames < 60 * 90; frames++) {
+        bird.world.step(1 / 60);
+        bird.update(1 / 60);
+        closest = Math.min(closest, Math.max(0, site.x[0] - bird.pos.x, bird.pos.x - site.x[1]));
+      }
+      expect(closest).toBeLessThan(5);
+    });
+  }
+
+  it('runs down where a bird feeds and grows back', () => {
+    const world = new World(HABITATS.yard);
+    const berries = world.food.find((f) => f.kind === 'berries')!;
+    const whole = () => berries.units.filter((u) => u.left >= 1).length;
+    const all = whole();
+    world.eat('berries', 50);
+    expect(whole()).toBeLessThan(all);
+    for (let t = 0; t <= REGROW; t += 0.5) world.step(0.5);
+    expect(whole()).toBe(all);
   });
 });

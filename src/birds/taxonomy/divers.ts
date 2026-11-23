@@ -90,6 +90,7 @@ export abstract class Gaviidae extends Gaviiformes {
 
   static override behaviors: BehaviorTable<Gaviidae> = {
     forage: {
+      eats: 'baitfish',
       label: 'Peer and dive',
       cue: 'Rides low with the face laid flat in the water, looking for fish. Then it slides under, usually with no leap and hardly a ripple, and stays down far longer than a grebe or a duck, coming up a long way off. Compare how long each loon stays down.',
     },
@@ -313,6 +314,7 @@ export abstract class Podicipedidae extends Podicipediformes {
 
   static override behaviors: BehaviorTable<Podicipedidae> = {
     forage: {
+      eats: 'baitfish',
       label: 'Leap and dive',
       cue: 'A quick glance below, then a forward jump that arches the body out of the water and a head-first plunge. The dive is short and the bird comes up not far away. A loon slips under with no arch and stays down longer.',
     },
@@ -669,6 +671,7 @@ export abstract class Phalacrocoracidae extends Suliformes {
       cue: 'Stands on a post or rock facing the wind with both wings held out and drooping, and stays like that for minutes. No gull or duck does this; it identifies a cormorant at a distance. Note how long each species holds the pose.',
     },
     forage: {
+      eats: 'baitfish',
       label: 'Dive for fish',
       cue: 'Swims low with the bill tilted up, gives a small forward surge and a hop, then goes under. Compare a loon, which slips under without the hop. After a dive it often swims to a perch to dry.',
     },

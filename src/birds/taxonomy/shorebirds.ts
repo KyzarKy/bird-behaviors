@@ -26,6 +26,7 @@ export abstract class Charadriidae extends Charadriiformes {
 
   static override behaviors: BehaviorTable<Charadriidae> = {
     forage: {
+      eats: { yard: 'grassBugs', beach: 'sandCritters' },
       label: 'Run, stop, peck',
       cue: 'A burst of fast running, a dead stop with the body drawn upright and the head cocked, then one stab. A sandpiper walks steadily and probes without stopping to look.',
     },
@@ -198,6 +199,7 @@ export abstract class Haematopodidae extends Charadriiformes {
 
   static override behaviors: BehaviorTable<Haematopodidae> = {
     forage: {
+      eats: 'mussels',
       label: 'Open a mussel',
       cue: 'Stands at the foot of a rock and hammers with short, hard blows, then twists the bill in and levers the shell open. A gull drops the same shellfish from the air instead.',
     },
@@ -301,6 +303,7 @@ export abstract class Scolopacidae extends Charadriiformes {
 
   static override behaviors: BehaviorTable<Scolopacidae> = {
     forage: {
+      eats: 'sandCritters',
       label: 'Probe the sand',
       cue: 'Walks without stopping and pushes the bill in again and again, like a sewing machine. Compare where each species feeds: Western in the shallows, Dunlin at the edge, Least on the dry mud above.',
     },
@@ -344,6 +347,7 @@ export abstract class Arenaria extends Scolopacidae {
 
   static override behaviors: BehaviorTable<Arenaria> = {
     forage: {
+      eats: 'wrack',
       label: 'Flip stones and weed',
       cue: 'Pushes its bill under the edge of a stone or a mat of seaweed and heaves it over with a jerk of the neck, then picks at what was hiding underneath. No sandpiper does this.',
     },
@@ -439,6 +443,7 @@ export class Sanderling extends Calidris {
 
   static override behaviors: BehaviorTable<Sanderling> = {
     forage: {
+      eats: 'sandCritters',
       label: 'Chase the wave edge',
       cue: 'Races down the wet sand after a wave slides back, stabs at what it uncovered, and sprints back up the beach ahead of the next one, legs a blur. Other sandpipers keep away from the surf.',
     },
@@ -629,6 +634,7 @@ export class GreaterYellowlegs extends Tringa {
 
   static override behaviors: BehaviorTable<GreaterYellowlegs> = {
     forage: {
+      eats: 'minnows',
       label: 'Chase minnows',
       cue: 'Runs through knee-deep water swinging the bill from side to side to scythe up small fish. A Lesser Yellowlegs picks at the surface instead.',
     },
@@ -777,6 +783,7 @@ export class ShortBilledGull extends Larus {
 
   static override behaviors: BehaviorTable<ShortBilledGull> = {
     dipFeed: {
+      eats: 'plankton',
       label: 'Dip-feed',
       feeding: true,
       cue: 'Hovers on fast wingbeats a metre above the water and dips to take small food from the surface without landing. Larger gulls land or plunge.',
@@ -828,6 +835,7 @@ export class CaliforniaGull extends Larus {
 
   static override behaviors: BehaviorTable<CaliforniaGull> = {
     forage: {
+      eats: 'wrack',
       label: 'Work the wrack line',
       cue: 'Walks the line of seaweed at the high-tide mark, turning over debris and picking up anything edible. Gulls like this one are more often scavenging than hunting.',
     },
@@ -886,6 +894,7 @@ export class HeermannsGull extends Larus {
 
   static override behaviors: BehaviorTable<HeermannsGull> = {
     pirate: {
+      eats: 'baitfish',
       label: 'Steal a fish',
       feeding: true,
       cue: 'Chases another seabird low over the water, matching every twist, until the victim drops its catch. It lands with the stolen fish and swallows it fast.',
@@ -936,6 +945,7 @@ export abstract class Chroicocephalus extends Laridae {
 
   static override behaviors: BehaviorTable<Chroicocephalus> = {
     skimDips: {
+      eats: 'plankton',
       label: 'Skim and dip',
       feeding: true,
       cue: 'Flutters low over the water and dips down three or four times in a row to pick from the surface, climbing between dips. Tern-like, and nothing a Larus gull does.',
@@ -1000,6 +1010,7 @@ export abstract class Hydroprogne extends Laridae {
 
   static override behaviors: BehaviorTable<Hydroprogne> = {
     forage: {
+      eats: 'baitfish',
       label: 'Hover and plunge',
       cue: 'Patrols with the bill angled down, stops to hover for a moment, then folds and drops headfirst into the water. A gull never dives from the air like this.',
     },
@@ -1087,6 +1098,7 @@ export abstract class Alcidae extends Charadriiformes {
 
   static override behaviors: BehaviorTable<Alcidae> = {
     forage: {
+      eats: 'baitfish',
       label: 'Dive for fish',
       cue: 'Peers under the surface, then slips under and flies with its wings. It stays down for many seconds and comes up some way off. Loons and grebes dive with their feet instead.',
     },
@@ -1207,6 +1219,7 @@ export abstract class Cerorhinca extends Alcidae {
 
   static override behaviors: BehaviorTable<Cerorhinca> = {
     carryFishHome: {
+      eats: 'baitfish',
       label: 'Carry fish to the colony',
       feeding: true,
       cue: 'Surfaces with several small fish held crosswise in the bill and flies straight out toward the colony, low and fast. It does not eat them.',

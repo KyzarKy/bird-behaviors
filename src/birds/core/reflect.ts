@@ -79,7 +79,7 @@ export function behaviorsOf(cls: BirdClass): BehaviorInfo[] {
       // A lower class relabels a behavior and keeps its odds and whether it is feeding, unless it
       // sets its own. What the scene must have is not carried down: a relabel is often a
       // different way of doing it.
-      if (known) known.spec = { weight: known.spec.weight, feeding: known.spec.feeding, ...spec };
+      if (known) known.spec = { weight: known.spec.weight, feeding: known.spec.feeding, eats: known.spec.eats, ...spec };
       else out.set(key, { key, spec, declaredIn: c, implementedIn: c, overriddenIn: [] });
     }
     for (const info of out.values()) {

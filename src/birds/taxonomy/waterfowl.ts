@@ -53,6 +53,7 @@ export abstract class Anatidae extends Anseriformes {
 
   static override behaviors: BehaviorTable<Anatidae> = {
     forage: {
+      eats: { beach: 'eelgrass', yard: 'grass' },
       label: 'Feed',
       cue: 'The way it feeds sorts the family. Tail-up with the head under, bobbing on the surface: a dabbler. Bill-first dive and a long wait: a diver. Walking and cropping like a lawnmower: a goose or swan.',
     },
@@ -313,6 +314,7 @@ export abstract class Mareca extends Anatidae {
       cue: 'Mostly stays level, dipping the bill to pull weed off the surface or off the bottom of the shallows, with little tipping up. Compare the Mallard’s full upend.',
     },
     graze: {
+      eats: 'grass',
       label: 'Graze ashore',
       feeding: true,
       cue: 'Comes up the beach and crops short grass like a small goose, walking steadily with the head low. Mallards and Pintails seldom do this.',
@@ -751,6 +753,7 @@ export abstract class Mergus extends Anatidae {
       cue: 'Swims with the face in the water, then dives in a smooth forward roll and chases fish underwater. Fish are swallowed head first at the surface.',
     },
     snorkel: {
+      eats: 'minnows',
       label: 'Snorkel',
       feeding: true,
       cue: 'Cruises along with the head down and the bill underwater, scanning for fish before committing to a dive. No other duck does this for long.',
@@ -934,6 +937,7 @@ export abstract class Branta extends Anatidae {
 
   static override behaviors: BehaviorTable<Branta> = {
     graze: {
+      eats: 'grass',
       label: 'Graze',
       feeding: true,
       cue: 'Walks up the beach in a loose group and crops with short, jerky pulls, head down, one or two birds always standing watch with the neck up.',

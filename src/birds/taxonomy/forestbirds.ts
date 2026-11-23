@@ -83,6 +83,7 @@ export abstract class Aegithalidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Aegithalidae> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Stream through the bushes',
       cue: 'One bird commits to the next bush and the others follow in a string, calling the whole way. At each stop they hang upside down and pick at the twig tips, then all leave within seconds.',
     },
@@ -157,6 +158,7 @@ export abstract class Certhiidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Certhiidae> = {
     forage: {
+      eats: 'barkBugs',
       label: 'Spiral up the trunk',
       cue: 'Starts at the foot of a tree and works up in short hitches, swinging round to the other side now and then. At the top it lets go and flutters down to the base of the next tree. A nuthatch goes down head first; a creeper never does.',
     },
@@ -253,6 +255,7 @@ export abstract class Troglodytidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Troglodytidae> = {
     forage: {
+      eats: 'litterBugs',
       label: 'Creep through the litter',
       cue: 'Body low and tail up, it threads between roots and fallen logs in short hops, poking into every crevice. It looks more like a mouse than a bird.',
     },
@@ -430,6 +433,7 @@ export abstract class Regulidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Regulidae> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Hover-glean at a twig tip',
       cue: 'Flutters in place at the very end of a branch, picking from needles and buds it never lands on, then flits to the next. Chickadees hang from twigs; kinglets hover in front of them.',
     },
@@ -585,6 +589,7 @@ export abstract class Ixoreus extends Turdidae {
       cue: 'One long, eerie, slightly buzzy note held for two or three seconds, then silence, then another at a different pitch. It carries across the forest and is usually the first sign the bird is there.',
     },
     forage: {
+      eats: 'litterBugs',
       label: 'Toss the leaf litter',
       cue: 'Sweeps its bill sideways through the leaves, flinging them over its shoulder to uncover insects and seeds. A robin pulls worms from lawns; this one works under the shrubs.',
     },
@@ -669,6 +674,7 @@ export abstract class Catharus extends Turdidae {
 
   static override behaviors: BehaviorTable<Catharus> = {
     forage: {
+      eats: 'litterBugs',
       label: 'Hop and freeze',
       cue: 'Two or three quick hops under the shrubs, then it stands bolt upright and motionless, watching. Unlike a robin it does not cock its head or stab the lawn; it takes insects from the litter.',
     },
@@ -804,10 +810,12 @@ export abstract class Bombycillidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Bombycillidae> = {
     forage: {
+      eats: 'berries',
       label: 'Pass a berry',
       cue: 'A bird picks a berry and, instead of eating it, sidles along the branch and hands it to a neighbor, who may hand it on. Berries are swallowed whole with a toss of the head.',
     },
     flycatch: {
+      eats: 'swarm',
       label: 'Flycatch over the water',
       feeding: true,
       cue: 'Sits on an exposed treetop, darts out after an insect, and returns, often with several birds taking turns. It sallies like a flycatcher but is stockier and keeps a crest.',
@@ -917,6 +925,7 @@ export abstract class Vireonidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Vireonidae> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Peer and glean',
       cue: 'A slow hop, a pause with the head tilted one way and then the other, then a reach under a leaf for a caterpillar. Compare the near-constant motion of a kinglet.',
     },
@@ -1020,6 +1029,7 @@ export class WarblingVireo extends Vireo {
 
   static override behaviors: BehaviorTable<WarblingVireo> = {
     singWhileGleaning: {
+      eats: 'leafBugs',
       label: 'Sing while foraging',
       feeding: true,
       cue: 'Warbles from inside the foliage and keeps working the leaves between phrases, often well above eye level. It sings from the nest too.',

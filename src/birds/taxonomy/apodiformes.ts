@@ -48,6 +48,7 @@ export abstract class Trochilidae extends Apodiformes {
 
   static override behaviors: BehaviorTable<Trochilidae> = {
     forage: {
+      eats: 'nectar',
       label: 'Feed at flowers',
       cue: 'Arrives fast and stops dead with no slowing. Hangs motionless, bill in the flower, then backs straight out in reverse before pivoting to the next one. Nothing else flies backward.',
     },

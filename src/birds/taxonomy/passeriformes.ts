@@ -72,6 +72,7 @@ export abstract class Corvidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Corvidae> = {
     cache: {
+      eats: { yard: 'acorns', beach: 'wrack' },
       label: 'Cache food',
       feeding: true,
       cue: 'Carries food off, looks around to see who is watching, jabs it into the ground, then pulls a leaf over the spot.',
@@ -220,6 +221,7 @@ export class AmericanCrow extends Corvus {
 
   static override behaviors: BehaviorTable<AmericanCrow> = {
     dropShellfish: {
+      eats: 'clams',
       label: 'Drop a clam on the rocks',
       feeding: true,
       needs: 'rocks',
@@ -298,6 +300,7 @@ export abstract class Tyrannidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Tyrannidae> = {
     forage: {
+      eats: 'swarm',
       label: 'Sally for insects',
       cue: 'Upright on an exposed perch, head swiveling. A sudden dart out, an audible bill snap, and a loop back to a perch. How far it goes and whether it returns to the same spot separates the species.',
     },
@@ -404,6 +407,7 @@ export abstract class Turdus extends Turdidae {
 
   static override behaviors: BehaviorTable<Turdus> = {
     forage: {
+      eats: { yard: 'worms', beach: 'sandCritters' },
       label: 'Hunt worms',
       cue: 'Runs a few steps, stops dead and stands tall, cocks its head to one side, then stabs. The head tilt is the bird looking, not listening: its eyes are on the sides of its head.',
     },
@@ -477,10 +481,12 @@ export abstract class Paridae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Paridae> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Glean upside down',
       cue: 'Flits to the very tip of a twig and swings underneath it to pick at buds and cones. Few other birds this size feed hanging by their feet.',
     },
     seedHammer: {
+      eats: 'seedHeads',
       label: 'Hammer open a seed',
       feeding: true,
       cue: 'Takes one seed and leaves. On a branch it pins the seed under both feet and hammers it open with its bill; it never sits on a seed head cracking seeds like a finch.',
@@ -575,6 +581,7 @@ export abstract class Sittidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Sittidae> = {
     forage: {
+      eats: 'barkBugs',
       label: 'Creep down the trunk',
       cue: 'Head-first down the bark in short jerks, pausing to crane its head out and look around. A small bird pointing downward on a trunk is a nuthatch.',
     },
@@ -664,6 +671,7 @@ export abstract class Passerellidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Passerellidae> = {
     forage: {
+      eats: { yard: 'litterBugs', beach: 'fallenSeed' },
       label: 'Double-scratch',
       cue: 'A quick hop forward, then both feet kick backward together, throwing leaves behind it. You often hear the rustling in the litter before you see the bird. A chicken scratches one foot at a time.',
     },

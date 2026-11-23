@@ -1,3 +1,4 @@
+import { eatsIn, type FoodKind, type FoodSite } from './food';
 import { behaviorsOf, resolveTraits, type BirdClass } from './reflect';
 import type { BehaviorTable, Ecology, FlightProfile, Item, Look, PerchKind, Script, Taxon, Vec } from './traits';
 import type { Trunk, World } from './World';
@@ -149,6 +150,7 @@ export abstract class Bird {
       weight: 2,
     },
     forage: {
+      eats: { yard: 'grassBugs', beach: 'wrack' },
       label: 'Forage',
       cue: 'How a bird feeds is usually its most reliable behavioral field mark.',
       feeding: true,
@@ -188,6 +190,8 @@ export abstract class Bird {
   /** Seconds of idling left before an autonomous bird does something. */
   private pause = 0;
   private last: string | null = null;
+  /** The food the running behavior is after, so the bird goes where it is and eats some when done. */
+  private meal: { kind: FoodKind; site: FoodSite } | null = null;
 
   constructor(readonly world: World) {
     const cls = this.constructor as BirdClass;
@@ -205,6 +209,14 @@ export abstract class Bird {
       ...this.restingPose(),
     };
     this.spawn();
+    world.stock(this.diet());
+  }
+
+  /** Every food this bird can go after in its scene. */
+  diet(): FoodKind[] {
+    return behaviorsOf(this.constructor as BirdClass)
+      .filter((b) => !this.missing(b.key))
+      .flatMap((b) => eatsIn(b.spec, this.world.habitat.id) ?? []);
   }
 
   // ---------------------------------------------------------------- driving
@@ -218,6 +230,10 @@ export abstract class Bird {
     p.carry = null;
     p.carryInFeet = false;
     this.current = this.last = key;
+    const spec = behaviorsOf(this.constructor as BirdClass).find((b) => b.key === key)?.spec;
+    const kind = spec && eatsIn(spec, this.world.habitat.id);
+    const site = this.world.site(kind ?? null);
+    this.meal = kind && site ? { kind, site } : null;
     this.script = (method as () => Script).call(this);
   }
 
@@ -253,7 +269,11 @@ export abstract class Bird {
     } else if (this.auto && this.current === null && (this.pause -= dt) <= 0) {
       this.perform(this.choose());
     }
-    if (this.script.next(dt).done) this.script = null;
+    if (this.script.next(dt).done) {
+      if (this.meal) this.world.eat(this.meal.kind, this.pos.x);
+      this.meal = null;
+      this.script = null;
+    }
   }
 
   // -------------------------------------------------------------- behaviors
@@ -564,7 +584,9 @@ export abstract class Bird {
   /** A random place out on the water, for birds that swim. */
   protected waterSpot(): Vec | null {
     const water = this.world.habitat.water;
-    return this.ecology.swims && water ? { x: rand(water.from + 6, 94), y: 0 } : null;
+    if (!this.ecology.swims || !water) return null;
+    const [lo, hi] = this.mealRange() ?? [0, 100];
+    return { x: rand(Math.max(water.from + 6, Math.min(lo, 90)), Math.max(water.from + 8, Math.min(hi, 94))), y: 0 };
   }
 
   /** Get onto the water, flying there if need be. Paddling about is moveOnGround(). */
@@ -652,8 +674,11 @@ export abstract class Bird {
     if (onFoot || (!(yield* this.flyOver(target)) && target.y <= 0.05)) yield* this.moveOnGround(target.x);
   }
 
+  /** Down to the ground nearby, or to where the food is if it is on the ground. */
   protected *toGround(range = 8): Script {
-    if (!this.onGround) yield* this.travelTo(this.groundSpot(this.pos.x, range));
+    const m = this.mealRange(true);
+    if (m && (this.pos.x < m[0] - 2 || this.pos.x > m[1] + 2 || !this.onGround)) yield* this.travelTo({ x: rand(m[0], m[1]), y: 0 });
+    else if (!this.onGround) yield* this.travelTo(this.groundSpot(this.pos.x, range));
   }
 
   protected *toPerch(kinds: PerchKind[] = this.ecology.perches, pick: PerchPick = 'near'): Script {
@@ -770,6 +795,9 @@ export abstract class Bird {
   /** A climbable trunk, preferring one the bird is not already on. */
   protected findTrunk(): Trunk | null {
     const trunks = this.world.habitat.trunks.filter((t) => t.climb);
+    const m = this.mealRange();
+    const fed = m && trunks.find((t) => t.x >= m[0] - 3 && t.x <= m[1] + 3);
+    if (fed) return fed;
     const others = trunks.filter((t) => Math.abs(t.x - this.pos.x) > 3);
     const pool = others.length ? others : trunks;
     return pool[Math.floor(Math.random() * pool.length)] ?? null;
@@ -781,9 +809,22 @@ export abstract class Bird {
       .filter((q) => kinds.includes(q.kind) && q.y <= this.flight.ceiling && d(q) > 3)
       .sort((a, b) => d(a) - d(b));
     if (!options.length) return null;
+    // Near the food if there is a perch there.
+    const m = this.mealRange();
+    const fed = m && pick !== 'far' ? options.filter((q) => q.x >= m[0] - 4 && q.x <= m[1] + 4) : [];
+    if (fed.length) return fed[Math.floor(Math.random() * fed.length)];
     if (pick === 'near') return options[0];
     if (pick === 'far') return options[options.length - 1];
     return options[Math.floor(Math.random() * options.length)];
+  }
+
+  /** The x range of the food the running behavior is after, optionally only if it lies on dry ground. */
+  protected mealRange(onLand = false): [number, number] | null {
+    const site = this.meal?.site;
+    if (!site) return null;
+    const [lo, hi] = this.world.habitat.land;
+    if (onLand && (site.y !== 0 || site.x[1] < lo || site.x[0] > hi)) return null;
+    return onLand ? [Math.max(lo, site.x[0]), Math.min(hi, site.x[1])] : site.x;
   }
 
   protected groundSpot(near: number, range: number): Vec {

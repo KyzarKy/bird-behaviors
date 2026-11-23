@@ -1,3 +1,4 @@
+import { EXTRAS, FOOD_SITES, REGROW, type FoodKind, type FoodSite } from './food';
 import type { HabitatId, Item, PerchKind, Vec } from './traits';
 
 /**
@@ -49,12 +50,75 @@ export interface Particle extends Vec {
   life: number;
 }
 
+/** A food on show. `left` is 1 for a whole piece, and climbs back from 0 after one is eaten. */
+export interface FoodPatch {
+  kind: FoodKind;
+  site: FoodSite;
+  units: (Vec & { left: number })[];
+  /** Seconds before it peeks again, after a bird has just fed on it. */
+  quiet: number;
+}
+
+/** A small animal showing itself, or a plant stirring, for a moment. */
+export interface Peek extends Vec {
+  kind: FoodKind;
+  /** Seconds since it began. */
+  t: number;
+  seconds: number;
+}
+
 export class World {
   particles: Particle[] = [];
+  food: FoodPatch[] = [];
+  peek: Peek | null = null;
+  /** Seconds since the scene was made. */
+  time = 0;
+  // The first peek comes soon after a bird arrives, then only one to three a minute.
+  private nextPeek = 2 + Math.random() * 6;
 
-  constructor(readonly habitat: Habitat) {}
+  constructor(readonly habitat: Habitat) {
+    this.stock([]);
+  }
+
+  /** Show these foods, plus the scene's fixed extras, and nothing else. */
+  stock(kinds: FoodKind[]) {
+    const sites = FOOD_SITES[this.habitat.id];
+    this.food = [...new Set([...EXTRAS[this.habitat.id], ...kinds])].flatMap((kind) => {
+      const site = sites[kind];
+      return site ? [{ kind, site, units: (site.units ?? []).map((u) => ({ ...u, left: 1 })), quiet: 0 }] : [];
+    });
+  }
+
+  site(kind: FoodKind | null): FoodSite | null {
+    return this.food.find((f) => f.kind === kind)?.site ?? null;
+  }
+
+  /** A bird fed here: a piece or two near x goes, and the food keeps out of sight for a while. */
+  eat(kind: FoodKind, x: number) {
+    const patch = this.food.find((f) => f.kind === kind);
+    if (!patch) return;
+    patch.quiet = 20;
+    const whole = patch.units.filter((u) => u.left >= 1).sort((a, b) => Math.abs(a.x - x) - Math.abs(b.x - x));
+    for (const u of whole.slice(0, 1 + Math.round(Math.random()))) u.left = 0;
+  }
 
   step(dt: number) {
+    this.time += dt;
+    for (const f of this.food) {
+      f.quiet -= dt;
+      for (const u of f.units) u.left = Math.min(1, u.left + dt / REGROW);
+    }
+    if (this.peek && (this.peek.t += dt) > this.peek.seconds) this.peek = null;
+    if ((this.nextPeek -= dt) <= 0) {
+      // Carrion stays still and out of sight.
+      const ready = this.food.filter((f) => f.quiet <= 0 && f.kind !== 'carrion');
+      const f = ready[Math.floor(Math.random() * ready.length)];
+      if (f) {
+        const [lo, hi] = f.site.x;
+        this.peek = { kind: f.kind, x: lo + Math.random() * (hi - lo), y: f.site.y, t: 0, seconds: 2 };
+        this.nextPeek = 20 + Math.random() * 40;
+      } else this.nextPeek = 3;
+    }
     for (const p of this.particles) {
       p.life -= dt;
       p.vy -= p.gravity * dt;

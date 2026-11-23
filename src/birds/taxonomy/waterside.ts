@@ -64,6 +64,7 @@ export abstract class Haliaeetus extends Accipitridae {
 
   static override behaviors: BehaviorTable<Haliaeetus> = {
     forage: {
+      eats: 'baitfish',
       label: 'Snatch a fish',
       needs: 'water',
       cue: 'A long, shallow glide low over the water, feet swung forward at the last second, and the fish is lifted off the surface. The eagle barely gets wet. An Osprey plunges in feet-first with a splash.',
@@ -166,10 +167,12 @@ export abstract class Alcedinidae extends Coraciiformes {
 
   static override behaviors: BehaviorTable<Alcedinidae> = {
     forage: {
+      eats: 'minnows',
       label: 'Plunge from a perch',
       cue: 'Sits over the water staring down, bobs its head, then drops headfirst and goes right under. Back on the perch it beats the fish against the wood before swallowing it head first.',
     },
     hoverHunt: {
+      eats: 'baitfish',
       label: 'Hover and plunge',
       feeding: true,
       cue: 'With no perch handy it swings up and hovers 20 to 40 feet over the water, bill pointing straight down, body nearly vertical, then folds and drops. Compare the hummingbird’s level, effortless hover.',
@@ -309,6 +312,7 @@ export abstract class Ardeidae extends Pelecaniformes {
 
   static override behaviors: BehaviorTable<Ardeidae> = {
     forage: {
+      eats: 'minnows',
       label: 'Stalk and strike',
       cue: 'Wades in slow motion, one foot placed at a time, neck easing forward. Freezes completely. The strike itself is too fast to follow; then the head comes up and the fish goes down whole.',
     },
@@ -433,12 +437,14 @@ export abstract class Laridae extends Charadriiformes {
       cue: 'Circles and glides on long, narrow, slightly bent wings. The wing shape separates it from an eagle at any distance.',
     },
     dropShellfish: {
+      eats: 'clams',
       label: 'Drop a clam on the rocks',
       feeding: true,
       needs: 'rocks',
       cue: 'The same trick the crows use, learned independently: carry the clam up, drop it on something hard, follow it down.',
     },
     footPaddle: {
+      eats: { yard: 'worms', beach: 'sandCritters' },
       label: 'Foot-paddle',
       feeding: true,
       cue: 'Stands in the wet sand at the tideline and marches rapidly in place. The vibration brings worms and small clams to the surface; it steps back and picks them off.',

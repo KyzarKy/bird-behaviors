@@ -66,6 +66,18 @@ override forage(): Script {
 
 Field notes tag every feeding behavior "Feeding", since labels such as "Toss the leaf litter" don't say so. `forage` sets `feeding: true` once in `Bird` and a relabel keeps it; any other behavior about finding, catching, handling or eating food sets it itself.
 
+## Food in the scene
+
+Each feeding behavior names what it eats with `eats`, either one food (`eats: 'berries'`) or one per scene (`eats: { yard: 'worms', beach: 'sandCritters' }`). A relabel keeps the food of the entry it replaces unless it sets its own. Foods and where they sit in each scene are in `src/birds/core/food.ts`.
+
+- **The scene shows only what its bird eats.** When a bird is made, it stocks its `World` with the foods of every behavior it can do there, plus the scene's fixed extras (berries on the yard shrub, a wrack line on the beach). Nothing else is drawn, so the scene stays uncluttered.
+- **Birds go to the food.** While a feeding behavior runs, `toGround`, `findPerch`, `findTrunk` and `waterSpot` pick a spot at that food when it has one there, so a sapsucker goes to the oak with the sap wells and a duck flying in lands by the eelgrass. Hunts in the air, such as hawking insects, start from wherever the bird is.
+- **Food runs down and grows back.** When a feeding behavior ends, the bird has eaten a piece or two of what it was after (berries, acorns, cones, seed heads, fallen seed, clams, mussels). Each piece grows back over a minute. It is only for show: a scene never runs out.
+- **Peeks.** Now and then one food shows itself for two seconds: a worm stretches out of the lawn, a vole runs between grass clumps, a berry drops, baitfish flash at the surface. The first comes within 10 seconds of a bird arriving, then one to three a minute. A food a bird just fed on keeps out of sight for a while. Small animals are drawn about twice life size so they can be seen.
+- **Carrion is never drawn as an animal.** It is a dull mound behind a grass tussock in the yard, or inside a heap of kelp on the beach, and it never peeks.
+
+A test fails if a feeding behavior names no food, or if a scene a bird visits lacks one of its foods.
+
 A species with a second, genuinely different way to feed lists that method too. The Rough-legged Hawk forages by hovering and still has the perch hunt of its genus; the Yellow-rumped Warbler flycatches and still gleans.
 
 ## Auto mode

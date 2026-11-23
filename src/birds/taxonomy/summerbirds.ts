@@ -33,6 +33,7 @@ export abstract class Hirundinidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Hirundinidae> = {
     forage: {
+      eats: 'swarm',
       label: 'Hawk insects on the wing',
       cue: 'Never still in the air: a few quick flaps, a long swoop or glide, a sharp turn toward an insect, and the bill gapes. Height over the ground and how much of the time the wings are set tell the species apart.',
     },
@@ -204,6 +205,7 @@ export abstract class Parulidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Parulidae> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Glean from twig tips',
       cue: 'Flits from tip to tip, pecking at leaves and buds, with a flick of the tail between pecks. Compare the height it works and how long it stays at each stop; a warbler that never pauses is typical.',
     },
@@ -318,10 +320,12 @@ export class YellowRumpedWarbler extends Setophaga {
 
   static override behaviors: BehaviorTable<YellowRumpedWarbler> = {
     forage: {
+      eats: 'swarm',
       label: 'Flycatch from a perch',
       cue: 'Darts out from a branch to snap an insect, banks, and returns. The tail fans on the turn and flashes the yellow rump. Other warblers here glean from leaves and rarely do this.',
     },    // It still gleans like the rest of its family, and in winter eats berries and seeds too.
     glean: {
+      eats: 'leafBugs',
       label: 'Glean from twig tips',
       feeding: true,
       cue: 'Between sallies it works the twigs like any other warbler, pecking at leaves and buds.',
@@ -561,6 +565,7 @@ export abstract class Cardinalidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Cardinalidae> = {
     pluckFruit: {
+      eats: 'berries',
       label: 'Pluck a berry',
       feeding: true,
       cue: 'Reaches out from a perch, snips a berry with the heavy bill, then tips its head back and swallows it whole. Fruit is a large part of the late-summer diet.',
@@ -594,6 +599,7 @@ export abstract class Piranga extends Cardinalidae {
 
   static override behaviors: BehaviorTable<Piranga> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Work along the canopy',
       cue: 'Moves from branch to branch at a slow pace, stopping to stare for several seconds before reaching out to take an insect or a berry. Compare the pause length with a warbler’s.',
     },
@@ -658,6 +664,7 @@ export abstract class Pheucticus extends Cardinalidae {
 
   static override behaviors: BehaviorTable<Pheucticus> = {
     crackSeed: {
+      eats: 'seedHeads',
       label: 'Crack a seed',
       feeding: true,
       cue: 'Takes a seed to a branch and works it between the two halves of the bill with a slow, rolling chewing motion, then drops the husk. A finch does the same on a smaller scale; the grosbeak takes visibly longer.',

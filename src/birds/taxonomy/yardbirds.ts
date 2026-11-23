@@ -88,6 +88,7 @@ export class DownyWoodpecker extends Dryobates {
 
   static override behaviors: BehaviorTable<DownyWoodpecker> = {
     stemProbe: {
+      eats: 'seedHeads',
       label: 'Probe weed stems',
       feeding: true,
       cue: 'Small enough to work thin stalks and shrub twigs that would bend under a Hairy. Hangs on the stem, taps lightly and moves on. A Hairy is almost always on a trunk or a big limb.',
@@ -142,6 +143,7 @@ export abstract class Dryocopus extends Picidae {
 
   static override behaviors: BehaviorTable<Dryocopus> = {
     forage: {
+      eats: 'barkBugs',
       label: 'Excavate a hole',
       cue: 'Braces its tail, throws its whole body back, and hits the trunk with single heavy blows. Chips fly several feet. No other woodpecker here leaves holes this big or this squared off.',
     },
@@ -246,6 +248,7 @@ export abstract class Sphyrapicus extends Picidae {
 
   static override behaviors: BehaviorTable<Sphyrapicus> = {
     forage: {
+      eats: 'sap',
       label: 'Tend sap wells',
       cue: 'Drills a column of small square holes up one trunk, flies off, and comes back to lick them in order. Other woodpeckers peck at random and do not return to the same spot.',
     },
@@ -376,6 +379,11 @@ export abstract class Columbidae extends Columbiformes {
   };
 
   static override behaviors: BehaviorTable<Columbidae> = {
+    forage: {
+      label: 'Walk and peck seeds',
+      cue: 'Walks with a steady head-nod, pecking fast, two or three times a step, at seeds on the ground. Compare the stop-and-stab of a robin.',
+      eats: 'fallenSeed',
+    },
     clapOff: {
       label: 'Burst into flight',
       cue: 'Crouches, then leaves the ground in one explosive takeoff with a noisy clap or whistle from the wings. Doves and pigeons all do it; the sound differs by species.',
@@ -391,7 +399,6 @@ export abstract class Columbidae extends Columbiformes {
   /** How high the display climb goes. */
   protected displayHeight = 30;
 
-  // They feed on the ground with a steady nod and rapid pecks, not the stop-and-stab of a robin.
   override *forage(): Script {
     yield* this.toGround();
     for (let i = 0; i < 4; i++) {
@@ -435,6 +442,7 @@ export abstract class Patagioenas extends Columbidae {
 
   static override behaviors: BehaviorTable<Patagioenas> = {
     canopyFeed: {
+      eats: 'berries',
       label: 'Reach for berries',
       feeding: true,
       cue: 'A pigeon in the treetop, neck stretched out far and body tilted up, flapping to stay balanced on a thin twig. A ground-feeding dove or town pigeon almost never does this.',
@@ -721,6 +729,7 @@ export abstract class Apodidae extends Apodiformes {
 
   static override behaviors: BehaviorTable<Apodidae> = {
     forage: {
+      eats: 'swarm',
       label: 'Hawk insects',
       cue: 'Continuous flight at all heights, in long loops with sudden turns. The wings are bowed and stiff and seem to flicker alternately, not beat together. A swallow flaps and glides on a more relaxed rhythm.',
     },
@@ -870,6 +879,7 @@ export abstract class Caprimulgidae extends Caprimulgiformes {
 
   static override behaviors: BehaviorTable<Caprimulgidae> = {
     forage: {
+      eats: 'swarm',
       label: 'Hawk insects',
       cue: 'Erratic and high, in loose bounding turns on long, pointed, slightly bent wings. Wings are quicker and more irregular than a gull’s, and the bird twists to chase each insect.',
     },

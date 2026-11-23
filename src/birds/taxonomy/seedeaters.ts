@@ -159,6 +159,7 @@ export abstract class Zonotrichia extends Passerellidae {
 
   static override behaviors: BehaviorTable<Zonotrichia> = {
     forage: {
+      eats: 'fallenSeed',
       label: 'Hop, peck, look up',
       cue: 'Three short hops, a peck, then it stands tall with head up and scans before the next hop. This is the usual feeding pattern, with little leaf-kicking, unlike a towhee or Fox Sparrow.',
     },
@@ -320,6 +321,7 @@ export abstract class Passerculus extends Passerellidae {
 
   static override behaviors: BehaviorTable<Passerculus> = {
     forage: {
+      eats: 'grassBugs',
       label: 'Run, freeze, flush and drop',
       cue: 'Runs through the grass like a mouse, freezes with its head down, then flushes low and drops back into cover a few yards on. Compare a Song Sparrow, which dives into a thicket, and a towhee, which scratches.',
     },
@@ -392,6 +394,7 @@ export abstract class Fringillidae extends Passeriformes {
       cue: 'Flight is a series of bounds: a few quick wingbeats climb, the wings close, and the bird dips. A finch usually calls on the way, which a sparrow in a short hop does not.',
     },
     forage: {
+      eats: 'seedHeads',
       label: 'Husk a seed',
       cue: 'Sits on a seed head or a branch, rolls one seed in its bill, and drops the husk. It eats the seed and spits the hull. A chickadee carries the seed away and hammers it.',
     },
@@ -522,6 +525,7 @@ export abstract class Spinus extends Fringillidae {
       cue: 'Deep, rolling bounds, a call on each dip. The pattern repeats along the whole flight line, so you hear the rhythm before you see the bird.',
     },
     forage: {
+      eats: 'seedHeads',
       label: 'Hang and feed',
       cue: 'Lands on the tip of a seed head or twig and swings upside down to pick at it, fluttering the wings for balance. Only chickadees and crossbills hang like this.',
     },
@@ -640,6 +644,7 @@ export abstract class Loxia extends Fringillidae {
 
   static override behaviors: BehaviorTable<Loxia> = {
     forage: {
+      eats: 'cones',
       label: 'Pry open a cone',
       cue: 'Climbs about a conifer top using bill and feet like a small parrot, hangs from a cone, and twists its bill sideways to spread the scales. Seeds and scales drop. Nothing else in the yard feeds this way.',
     },
@@ -773,6 +778,7 @@ export abstract class Icteridae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Icteridae> = {
     forage: {
+      eats: { yard: 'worms', beach: 'wrack' },
       label: 'Walk and peck',
       cue: 'Strides across the grass and stabs at the ground without hopping. A sparrow of similar size hops.',
     },
@@ -1048,6 +1054,7 @@ export abstract class Sturnidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Sturnidae> = {
     forage: {
+      eats: { yard: 'worms', beach: 'wrack' },
       label: 'Probe by gaping',
       cue: 'Walks briskly, pushes the closed bill into the turf, then opens it to widen the hole and look in. A robin pulls worms with a stab; a starling pries.',
     },

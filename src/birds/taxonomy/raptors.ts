@@ -32,6 +32,7 @@ export abstract class Pandionidae extends Accipitriformes {
 
   static override behaviors: BehaviorTable<Pandionidae> = {
     forage: {
+      eats: 'baitfish',
       label: 'Hover and plunge',
       needs: 'water',
       cue: 'Flies a slow search line 50 feet over the water, stops and hovers with the bill pointing down, then drops feet-first into a big splash and often goes in to the body. It climbs out, shakes like a dog in midair and carries the fish head-first. A Bald Eagle’s strike is a dry snatch from the surface.',
@@ -133,11 +134,13 @@ export abstract class Buteo extends Accipitridae {
 
   static override behaviors: BehaviorTable<Buteo> = {
     kite: {
+      eats: 'voles',
       label: 'Kite on the wind',
       feeding: true,
       cue: 'Hangs almost motionless over one spot on set wings with the tail fanned, riding the breeze, then slides sideways to a new spot. Gulls kite too, but a buteo’s wings are broad and rounded.',
     },
     forage: {
+      eats: 'voles',
       label: 'Hunt from a perch',
       cue: 'Sits upright and still on a treetop or post for many minutes, head tipped down, then drops on a short glide to the ground and mantles with the wings spread over what it caught.',
     },
@@ -239,6 +242,7 @@ export abstract class Accipiter extends Accipitridae {
 
   static override behaviors: BehaviorTable<Accipiter> = {
     forage: {
+      eats: 'flock',
       label: 'Ambush dash',
       cue: 'Waits out of sight in the trees, then comes through the yard a few feet off the ground, hugging cover, and pops up onto a branch on the far side. Over in seconds. Compare its size and how twisty the line is with the other accipiter.',
     },
@@ -354,6 +358,7 @@ export abstract class Circus extends Accipitridae {
 
   static override behaviors: BehaviorTable<Circus> = {
     forage: {
+      eats: 'voles',
       label: 'Quarter low over the ground',
       cue: 'Glides back and forth a few feet above the grass with wings held in a shallow V, rocking from side to side and tipping to look down. No other hawk flies this low and this slowly. It ends in a sudden drop onto prey.',
     },
@@ -452,6 +457,11 @@ export abstract class Cathartidae extends Cathartiformes {
   static override look: Partial<Look> = { build: 0.55, headSize: 0.45, tailLength: 0.4, wingSpan: 2.6, legLength: 0.2 };
 
   static override behaviors: BehaviorTable<Cathartidae> = {
+    forage: {
+      label: 'Find carrion',
+      cue: 'Low, slow passes back and forth, then it drops a short way off and walks the last few steps. It finds food by smell, which few birds can do.',
+      eats: 'carrion',
+    },
     teeterSoar: {
       label: 'Teeter-soar',
       cue: 'Circles low on wings held up in a V, rocking from side to side as if unsteady and almost never flapping. Two-toned underwings: dark wing linings, silvery flight feathers. An eagle holds its wings flat.',
@@ -484,9 +494,12 @@ export abstract class Cathartidae extends Cathartiformes {
   /** Search low and slowly, then come down and walk up to what it found. */
   *carrionSearch(): Script {
     const x0 = this.pos.x;
-    const dir = x0 < 50 ? 1 : -1;
+    const m = this.mealRange(true);
+    const at = m && (m[0] + m[1]) / 2;
+    const dir = (at ? at > x0 : x0 < 50) ? 1 : -1;
     for (let i = 1; i <= 3; i++) yield* this.flyTo({ x: clamp(x0 + dir * 12 * i, 8, 92), y: 9 - i }, { land: false, speed: 0.6 });
-    const spot = this.groundSpot(this.pos.x, 3);
+    // Down short of the carrion, then walk up to it.
+    const spot = at ? { x: this.world.clampLand(at - dir * 4), y: 0 } : this.groundSpot(this.pos.x, 3);
     yield* this.flyTo(spot);
     yield* this.moveOnGround(this.world.clampLand(spot.x + dir * 4));
     yield* this.peck(3, 1.2);
@@ -576,6 +589,7 @@ export abstract class Falconidae extends Falconiformes {
 
   static override behaviors: BehaviorTable<Falconidae> = {
     forage: {
+      eats: 'flock',
       label: 'Stoop',
       cue: 'Climbs, then folds the wings and falls at the prey in a steep dive with a hard pull-out. How high it starts is the clue: a Peregrine from far above, a Merlin from a low rise, a kestrel from a hover only a few feet up.',
     },
@@ -681,6 +695,7 @@ export class Merlin extends Falco {
 
   static override behaviors: BehaviorTable<Merlin> = {
     lowChase: {
+      eats: 'flock',
       label: 'Low chase',
       feeding: true,
       cue: 'Streaks across open ground a few feet up on rapid, shallow wingbeats, following every jink of a small bird, with no ambush and no cover. A Sharp-shinned Hawk waits hidden and comes through trees; the Merlin runs the prey down in the open.',
@@ -740,6 +755,7 @@ export class AmericanKestrel extends Falco {
 
   static override behaviors: BehaviorTable<AmericanKestrel> = {
     hoverHunt: {
+      eats: 'voles',
       label: 'Hover-hunt',
       feeding: true,
       cue: 'Hangs in one spot 30 feet up, head steady and tail fanned, wings beating fast, then slides down in steps and drops onto prey. Hovering over open ground is the field mark. A hawk soars or kites on set wings, and a kestrel flaps the whole time.',
@@ -813,6 +829,7 @@ export abstract class Strigiformes extends Bird {
       cue: 'The body stays put while the head turns far around, up to 270 degrees, and tilts or bobs to line up a sound. Owls cannot move their eyes, so this is how they look.',
     },
     forage: {
+      eats: 'voles',
       label: 'Pounce from a perch',
       cue: 'Sits motionless, stares down, then drops without a sound on spread wings with the feet thrust forward, and mantles over the prey. Normally a dusk and night hunt; shown here in daylight.',
     },
@@ -1012,6 +1029,7 @@ export abstract class Glaucidium extends Strigidae {
       cue: 'The tail jerks up and down every few seconds while the owl sits still and stares. A hunting owl, usually in good light; a small owl with a long, cocked tail that is not flicking is probably something else.',
     },
     forage: {
+      eats: 'flock',
       label: 'Daytime dash',
       cue: 'Perched in the open at the top of a conifer, in full daylight, until it launches on a fast, undulating dash after a songbird. Chickadees and nuthatches scold it, which is often how it gets found.',
     },
@@ -1088,6 +1106,7 @@ export abstract class Tytonidae extends Strigiformes {
 
   static override behaviors: BehaviorTable<Tytonidae> = {
     forage: {
+      eats: 'voles',
       label: 'Quarter low, then drop',
       cue: 'Pale and ghostlike, it floats slowly back and forth a few feet over open ground with the head tipped down, hangs for a moment, then drops. Wingbeats are silent and buoyant, unlike a hawk’s. Normally a dusk and night hunt; shown here in daylight.',
     },
