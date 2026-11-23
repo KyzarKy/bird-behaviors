@@ -36,6 +36,8 @@ npm run dev
 
 `npm run verify` runs the typecheck, the tests (every behavior of every species, run headless to completion), and a production build.
 
+`npm run e2e` builds the site and runs the browser tests against it on a phone-sized screen: scene and bird switching, every behavior, Auto and Close-up, an axe accessibility check, and no console errors. The first time, install the browser with `npx playwright install chromium`. CI runs it after `verify`.
+
 **Stack:** TypeScript (strict), React 19, Vite, Tailwind CSS 4, `@kyzarky/ui`, Vitest, and the browser's 2D canvas. GitHub Actions verifies each push and publishes to GitHub Pages.
 
 ## How this was built
