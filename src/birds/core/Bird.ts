@@ -152,7 +152,7 @@ export abstract class Bird {
       label: 'Forage',
       cue: 'How a bird feeds is usually its most reliable behavioral field mark.',
       feeding: true,
-      weight: 4,
+      weight: 6,
     },
     preen: {
       label: 'Preen and stretch',
@@ -162,7 +162,7 @@ export abstract class Bird {
     call: {
       label: 'Call',
       cue: 'Calls are short and given year-round by both sexes, unlike song.',
-      weight: 2,
+      weight: 3,
     },
   };
 
@@ -230,11 +230,18 @@ export abstract class Bird {
     return null;
   }
 
+  /** What auto mode can pick from in this scene, with each behavior's relative odds. */
+  autoOptions(): { key: string; weight: number }[] {
+    return behaviorsOf(this.constructor as BirdClass)
+      .filter((b) => !this.missing(b.key))
+      .map((b) => ({ key: b.key, weight: b.spec.weight ?? 1 }));
+  }
+
   /** A behavior drawn by weight from everything this class can do, never the same one twice running. */
   private choose(): string {
-    const options = behaviorsOf(this.constructor as BirdClass).filter((b) => b.key !== this.last && !this.missing(b.key));
-    let roll = Math.random() * options.reduce((sum, b) => sum + (b.spec.weight ?? 1), 0);
-    return options.find((b) => (roll -= b.spec.weight ?? 1) < 0)!.key;
+    const options = this.autoOptions().filter((b) => b.key !== this.last);
+    let roll = Math.random() * options.reduce((sum, b) => sum + b.weight, 0);
+    return options.find((b) => (roll -= b.weight) < 0)!.key;
   }
 
   update(dt: number) {

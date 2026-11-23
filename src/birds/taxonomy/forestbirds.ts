@@ -85,7 +85,6 @@ export abstract class Aegithalidae extends Passeriformes {
     forage: {
       label: 'Stream through the bushes',
       cue: 'One bird commits to the next bush and the others follow in a string, calling the whole way. At each stop they hang upside down and pick at the twig tips, then all leave within seconds.',
-      weight: 3,
     },
   };
 
@@ -160,7 +159,6 @@ export abstract class Certhiidae extends Passeriformes {
     forage: {
       label: 'Spiral up the trunk',
       cue: 'Starts at the foot of a tree and works up in short hitches, swinging round to the other side now and then. At the top it lets go and flutters down to the base of the next tree. A nuthatch goes down head first; a creeper never does.',
-      weight: 3,
     },
   };
 
@@ -257,7 +255,6 @@ export abstract class Troglodytidae extends Passeriformes {
     forage: {
       label: 'Creep through the litter',
       cue: 'Body low and tail up, it threads between roots and fallen logs in short hops, poking into every crevice. It looks more like a mouse than a bird.',
-      weight: 3,
     },
     sing: {
       label: 'Sing',
@@ -435,7 +432,6 @@ export abstract class Regulidae extends Passeriformes {
     forage: {
       label: 'Hover-glean at a twig tip',
       cue: 'Flutters in place at the very end of a branch, picking from needles and buds it never lands on, then flits to the next. Chickadees hang from twigs; kinglets hover in front of them.',
-      weight: 3,
     },
     flickWings: {
       label: 'Flick the wings',
@@ -923,7 +919,6 @@ export abstract class Vireonidae extends Passeriformes {
     forage: {
       label: 'Peer and glean',
       cue: 'A slow hop, a pause with the head tilted one way and then the other, then a reach under a leaf for a caterpillar. Compare the near-constant motion of a kinglet.',
-      weight: 3,
     },
   };
 

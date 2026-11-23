@@ -456,7 +456,6 @@ export abstract class Laniidae extends Passeriformes {
     forage: {
       label: 'Hunt from a high perch',
       cue: 'Sits bolt upright on the very top of a shrub, post or snag and scans the ground. Then a low swoop, a catch, and a climb back to a perch. A kestrel hovers to hunt; a shrike waits.',
-      weight: 3,
     },
     impale: {
       label: 'Impale prey on a thorn',
@@ -631,7 +630,6 @@ export abstract class Sialia extends Turdidae {
     forage: {
       label: 'Hover and drop',
       cue: 'Watches the grass from a low post, then flies out and hovers for a second, head down, before dropping on an insect and returning to the same perch. A kingfisher hovers over water; a bluebird hovers over a lawn.',
-      weight: 3,
     },
   };
 
@@ -703,7 +701,6 @@ export abstract class Motacillidae extends Passeriformes {
     forage: {
       label: 'Walk, bobbing the tail',
       cue: 'Walks in short, quick steps and every few steps pumps the tail up and down. A sparrow hops and does not bob. A spotted sandpiper bobs the rear half of the body, a pipit only the tail.',
-      weight: 4,
     },
   };
 
@@ -1158,7 +1155,6 @@ export abstract class Asio extends Strigidae {
     forage: {
       label: 'Quarter the field',
       cue: 'Flies back and forth a few feet above the grass in a loose, wobbling, moth-like flight, tilting from wing to wing, then drops. A harrier does the same by day with a white rump and a steadier tilt; a short-eared owl hunts at dusk.',
-      weight: 4,
     },
   };
 

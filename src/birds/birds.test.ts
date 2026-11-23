@@ -124,6 +124,18 @@ describe('regressions', () => {
 });
 
 describe('auto mode', () => {
+  // A bird runs about 6-8 behaviors a minute, so a behavior at 1/20 of the total comes up
+  // about once every 2-3 minutes. Anything rarer looks missing to someone watching.
+  for (const cls of SPECIES) {
+    for (const scene of (Object.keys(HABITATS) as HabitatId[]).filter((h) => inScene(cls, h))) {
+      it(`${cls.taxon.common} (${scene}) does everything it can every few minutes`, () => {
+        const options = make(cls, scene).autoOptions();
+        const total = options.reduce((sum, o) => sum + o.weight, 0);
+        for (const o of options) expect(o.weight / total, o.key).toBeGreaterThanOrEqual(1 / 20);
+      });
+    }
+  }
+
   for (const cls of SPECIES) {
     it(`${cls.taxon.common} chooses its own behaviors and stays on stage`, () => {
       const bird = make(cls);

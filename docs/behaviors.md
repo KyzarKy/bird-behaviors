@@ -67,3 +67,7 @@ override forage(): Script {
 Field notes tag every feeding behavior "Feeding", since labels such as "Toss the leaf litter" don't say so. `forage` sets `feeding: true` once in `Bird` and a relabel keeps it; any other behavior about finding, catching, handling or eating food sets it itself.
 
 A species with a second, genuinely different way to feed lists that method too. The Rough-legged Hawk forages by hovering and still has the perch hunt of its genus; the Yellow-rumped Warbler flycatches and still gleans.
+
+## Auto mode
+
+Left to itself, a bird draws its next behavior by `weight` (default 1) from everything the scene allows, never the same one twice running. Feeding is 6 and calls are 3, on `Bird`, so those are what you see most; `fly` and `preen` are 2, and displays and songs keep 1. A bird runs about 6–8 behaviors a minute, so a test holds every behavior to at least 1/20 of the total for every species in every scene it visits: everything a bird can do comes up every 2–3 minutes.
