@@ -170,7 +170,7 @@ export class StellersJay extends Cyanocitta {
   static override behaviors: BehaviorTable<StellersJay> = {
     mimicHawk: {
       label: 'Imitate a hawk',
-      cue: 'A convincing Red-tailed Hawk scream from inside a tree, often as it arrives at a feeder. If the “hawk” is at eye level in a fir, check for a jay.',
+      cue: 'A convincing Red-tailed Hawk scream from inside a tree, often as it arrives where other birds are feeding. If the “hawk” is at eye level in a fir, check for a jay.',
     },
   };
 
@@ -483,7 +483,7 @@ export abstract class Paridae extends Passeriformes {
     seedHammer: {
       label: 'Hammer open a seed',
       feeding: true,
-      cue: 'Takes one seed and leaves. On a branch it pins the seed under both feet and hammers it open with its bill; it never sits at the feeder cracking seeds like a finch.',
+      cue: 'Takes one seed and leaves. On a branch it pins the seed under both feet and hammers it open with its bill; it never sits on a seed head cracking seeds like a finch.',
     },
   };
 

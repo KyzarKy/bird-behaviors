@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { drawnFlapRate } from './core/Bird';
-import { behaviorsOf, buildTree, lineage, traitSources, type BirdClass } from './core/reflect';
+import { behaviorsOf, buildTree, lineage, resolveTraits, traitSources, type BirdClass } from './core/reflect';
 import { HABITATS, World } from './core/World';
-import type { HabitatId } from './core/traits';
+import type { Ecology, HabitatId } from './core/traits';
 import { inScene } from '../ui/season';
 import { SPECIES } from './taxonomy';
 import { Galliformes, Chicken, CaliforniaQuail } from './taxonomy/galliformes';
@@ -180,4 +180,16 @@ describe('scene requirements', () => {
       });
     }
   }
+});
+
+describe('natural food only', () => {
+  // The app shows birds eating what they eat in nature and never portrays or promotes feeders.
+  // "Canopy feeders" and the like describe how a bird feeds, not where people put food out.
+  const FEEDING_STATION = /(?<!\b(?:canopy|surface|bottom|ground|filter|aerial) )\bfeeders?\b|\bsuet\b|\bbird ?seed\b|\bfeeding stations?\b/i;
+  it('never mentions feeders, suet or birdseed', () => {
+    const texts = SPECIES.flatMap((s) =>
+      lineage(s).flatMap((c) => [c.taxon.note, ...behaviorsOf(c).map((b) => b.spec.cue), ...Object.values(resolveTraits<Ecology>(c, 'ecology')).filter((v) => typeof v === 'string')]),
+    );
+    expect([...new Set(texts)].filter((t) => FEEDING_STATION.test(t))).toEqual([]);
+  });
 });

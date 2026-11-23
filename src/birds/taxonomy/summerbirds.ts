@@ -684,7 +684,7 @@ export class BlackHeadedGrosbeak extends Pheucticus {
     rank: 'species',
     name: 'Pheucticus melanocephalus',
     common: 'Black-headed Grosbeak',
-    note: 'Males are orange and black with white wing patches and a massive pale bill; females are streaked brown with a buff eyebrow. Arrives in May and sings from deciduous trees and feeders in the yard until August.',
+    note: 'Males are orange and black with white wing patches and a massive pale bill; females are streaked brown with a buff eyebrow. Arrives in May and sings from deciduous trees in the yard until August.',
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 10 };

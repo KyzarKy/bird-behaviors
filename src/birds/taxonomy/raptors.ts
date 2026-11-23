@@ -277,7 +277,7 @@ export class CoopersHawk extends Accipiter {
     rank: 'species',
     name: 'Accipiter cooperii',
     common: 'Cooper’s Hawk',
-    note: 'Crow-sized, with a blue-gray back, a dark cap that stands out from a paler nape, and a long, rounded, white-tipped tail. Regular around Miller Peninsula yards and feeders, mostly outside the summer months.',
+    note: 'Crow-sized, with a blue-gray back, a dark cap that stands out from a paler nape, and a long, rounded, white-tipped tail. Regular around Miller Peninsula yards wherever small birds gather, mostly outside the summer months.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -308,7 +308,7 @@ export class SharpShinnedHawk extends Accipiter {
     rank: 'species',
     name: 'Accipiter striatus',
     common: 'Sharp-shinned Hawk',
-    note: 'Jay-sized with a small, round head, a square-tipped tail and pencil-thin legs. Scarcer than Cooper’s Hawk at Miller Peninsula, mostly seen in fall and winter around feeders.',
+    note: 'Jay-sized with a small, round head, a square-tipped tail and pencil-thin legs. Scarcer than Cooper’s Hawk at Miller Peninsula, mostly seen in fall and winter hunting the songbird flocks in yards and hedgerows.',
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 11, agility: 0.9, flapRate: 7 };
