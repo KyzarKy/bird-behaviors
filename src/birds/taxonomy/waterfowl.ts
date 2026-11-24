@@ -116,9 +116,10 @@ export abstract class Anatidae extends Anseriformes {
     yield* this.toWater();
     const p = this.pose;
     for (let i = 0; i < 3; i++) {
-      // Out over the deeper end of the weed bed, where reaching the bottom takes upending.
+      // Out over the deeper end of the weed bed, where reaching the bottom takes upending: the bill, which
+      // comes down a head and neck ahead of the body, over the weed.
       const m = this.mealRange();
-      yield* this.moveOnGround(m ? clamp(rand(m[1] - 4, m[1]), water.from + 4, 94) : this.foodSpot(6).x);
+      yield* this.moveOnGround(m ? clamp(rand(m[1] - 3, m[1] - 0.5) - this.groundReach, water.from + 4, 94) : this.foodSpot(6).x);
       // Head and neck straight down, then the neck stretches and the stern tips up until the bill is on
       // the bottom. In the shallows that is only the neck; in deeper water the bird upends as far as it can.
       p.facing = 1;
@@ -166,13 +167,8 @@ export abstract class Anatidae extends Anseriformes {
   }
 
   /** Walk ashore and crop low plants. */
-  /** How many others of its kind graze with it. */
-  protected grazeFlock = 0;
-
   protected *grazeOnLand(): Script {
     yield* this.travelTo(this.mealRange(true) ? this.foodSpot(4) : { x: this.world.clampLand(this.world.habitat.land[1] - rand(2, 18)), y: 0 });
-    // Geese graze in flocks, with one standing watch.
-    if (this.grazeFlock) this.company(this.grazeFlock, { watch: true });
     for (let i = 0; i < this.grazeBites; i++) {
       yield* this.moveOnGround(this.foodSpot(5).x);
       yield* this.peck(Math.ceil(rand(2, 4)), 0.9);
@@ -961,12 +957,11 @@ export abstract class Branta extends Anatidae {
       eats: 'grass',
       label: 'Graze',
       feeding: true,
-      cue: 'Walks up the beach or across a lawn in a loose group and crops with short, jerky pulls, head down, one or two birds always standing watch with the neck up.',
+      cue: 'Walks up the beach or across a lawn and crops with short, jerky pulls, head down, lifting the neck every so often to look around.',
     },
   };
 
   protected override feeding: Feeding = 'graze';
-  protected override grazeFlock = 3;
   protected override runUp = 7;
 
   /** Geese hold the neck upright. */

@@ -154,7 +154,8 @@ export const FOOD_SITES: Record<HabitatId, Partial<Record<FoodKind, FoodSite>>> 
     swarm: { x: [31, 45], y: 5, spread: 5 },
     // A mussel bed on the bottom of the shallows, for the diving ducks.
     shellfish: { x: [62, 76], y: -3.3, spread: 2.5, onBottom: true, units: along(8, 62, 76, 0.35) },
-    mussels: { x: [41, 51], y: 1.5, units: [[40.4, 0.3], [41, 0.7], [41.6, 0.3], [46.4, 0.3], [47, 0.7], [47.6, 0.35], [48.2, 0.75], [50.4, 0.3], [51, 0.25], [50.8, 0.7]].map(([x, y]) => ({ x, y })) },
+    // Clusters at the foot of the rocks, clear of the wrack line so they can be seen.
+    mussels: { x: [42, 51], y: 1.5, units: [[42.6, 0.3], [43.2, 0.7], [43.8, 0.3], [46.4, 0.3], [47, 0.7], [47.6, 0.35], [48.2, 0.75], [50.4, 0.3], [51, 0.25], [50.8, 0.7]].map(([x, y]) => ({ x, y })) },
     sandCritters: { x: [46, 64], y: 0 },
     clams: { x: [52, 57.5], y: 0, units: along(6, 52, 57.5, 0.05) },
     flock: { x: [50, 56], y: 0 },

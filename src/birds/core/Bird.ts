@@ -1121,10 +1121,18 @@ export abstract class Bird {
    * `miss` comes up empty, as many plunges do; the last one of a behavior should not.
    */
   protected *plungeAt(x: number, { speed = 1.6, depth = 1.2, miss = false } = {}): Script {
-    // Plunge-divers take fish from the top of the water.
-    if (this.meal) this.aimAt({ x, y: -0.6 });
+    // Plunge-divers take fish from the top of the water: the fish it marked swims up toward the
+    // surface as the bird comes down, rather than jumping there.
+    const fish = this.world.prey ?? (this.meal ? this.aimAt({ x, y: -0.6 }) && this.world.prey : null);
+    const rise = (dt: number) => {
+      if (!fish) return;
+      const k = Math.min(1, dt * 2.5);
+      fish.x += (x - fish.x) * k;
+      fish.y += (-0.6 - fish.y) * k;
+    };
     // Head first, but not into the bottom of the shallows.
-    yield* this.flyTo({ x, y: Math.max(-depth, this.world.floorY(x) + this.size * 0.4) }, { land: false, speed });
+    yield* this.alongside(this.flyTo({ x, y: Math.max(-depth, this.world.floorY(x) + this.size * 0.4) }, { land: false, speed }), rise);
+    if (fish) Object.assign(fish, { x, y: -0.6 });
     this.world.burst('splash', x, 0, 12);
     yield* this.wait(0.35);
     if (!miss) this.take(Infinity, { x, y: 0 });
@@ -1154,22 +1162,28 @@ export abstract class Bird {
   }
 
   /**
-   * Others of its kind feeding on the ground beside it, for a bird whose description speaks of a
-   * flock. They only dip their heads to the ground and look up again, and leave the food alone;
-   * with `watch` the first one stands with its neck up the whole time, the flock's sentry.
+   * Others of its kind beside it, for a bird whose description speaks of a flock or a neighbor.
+   * With `feeding` they stand on the ground a body and a half apart, dip their heads to it and look up
+   * again, and leave the food alone; they step aside rather than let the bird walk into them. Without
+   * it they sit still, for the behavior to place and move (a waxwing's neighbor on the branch).
    */
-  protected company(n: number, { watch = false } = {}): Bird[] {
+  protected company(n: number, { feeding = true } = {}): Bird[] {
     const Kind = this.constructor as new (world: World, stock: boolean) => Bird;
     const [lo, hi] = this.world.habitat.land;
-    const flock = Array.from({ length: n }, (_, i) => {
+    const gap = this.size * 1.6;
+    const flock: Bird[] = [];
+    // Alternate sides outward from the bird, skipping spots off the land or too close to another.
+    for (let k = 1; flock.length < n && k < 4 * n + 4; k++) {
+      const x = this.pos.x + (k % 2 ? -1 : 1) * gap * Math.ceil(k / 2);
+      if (x < lo || x > hi || flock.some((o) => Math.abs(o.pos.x - x) < gap)) continue;
       const b = new Kind(this.world, false);
-      const side = i % 2 ? 1 : -1;
-      b.pos = { x: clamp(this.pos.x + side * this.size * (1.3 + 0.8 * Math.floor(i / 2)), lo, hi), y: 0 };
+      b.pos = { x, y: b.restY(x) };
       b.airborne = false;
       b.pose.facing = Math.random() < 0.5 ? 1 : -1;
-      return b;
-    });
+      flock.push(b);
+    }
     this.world.others = flock;
+    if (!feeding) return flock;
     // Each one's head-down pose, with the bill on the ground: found the way a peck finds it.
     const keys = ['pitch', 'neck', 'head', 'crouch'] as const;
     const poses = flock.map((b) => {
@@ -1185,7 +1199,17 @@ export abstract class Bird {
     this.others = (dt) => {
       t += dt;
       flock.forEach((b, i) => {
-        const down = !(watch && i === 0) && Math.sin(t * 1.1 + i * 2.4) > -0.3;
+        // Step away, head up, from the bird or another flock mate that comes too close.
+        const near = [this, ...flock].find((o) => o !== b && Math.abs(o.pos.x - b.pos.x) < gap * 0.85);
+        const dir = near && (b.pos.x >= near.pos.x ? 1 : -1);
+        // Hemmed in at the edge of the land, it holds its ground.
+        const away = dir && b.pos.x + dir * this.size >= lo && b.pos.x + dir * this.size <= hi ? dir : 0;
+        if (away) {
+          b.pose.facing = away > 0 ? 1 : -1;
+          b.pos.x = clamp(b.pos.x + away * this.size * 2 * dt, lo, hi);
+          b.pos.y = b.restY(b.pos.x);
+        }
+        const down = !away && Math.sin(t * 1.1 + i * 2.4) > -0.3;
         const goal = down ? poses[i].down : poses[i].up;
         const k = Math.min(1, dt * 5);
         for (const key of keys) b.pose[key] += (goal[key] - b.pose[key]) * k;
@@ -1358,9 +1382,10 @@ export abstract class Bird {
     if (!site) return fallback;
     const piece = site.units?.[Math.floor(Math.random() * site.units.length)];
     if (piece) return { ...piece };
-    // Anywhere through a loose swarm or flock's depth, but not into the ground under it.
+    // Anywhere through a loose swarm or flock's depth, but not into the ground under it; a fish stays in the water.
+    const x = rand(site.x[0], site.x[1]);
     const y = site.y + (site.spread ? rand(-1, 1) * site.spread : 0);
-    return this.aimAt({ x: rand(site.x[0], site.x[1]), y: site.y > 0 ? Math.max(1, y) : y });
+    return this.aimAt({ x, y: site.y > 0 ? Math.max(1, y) : site.y < 0 ? clamp(y, this.world.floorY(x) + 0.6, -0.4) : y });
   }
 
   /** The x range of the food the running behavior is after, optionally only if it lies on dry ground. */

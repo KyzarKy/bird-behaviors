@@ -844,26 +844,56 @@ export abstract class Bombycillidae extends Passeriformes {
     const onShrub = this.world.habitat.perches.some((q) => q.kind === 'shrub' && Math.hypot(q.x - this.pos.x, q.y - this.pos.y) <= 3);
     const shrub = onShrub ? null : this.findPerch(['shrub'], 'near');
     if (!onShrub && !shrub) return;
-    // Beside a berry.
+    // Beside a berry, with a neighbor on the same branch.
     yield* this.flyTo(this.preySpot(shrub ?? { ...this.pos }));
+    const [mate] = this.company(1, { feeding: false });
+    // Leaning in, neck out and bill forward: where the bill gets to, so the two bills meet.
+    const lean = { neck: 1.5, head: 0.35, pitch: this.restingPose().pitch - 0.25 };
+    const saved = { ...this.pose };
+    Object.assign(this.pose, lean);
+    const reach = Math.abs(this.billTip().x - this.pos.x);
+    Object.assign(this.pose, saved);
+    const SIDLE = 0.8;
+    // On whichever side keeps both in the shrub.
+    const [lo, hi] = [45.5, 55.5];
+    const dir: 1 | -1 = this.pos.x + 2 * reach + SIDLE <= hi ? 1 : this.pos.x - 2 * reach - SIDLE >= lo ? -1 : this.pose.facing;
+    // A berry's width between the bill tips, so the bills meet rather than cross.
+    mate.pos = { x: this.pos.x + dir * (2 * reach + SIDLE + 0.25), y: this.pos.y };
+    mate.pose.facing = dir === 1 ? -1 : 1;
+    // Picks a berry, then turns to the neighbor.
     yield* this.peck(1, 0.8);
     this.hold(this.pose.carry);
+    this.pose.facing = dir;
     yield* this.poseTo({ neck: 1.2, head: 0.2, crest: 0.6 }, 0.2);
-    // The neighbor along the branch, facing it.
+    // Sidles along the branch in two little hops.
     const x0 = this.pos.x;
-    const [mate] = this.company(1);
-    mate.pos = { x: x0 + this.pose.facing * (2 + this.size * 0.8), y: this.pos.y };
-    mate.pose.facing = this.pose.facing === 1 ? -1 : 1;
-    yield* this.wait(0.4);
-    // Sidle toward the neighbor and hand the berry over, bill to bill.
-    yield* this.tween(0.5, (t) => (this.pos.x = x0 + this.pose.facing * 2 * t));
-    yield* this.poseTo({ neck: 1.5, head: 0.4 }, 0.15);
+    const y0 = this.pos.y;
+    yield* this.tween(0.45, (t) => {
+      this.pos.x = x0 + dir * SIDLE * t;
+      this.pos.y = y0 + 0.25 * Math.abs(Math.sin(t * Math.PI * 2));
+    });
+    this.pos.y = y0;
+    // Both lean in together, bill to bill, and the berry changes bills. The neighbor is the same species,
+    // so its resting pose is this bird's.
+    const rest = this.restingPose();
+    const from = { neck: this.pose.neck, head: this.pose.head, pitch: this.pose.pitch };
+    const bothLean = (t: number) => {
+      Object.assign(this.pose, { neck: from.neck + (lean.neck - from.neck) * t, head: from.head + (lean.head - from.head) * t, pitch: from.pitch + (lean.pitch - from.pitch) * t });
+      Object.assign(mate.pose, { neck: rest.neck + (lean.neck - rest.neck) * t, head: lean.head * t, pitch: rest.pitch + (lean.pitch - rest.pitch) * t });
+    };
+    yield* this.tween(0.3, bothLean);
+    yield* this.wait(0.25);
     mate.pose.carry = this.pose.carry;
     this.hold(null);
-    yield* this.wait(0.9);
+    yield* this.wait(0.25);
+    yield* this.tween(0.3, (t) => bothLean(1 - t));
+    // The neighbor swallows it whole with a toss of the head.
+    yield* this.wait(0.3);
+    yield* this.tween(0.15, (t) => Object.assign(mate.pose, { head: 0.8 * t, neck: rest.neck + 0.3 * t, beakOpen: t }));
     mate.pose.carry = null;
-    // Take another and swallow it whole.
-    yield* this.relax(0.15);
+    yield* this.tween(0.2, (t) => Object.assign(mate.pose, { head: 0.8 * (1 - t), neck: rest.neck + 0.3 * (1 - t), beakOpen: 1 - t }));
+    // Back to the berries for one of its own, swallowed the same way.
+    this.pose.facing = dir === 1 ? -1 : 1;
     yield* this.peck(1, 0.8);
     this.hold(this.pose.carry);
     yield* this.poseTo({ head: 0.8, neck: 1.3, beakOpen: 1 }, 0.12);

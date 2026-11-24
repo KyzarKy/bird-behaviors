@@ -494,7 +494,9 @@ export abstract class Laniidae extends Passeriformes {
     const item = this.pose.carry;
     yield* this.flyTo(spike);
     const rest = this.restingPose();
-    const at = { x: spike.x + this.pose.facing * this.size * 0.45, y: spike.y + 0.2 };
+    // On a splinter on the side of the post, just under the top, or in a fork of the shrub's twigs.
+    const post = this.world.habitat.props.find((q) => q.kind === 'post' && Math.abs(q.x - spike.x) < q.w);
+    const at = post ? { x: spike.x + this.pose.facing * (post.w / 2 + 0.1), y: spike.y - 0.5 } : { x: spike.x + this.pose.facing * 0.4, y: spike.y };
     for (let i = 0; i < 3; i++) {
       yield* this.poseTo({ pitch: rest.pitch - 0.3, head: -0.9, neck: 0.3 }, 0.08);
       yield* this.poseTo({ pitch: rest.pitch, head: -0.2, neck: 0.9 }, 0.1);

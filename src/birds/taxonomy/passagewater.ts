@@ -369,7 +369,7 @@ export abstract class Anser extends Anatidae {
     forage: {
       eats: 'grass',
       label: 'Feed',
-      cue: 'Grazes ashore in a tight flock, walking and cropping with the head down, a few birds always standing watch.',
+      cue: 'Grazes ashore, walking and cropping with the head down and stopping every so often to look up.',
     },
     flyover: {
       label: 'Fly over, calling',
@@ -378,7 +378,6 @@ export abstract class Anser extends Anatidae {
   };
 
   protected override feeding: Feeding = 'graze';
-  protected override grazeFlock = 3;
   protected override runUp = 8;
   /** Cruising height of a migrating flock, in stage units. */
   protected altitude = 30;

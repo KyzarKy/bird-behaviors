@@ -681,9 +681,9 @@ export abstract class Passerellidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Passerellidae> = {
     forage: {
-      eats: { yard: 'litterBugs', beach: 'fallenSeed' },
+      eats: { yard: 'litterBugs', beach: 'wrack' },
       label: 'Double-scratch',
-      cue: 'A quick hop forward, then both feet kick backward together, throwing leaves behind it to uncover insects and seeds. You often hear the rustling in the litter before you see the bird. A chicken scratches one foot at a time.',
+      cue: 'A quick hop forward, then both feet kick backward together, throwing leaves behind it (or, on the beach, the seaweed of the wrack line) to uncover insects, sand fleas and seeds. You often hear the rustling in the litter before you see the bird. A chicken scratches one foot at a time.',
     },
   };
 

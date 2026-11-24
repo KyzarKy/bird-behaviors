@@ -140,12 +140,6 @@ describe('everyone in the story', () => {
 
   // A description that says the bird feeds in a group, or hands food to a neighbor, shows the others.
   const groups: [string, HabitatId, string][] = [
-    ['Canada Goose', 'beach', 'graze'],
-    ['Canada Goose', 'yard', 'graze'],
-    ['Brant', 'beach', 'graze'],
-    ['Cackling Goose', 'beach', 'graze'],
-    ['Snow Goose', 'beach', 'forage'],
-    ['Greater White-fronted Goose', 'beach', 'forage'],
     ['House Sparrow', 'yard', 'forage'],
     ['Cedar Waxwing', 'yard', 'forage'],
   ];
