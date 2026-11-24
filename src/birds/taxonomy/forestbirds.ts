@@ -846,7 +846,7 @@ export abstract class Bombycillidae extends Passeriformes {
     if (!onShrub && !shrub) return;
     // Beside a berry, with a neighbor on the same branch.
     yield* this.flyTo(this.preySpot(shrub ?? { ...this.pos }));
-    const [mate] = this.company(1, { feeding: false });
+    const [mate] = this.company(1);
     // Leaning in, neck out and bill forward: where the bill gets to, so the two bills meet.
     const lean = { neck: 1.5, head: 0.35, pitch: this.restingPose().pitch - 0.25 };
     const saved = { ...this.pose };

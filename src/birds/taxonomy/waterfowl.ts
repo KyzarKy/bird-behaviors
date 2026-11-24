@@ -957,7 +957,7 @@ export abstract class Branta extends Anatidae {
       eats: 'grass',
       label: 'Graze',
       feeding: true,
-      cue: 'Walks up the beach or across a lawn and crops with short, jerky pulls, head down, lifting the neck every so often to look around.',
+      cue: 'Walks up the beach or across a lawn in a loose group and crops with short, jerky pulls, head down, one or two birds always standing watch with the neck up.',
     },
   };
 

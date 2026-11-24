@@ -116,51 +116,6 @@ describe('simulation', () => {
   }
 });
 
-describe('everyone in the story', () => {
-  // A behavior whose description names another bird shows that bird.
-  const robbers: [BirdClass, string][] = [
-    [SPECIES.find((c) => c.taxon.common === 'Parasitic Jaeger')!, 'forage'],
-    [SPECIES.find((c) => c.taxon.common === 'Heermann’s Gull')!, 'pirate'],
-  ];
-  for (const [cls, key] of robbers) {
-    it(`${cls.taxon.common}: ${key} shows the bird it robs`, () => {
-      const bird = make(cls as (typeof SPECIES)[number], 'beach');
-      bird.update(1 / 60);
-      bird.perform(key);
-      let seen = false;
-      for (let frames = 0; bird.current !== null && frames < 60 * 90; frames++) {
-        bird.world.step(1 / 60);
-        bird.update(1 / 60);
-        seen ||= bird.world.others.length > 0;
-      }
-      expect(seen).toBe(true);
-      expect(bird.world.others).toEqual([]);
-    });
-  }
-
-  // A description that says the bird feeds in a group, or hands food to a neighbor, shows the others.
-  const groups: [string, HabitatId, string][] = [
-    ['House Sparrow', 'yard', 'forage'],
-    ['Cedar Waxwing', 'yard', 'forage'],
-  ];
-  for (const [name, scene, key] of groups) {
-    it(`${name} (${scene}): ${key} shows the others of its kind`, () => {
-      const cls = SPECIES.find((c) => c.taxon.common === name)!;
-      const bird = make(cls, scene);
-      bird.update(1 / 60);
-      bird.perform(key);
-      let most = 0;
-      for (let frames = 0; bird.current !== null && frames < 60 * 90; frames++) {
-        bird.world.step(1 / 60);
-        bird.update(1 / 60);
-        if (bird.world.others.every((o) => o.constructor === cls)) most = Math.max(most, bird.world.others.length);
-      }
-      expect(most).toBeGreaterThan(0);
-      expect(bird.world.others).toEqual([]);
-    });
-  }
-});
-
 describe('regressions', () => {
   // From a piling the run-up used to be placed back over the beach, and the turn toward the water went through the sand.
   for (const post of HABITATS.beach.perches.filter((p) => p.kind === 'post')) {
@@ -301,6 +256,10 @@ describe('food in the scene', () => {
     expect(Object.keys(PREY).sort()).toEqual([...hidden, 'flock'].sort());
   });
 
+  // A bird feeds alone unless the behavior cannot happen without another bird: a waxwing hands its berry to a
+  // neighbor, a robber chases the bird carrying the fish. Flock feeders feed alone until the scene has a flock setting.
+  const NEEDS_OTHERS = new Set(['Cedar Waxwing:forage', 'Parasitic Jaeger:forage', 'Heermann’s Gull:pirate']);
+
   // Every feeding behavior ends with the bird eating: it takes its food at least once, always where that food is,
   // and holds the catch in its bill or feet unless there is nothing to show (nectar, sap, plankton, carrion).
   for (const cls of SPECIES) {
@@ -340,9 +299,11 @@ describe('food in the scene', () => {
             bird.update(1 / 60);
             bird.perform(b.key);
             let under = false;
+            let others = 0;
             for (let frames = 0; bird.current !== null && frames < 60 * 90; frames++) {
               bird.world.step(1 / 60);
               bird.update(1 / 60);
+              others = Math.max(others, bird.world.others.length);
               held ||= bird.pose.carry === FOODS[kind].item;
               track.push(bird.billTip().x);
               // A diver swallows each catch before it goes under for the next.
@@ -350,6 +311,9 @@ describe('food in the scene', () => {
               under = bird.submerged;
             }
             expect(at.length, 'never takes any').toBeGreaterThan(0);
+            const needs = NEEDS_OTHERS.has(`${cls.taxon.common}:${b.key}`);
+            expect(others > 0, needs ? 'never shows the other bird it needs' : 'brings in other birds it could feed without').toBe(needs);
+            expect(bird.world.others, 'other birds stay after the behavior').toEqual([]);
             // From the first bite to the last it stays at the food. Insects caught in the air are taken on
             // sallies from a perch, so a flycatcher goes back to its perch between catches.
             const margin = kind === 'swarm' ? Infinity : Math.max(8, bird.size);

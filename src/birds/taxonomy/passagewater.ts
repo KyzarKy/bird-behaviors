@@ -369,7 +369,7 @@ export abstract class Anser extends Anatidae {
     forage: {
       eats: 'grass',
       label: 'Feed',
-      cue: 'Grazes ashore, walking and cropping with the head down and stopping every so often to look up.',
+      cue: 'Grazes ashore in a tight flock, walking and cropping with the head down, a few birds always standing watch.',
     },
     flyover: {
       label: 'Fly over, calling',

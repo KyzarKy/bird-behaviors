@@ -1162,12 +1162,11 @@ export abstract class Bird {
   }
 
   /**
-   * Others of its kind beside it, for a bird whose description speaks of a flock or a neighbor.
-   * With `feeding` they stand on the ground a body and a half apart, dip their heads to it and look up
-   * again, and leave the food alone; they step aside rather than let the bird walk into them. Without
-   * it they sit still, for the behavior to place and move (a waxwing's neighbor on the branch).
+   * Others of its kind beside it, only for a behavior that cannot happen alone (a waxwing hands its
+   * berry to a neighbor). They sit still, a body and a half apart, for the behavior to place and move.
+   * Birds that feed in flocks feed alone until the scene has a flock setting.
    */
-  protected company(n: number, { feeding = true } = {}): Bird[] {
+  protected company(n: number): Bird[] {
     const Kind = this.constructor as new (world: World, stock: boolean) => Bird;
     const [lo, hi] = this.world.habitat.land;
     const gap = this.size * 1.6;
@@ -1177,44 +1176,12 @@ export abstract class Bird {
       const x = this.pos.x + (k % 2 ? -1 : 1) * gap * Math.ceil(k / 2);
       if (x < lo || x > hi || flock.some((o) => Math.abs(o.pos.x - x) < gap)) continue;
       const b = new Kind(this.world, false);
-      b.pos = { x, y: b.restY(x) };
+      b.pos = { x, y: this.pos.y };
       b.airborne = false;
       b.pose.facing = Math.random() < 0.5 ? 1 : -1;
       flock.push(b);
     }
     this.world.others = flock;
-    if (!feeding) return flock;
-    // Each one's head-down pose, with the bill on the ground: found the way a peck finds it.
-    const keys = ['pitch', 'neck', 'head', 'crouch'] as const;
-    const poses = flock.map((b) => {
-      const rest = b.restingPose();
-      const saved = { ...b.pose };
-      const reach = b.reachDown({ pitch: rest.pitch - 0.9, neck: -1.4, head: -1.5, crouch: 0.45 }, 0.09, b.pos.y);
-      while (!reach.next(0.02).done);
-      const down = Object.fromEntries(keys.map((k) => [k, b.pose[k]])) as Record<(typeof keys)[number], number>;
-      Object.assign(b.pose, saved);
-      return { up: { pitch: rest.pitch, neck: rest.neck, head: 0.1, crouch: rest.crouch }, down };
-    });
-    let t = 0;
-    this.others = (dt) => {
-      t += dt;
-      flock.forEach((b, i) => {
-        // Step away, head up, from the bird or another flock mate that comes too close.
-        const near = [this, ...flock].find((o) => o !== b && Math.abs(o.pos.x - b.pos.x) < gap * 0.85);
-        const dir = near && (b.pos.x >= near.pos.x ? 1 : -1);
-        // Hemmed in at the edge of the land, it holds its ground.
-        const away = dir && b.pos.x + dir * this.size >= lo && b.pos.x + dir * this.size <= hi ? dir : 0;
-        if (away) {
-          b.pose.facing = away > 0 ? 1 : -1;
-          b.pos.x = clamp(b.pos.x + away * this.size * 2 * dt, lo, hi);
-          b.pos.y = b.restY(b.pos.x);
-        }
-        const down = !away && Math.sin(t * 1.1 + i * 2.4) > -0.3;
-        const goal = down ? poses[i].down : poses[i].up;
-        const k = Math.min(1, dt * 5);
-        for (const key of keys) b.pose[key] += (goal[key] - b.pose[key]) * k;
-      });
-    };
     return flock;
   }
 

@@ -984,13 +984,6 @@ export abstract class Passeridae extends Passeriformes {
     },
   };
 
-  override *forage(): Script {
-    yield* this.toGround();
-    // The chattering group it feeds with.
-    this.company(2);
-    yield* super.forage();
-  }
-
   *dustBath(): Script {
     yield* this.toGround(6);
     this.pose.wings = 'open';
