@@ -71,11 +71,16 @@ export abstract class Corvidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.55, beakShape: 'stout', beakLength: 0.65, legLength: 0.2 };
 
   static override behaviors: BehaviorTable<Corvidae> = {
+    forage: {
+      eats: { yard: 'grassBugs', beach: 'wrack' },
+      label: 'Walk and pick',
+      cue: 'Walks (a jay hops) with a confident swagger, picking up grasshoppers and beetles in the grass, or turning over the beach seaweed for kelp flies and sand hoppers. Corvids eat almost anything they find.',
+    },
     cache: {
       eats: { yard: 'acorns', beach: 'clams' },
       label: 'Cache food',
       feeding: true,
-      cue: 'Carries food off, looks around to see who is watching, jabs it into the ground, then pulls a leaf over the spot.',
+      cue: 'Picks up an acorn (on the beach, a clam), carries it off, looks around to see who is watching, jabs it into the ground, then pulls a leaf over the spot.',
     },
   };
 
@@ -93,15 +98,15 @@ export abstract class Corvidae extends Passeriformes {
   *cache(): Script {
     yield* this.toGround();
     yield* this.moveOnGround(this.foodSpot(6).x);
-    yield* this.peck(2);
+    yield* this.peck(1);
     this.hold(this.pose.carry);
     yield* this.lookAround(1.2);
     // Away from where it found it, out of sight of other jays.
     yield* this.moveOnGround(this.world.clampLand(this.pos.x + (this.pos.x > 50 ? -1 : 1) * rand(7, 12)));
     yield* this.lookAround(1);
-    yield* this.peck(1, 1.2);
+    yield* this.peck(1, 1.2, false);
     this.hold(null);
-    yield* this.peck(3, 1.2);
+    yield* this.peck(3, 1.2, false);
     // Cover it.
     for (let i = 0; i < 2; i++) {
       yield* this.poseTo({ neck: -0.3, head: -0.9, pitch: -0.35 }, 0.12);
@@ -409,8 +414,8 @@ export abstract class Turdus extends Turdidae {
   static override behaviors: BehaviorTable<Turdus> = {
     forage: {
       eats: { yard: 'worms', beach: 'sandCritters' },
-      label: 'Hunt worms',
-      cue: 'Runs a few steps, stops dead and stands tall, cocks its head to one side, then stabs. The head tilt is the bird looking, not listening: its eyes are on the sides of its head.',
+      label: 'Run, stop and stab',
+      cue: 'Runs a few steps, stops dead and stands tall, cocks its head to one side, then stabs at a worm in the lawn, or at a small crab or sand hopper along the beach. The head tilt is the bird looking, not listening: its eyes are on the sides of its head.',
     },
   };
 
@@ -420,8 +425,11 @@ export abstract class Turdus extends Turdidae {
 
   *wormHunt(): Script {
     yield* this.toGround(10);
-    for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.foodSpot(7).x);
+    // One worm, run up to in short dashes with a stop to look after each.
+    const x0 = this.pos.x;
+    const spot = this.foodSpot(7).x;
+    for (let i = 1; i <= 3; i++) {
+      yield* this.moveOnGround(x0 + ((spot - x0) * i) / 3);
       yield* this.poseTo({ pitch: 0.55, neck: 1.2 }, 0.08);
       yield* this.wait(rand(0.4, 0.8));
       yield* this.poseTo({ pitch: 0.15, neck: 0.5, head: -0.6 }, 0.15);
@@ -484,7 +492,7 @@ export abstract class Paridae extends Passeriformes {
     forage: {
       eats: 'leafBugs',
       label: 'Glean upside down',
-      cue: 'Flits to the very tip of a twig and swings underneath it to pick at buds and cones. Few other birds this size feed hanging by their feet.',
+      cue: 'Flits to the very tip of a twig and swings underneath it to pick caterpillars and insect eggs from the buds. Few other birds this size feed hanging by their feet.',
     },
     seedHammer: {
       eats: 'seedHeads',
@@ -585,7 +593,7 @@ export abstract class Sittidae extends Passeriformes {
     forage: {
       eats: 'barkBugs',
       label: 'Creep down the trunk',
-      cue: 'Head-first down the bark in short jerks, pausing to crane its head out and look around. A small bird pointing downward on a trunk is a nuthatch.',
+      cue: 'Head-first down the bark in short jerks, picking insects out of the cracks and pausing to crane its head out and look around. A small bird pointing downward on a trunk is a nuthatch.',
     },
   };
 
@@ -675,7 +683,7 @@ export abstract class Passerellidae extends Passeriformes {
     forage: {
       eats: { yard: 'litterBugs', beach: 'fallenSeed' },
       label: 'Double-scratch',
-      cue: 'A quick hop forward, then both feet kick backward together, throwing leaves behind it. You often hear the rustling in the litter before you see the bird. A chicken scratches one foot at a time.',
+      cue: 'A quick hop forward, then both feet kick backward together, throwing leaves behind it to uncover insects and seeds. You often hear the rustling in the litter before you see the bird. A chicken scratches one foot at a time.',
     },
   };
 

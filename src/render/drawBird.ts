@@ -111,18 +111,18 @@ const ITEMS: Record<Item, (ctx: Ctx, s: number) => void> = {
     ctx.strokeStyle = '#6b5440';
     ctx.lineWidth = s * 0.01;
     ctx.beginPath();
-    ctx.moveTo(-s * 0.05, -s * 0.03);
-    ctx.lineTo(-s * 0.09, -s * 0.06);
+    ctx.moveTo(-s * 0.07, -s * 0.045);
+    ctx.lineTo(-s * 0.13, -s * 0.09);
     ctx.stroke();
     ctx.strokeStyle = OUTLINE;
-    shape(ctx, '#7a634c', () => ctx.ellipse(0, -s * 0.03, s * 0.06, s * 0.032, 0, 0, TAU));
+    shape(ctx, '#7a634c', () => ctx.ellipse(0, -s * 0.045, s * 0.085, s * 0.045, 0, 0, TAU));
   },
   prey(ctx, s) {
     // A bird caught by a hawk is only a dark, shapeless bundle in the feet.
     shape(ctx, '#4a4038', () => {
-      ctx.ellipse(0, -s * 0.04, s * 0.06, s * 0.04, 0.2, 0, TAU);
-    }, false);
-    shape(ctx, '#5a4e44', () => ctx.ellipse(s * 0.03, -s * 0.06, s * 0.035, s * 0.025, -0.4, 0, TAU), false);
+      ctx.ellipse(0, -s * 0.07, s * 0.1, s * 0.065, 0.2, 0, TAU);
+    });
+    shape(ctx, '#5a4e44', () => ctx.ellipse(s * 0.05, -s * 0.1, s * 0.055, s * 0.04, -0.4, 0, TAU), false);
   },
 };
 
@@ -196,6 +196,16 @@ function drawHead(ctx: Ctx, bird: Bird, hr: number) {
   });
   ctx.restore();
   ctx.rotate(-gape);
+  if (k.pouch) {
+    // A throat pouch slung under the lower bill, bulging when it holds fish.
+    const sag = depth * (p.carry ? 2.2 : 0.9);
+    shape(ctx, k.pouch, () => {
+      ctx.moveTo(-hr * 0.4, -depth * 0.2);
+      ctx.quadraticCurveTo(len * 0.35, -depth / 2 - sag * 2, len * 0.85, -depth * 0.3);
+      ctx.lineTo(0, -depth / 2);
+      ctx.closePath();
+    });
+  }
   shape(ctx, k.beak, () => {
     ctx.moveTo(0, 0);
     ctx.lineTo(len * (k.beakShape === 'hook' ? 0.75 : 0.96), 0);
@@ -281,15 +291,10 @@ export function drawBird(ctx: Ctx, bird: Bird) {
   const p = bird.pose;
   const k = bird.look;
   const L = bird.size;
-  const a = L * 0.27; // body half-length
-  const b = a * (0.5 + 0.35 * k.build); // body half-depth
-  const hr = b * 0.62 * k.headSize;
+  // a, b: body half-length and half-depth. Shared with Bird so it knows where its own bill is.
+  const { a, b, hr, legFull, cy, hx, hy } = bird.frame;
   const flying = bird.airborne;
-  const legFull = k.legLength * L;
   const afloat = bird.afloat;
-  const legLen = flying || afloat ? 0 : legFull * (1 - p.crouch);
-  // A swimming bird rides with the lower third of its body under the surface.
-  const cy = afloat ? b * 0.45 : legLen + b * 0.85;
   const cos = Math.cos(p.pitch);
   const sin = Math.sin(p.pitch);
 
@@ -372,12 +377,8 @@ export function drawBird(ctx: Ctx, bird: Bird) {
   }
 
   // Neck and head. The neck angle is in the bird's frame, so the head stays level when the body tips.
-  const neckAngle = p.neck - p.pitch;
-  const neckLen = k.neckLength * 2 * a * p.neckExt + hr * 0.5;
   const nx = a * 0.7;
   const ny = b * 0.3;
-  const hx = nx + Math.cos(neckAngle) * neckLen + p.headThrust * L * 0.12;
-  const hy = ny + Math.sin(neckAngle) * neckLen;
   ctx.save();
   ctx.strokeStyle = k.neck ?? (k.neckLength > 0.25 ? k.body : k.head);
   ctx.lineWidth = hr * 1.5;

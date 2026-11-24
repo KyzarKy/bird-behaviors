@@ -66,6 +66,7 @@ export function Stage({ bird, speed, closeUp, onBehaviorChange }: Props) {
       drawBackdrop(ctx, bird.world);
       drawFoodBack(ctx, bird.world);
       drawBird(ctx, bird);
+      for (const other of bird.world.others) drawBird(ctx, other);
       drawFoodFront(ctx, bird.world);
       drawForeground(ctx, bird.world);
 

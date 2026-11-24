@@ -1,9 +1,10 @@
 /**
- * Draws the food on show and the occasional peek of a small animal. Expects a y-up context in stage units.
+ * Draws the food on show, the animal a bird is hunting, and the occasional peek of a small animal.
+ * Expects a y-up context in stage units.
  * drawFoodBack goes under the bird. drawFoodFront goes over it: the cover that hides carrion.
  */
 import type { FoodKind } from '../birds/core/food';
-import { FLUSH, type FoodPatch, type Peek, type World } from '../birds/core/World';
+import type { FoodPatch, Peek, World } from '../birds/core/World';
 
 const TAU = Math.PI * 2;
 type Ctx = CanvasRenderingContext2D;
@@ -13,7 +14,7 @@ const nothing: Draw = () => {};
 
 /**
  * How each food looks while it is on show. Keyed by every food, so a new one can't be forgotten.
- * Small animals that keep out of sight draw nothing here; they only show in a peek.
+ * Small animals that keep out of sight draw nothing here; they show in a peek, or as PREY while a bird hunts them.
  */
 const BACK: Record<FoodKind, Draw> = {
   berries: (ctx, f) => units(ctx, f, (r) => disc(ctx, '#b3263a', 0.36 * r)),
@@ -91,8 +92,12 @@ const BACK: Record<FoodKind, Draw> = {
     }
   },
   plankton(ctx, f) {
-    ctx.fillStyle = 'rgba(214, 235, 220, 0.35)';
-    ctx.fillRect(f.site.x[0], -0.35, f.site.x[1] - f.site.x[0], 0.35);
+    // A cloudy, greenish slick at the surface, flecked with the tiny animals in it.
+    const [x0, x1] = f.site.x;
+    ctx.fillStyle = 'rgba(196, 222, 170, 0.6)';
+    ctx.fillRect(x0, -0.6, x1 - x0, 0.6);
+    ctx.fillStyle = 'rgba(120, 140, 90, 0.8)';
+    for (let x = x0 + 0.3, i = 0; x < x1; x += 0.7, i++) ctx.fillRect(x, -0.12 - ((i * 7) % 5) * 0.1, 0.14, 0.14);
   },
   flock: drawFlock,
   carrion(ctx, f) {
@@ -115,6 +120,14 @@ const BACK: Record<FoodKind, Draw> = {
 
 export function drawFoodBack(ctx: Ctx, world: World) {
   for (const f of world.food) BACK[f.kind](ctx, f, world);
+  const q = world.prey;
+  const prey = q && PREY[q.kind];
+  if (q && prey) {
+    ctx.save();
+    ctx.translate(q.x, q.y);
+    prey(ctx, world.time, world);
+    ctx.restore();
+  }
   const p = world.peek;
   const draw = p && PEEKS[p.kind];
   if (p && draw) {
@@ -131,8 +144,7 @@ function drawFlock(ctx: Ctx, f: FoodPatch, world: World) {
   const sand = world.habitat.ground === 'sand';
   const [lo, hi] = f.site.x;
   // 0 while settled; climbs to 1 as they burst away, and falls back to 0 as they drift in again.
-  const s = f.startled;
-  const away = s < FLUSH ? Math.min(1, s / 1.2, (FLUSH - s) / 2) : 0;
+  const away = f.away;
   if (away >= 1) return;
   ctx.save();
   ctx.globalAlpha = 1 - away;
@@ -174,14 +186,13 @@ function tufts(ctx: Ctx, lo: number, hi: number, color: string, height: number, 
   }
 }
 
-/** Each piece of a patch, shrunk while it grows back. */
+/** Each piece of a patch still there. */
 function units(ctx: Ctx, f: FoodPatch, draw: (r: number) => void) {
   for (const u of f.units) {
-    if (u.left < 0.15) continue;
+    if (u.gone) continue;
     ctx.save();
     ctx.translate(u.x, u.y);
-    ctx.globalAlpha = Math.min(1, u.left * 1.4);
-    draw(u.left);
+    draw(1);
     ctx.restore();
   }
 }
@@ -225,7 +236,7 @@ export const PEEKS: Partial<Record<FoodKind, PeekDraw>> = {
   },
   leafBugs(ctx, p, t) {
     // A caterpillar inching along under a leaf.
-    big(ctx, p.x + t, 22 + ((p.x * 37.13) % 1) * 10);
+    big(ctx, p.x - 0.4 + 0.6 * t, p.y);
     caterpillar(ctx, t);
   },
   ants(ctx, p, t) {
@@ -240,10 +251,7 @@ export const PEEKS: Partial<Record<FoodKind, PeekDraw>> = {
   sandCritters(ctx, p, t) {
     // A crab runs sideways.
     big(ctx, p.x + 2 * t, 0);
-    ctx.strokeStyle = '#a0552e';
-    ctx.lineWidth = 0.08;
-    for (const s of [-1, 1]) for (const k of [0.15, 0.3]) line(ctx, s * k, 0.2, s * (k + 0.2), 0.02 + Math.abs(Math.sin(t * 30 + k * 9)) * 0.08);
-    oval(ctx, '#b5653a', 0.32, 0.18, 0, 0.25);
+    crab(ctx, t);
   },
   wrack(ctx, p, t) {
     // Kelp flies lift off the weed.
@@ -254,12 +262,18 @@ export const PEEKS: Partial<Record<FoodKind, PeekDraw>> = {
       ctx.restore();
     }
   },
-  minnows(ctx, p, t) {
-    // Rings where the school dimples the surface.
+  minnows(ctx, p, t, world) {
+    // A few minnows dart through the shallows, and dimple the surface.
+    for (let i = 0; i < 3; i++) {
+      ctx.save();
+      ctx.translate(p.x + (i - 1) * 0.9 + 3 * t, p.y - i * 0.25);
+      fish(ctx, world.time + i, 0.8);
+      ctx.restore();
+    }
     ctx.strokeStyle = 'rgba(255,255,255,0.8)';
     ctx.lineWidth = 0.1;
     ctx.beginPath();
-    ctx.ellipse(p.x, 0, 0.3 + 1.6 * t, 0.12 + 0.3 * t, 0, 0, TAU);
+    ctx.ellipse(p.x + 1.5, 0, 0.3 + 1.6 * t, 0.12 + 0.3 * t, 0, 0, TAU);
     ctx.stroke();
   },
   baitfish(ctx, p, t) {
@@ -273,13 +287,111 @@ export const PEEKS: Partial<Record<FoodKind, PeekDraw>> = {
   voles(ctx, p, t) {
     // A vole runs between clumps of grass.
     big(ctx, p.x + 5 * t, 0.3);
-    oval(ctx, '#6b5643', 0.55, 0.3);
-    disc(ctx, '#6b5643', 0.22, 0.5, 0.08);
-    ctx.strokeStyle = '#6b5643';
-    ctx.lineWidth = 0.06;
-    line(ctx, -0.5, -0.05, -0.85, -0.2);
+    vole(ctx);
   },
 };
+
+type PreyDraw = (ctx: Ctx, time: number, world: World) => void;
+
+/**
+ * The one animal a bird is hunting, drawn where it is (the context is already moved there) until the
+ * bird takes it: the worm the robin pulls, the fish the merganser chases. Every hidden food has one,
+ * and so does the flock, and a test checks it.
+ */
+export const PREY: Partial<Record<FoodKind, PreyDraw>> = {
+  worms(ctx, time) {
+    // Half out of its burrow, swaying.
+    ctx.scale(2, 2);
+    ctx.strokeStyle = '#c9788a';
+    ctx.lineWidth = 0.2;
+    ctx.lineCap = 'round';
+    const sway = Math.sin(time * 3) * 0.2;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(0.3 + sway, 0.4, sway, 0.8);
+    ctx.stroke();
+  },
+  grassBugs(ctx, time) {
+    ctx.translate(0, 0.15);
+    ctx.scale(2, 2);
+    grasshopper(ctx, (time * 0.3) % 1);
+  },
+  litterBugs(ctx, time) {
+    ctx.translate(Math.sin(time * 2) * 0.3, 0.12);
+    ctx.scale(2, 2);
+    beetle(ctx, time);
+  },
+  barkBugs(ctx, time) {
+    ctx.translate(0, Math.sin(time) * 0.3);
+    ctx.scale(2, 2);
+    ctx.rotate(Math.PI / 2);
+    ant(ctx, time);
+  },
+  leafBugs(ctx, time) {
+    ctx.scale(2, 2);
+    caterpillar(ctx, time * 0.2);
+  },
+  ants(ctx, time) {
+    ctx.translate(Math.sin(time * 2) * 0.4, 0.12);
+    ctx.scale(2, 2);
+    ant(ctx, time);
+  },
+  sandCritters(ctx, time) {
+    ctx.translate(Math.sin(time * 1.5) * 0.4, 0);
+    ctx.scale(2, 2);
+    crab(ctx, time);
+  },
+  wrack(ctx, time) {
+    // A kelp fly buzzing over the weed.
+    ctx.translate(Math.sin(time * 5) * 0.5, 0.6 + Math.sin(time * 7) * 0.25);
+    ctx.scale(3, 3);
+    fly(ctx, time * 40);
+  },
+  minnows: (ctx, time) => fish(ctx, time, 1),
+  baitfish: (ctx, time) => fish(ctx, time, 1.2),
+  voles(ctx, time) {
+    ctx.translate(Math.sin(time * 1.2) * 0.4, 0.3);
+    ctx.scale(2, 2);
+    vole(ctx);
+  },
+  flock(ctx, time, world) {
+    // The one the hunter singled out, fluttering to get away.
+    ctx.translate(Math.sin(time * 6) * 0.3, Math.sin(time * 9) * 0.3);
+    smallBird(ctx, 0, 0, Math.sin(time * 2) > 0 ? 1 : -1, world.habitat.ground === 'sand', true);
+  },
+};
+
+/** A small silver fish swimming, its tail beating. */
+function fish(ctx: Ctx, time: number, length: number) {
+  ctx.translate(Math.sin(time * 1.3) * 0.5, Math.sin(time * 2.1) * 0.15);
+  ctx.scale(Math.cos(time * 1.3) > 0 ? length : -length, length);
+  const beat = Math.sin(time * 14) * 0.12;
+  oval(ctx, '#c9d3da', 0.5, 0.16);
+  oval(ctx, '#7f8e99', 0.42, 0.06, -0.02, 0.07);
+  ctx.fillStyle = '#c9d3da';
+  ctx.beginPath();
+  ctx.moveTo(-0.45, 0);
+  ctx.lineTo(-0.75, 0.16 + beat);
+  ctx.lineTo(-0.75, -0.16 + beat);
+  ctx.closePath();
+  ctx.fill();
+  disc(ctx, '#1e1a18', 0.035, 0.36, 0.03);
+}
+
+function crab(ctx: Ctx, t: number) {
+  ctx.strokeStyle = '#a0552e';
+  ctx.lineWidth = 0.08;
+  for (const s of [-1, 1]) for (const k of [0.15, 0.3]) line(ctx, s * k, 0.2, s * (k + 0.2), 0.02 + Math.abs(Math.sin(t * 30 + k * 9)) * 0.08);
+  oval(ctx, '#b5653a', 0.32, 0.18, 0, 0.25);
+}
+
+function vole(ctx: Ctx) {
+  oval(ctx, '#6b5643', 0.55, 0.3);
+  disc(ctx, '#6b5643', 0.22, 0.5, 0.08);
+  ctx.strokeStyle = '#6b5643';
+  ctx.lineWidth = 0.06;
+  line(ctx, -0.5, -0.05, -0.85, -0.2);
+}
 
 /** Six legs scuttling, three a side, at these points along the body. */
 function legs(ctx: Ctx, t: number, len: number, at: number[]) {
@@ -326,7 +438,7 @@ function grasshopper(ctx: Ctx, t: number) {
 function caterpillar(ctx: Ctx, t: number) {
   // Inches along: the middle arches up and flattens again.
   const arch = Math.abs(Math.sin(t * 9)) * 0.18;
-  for (let i = 0; i < 6; i++) disc(ctx, i === 5 ? '#5d7f2c' : '#86b04a', 0.08, i * 0.13 * (1 - arch), Math.sin((i / 5) * Math.PI) * arch);
+  for (let i = 0; i < 6; i++) disc(ctx, i === 5 ? '#3a2a1a' : i % 2 ? '#e8d24a' : '#c9a62e', 0.09, i * 0.13 * (1 - arch), Math.sin((i / 5) * Math.PI) * arch);
 }
 
 function fly(ctx: Ctx, phase: number) {

@@ -187,7 +187,7 @@ export class LincolnsSparrow extends Melospiza {
     forage: {
       eats: 'fallenSeed',
       label: 'Skulk through cover',
-      cue: 'Creeps with the body low and the head drawn in, stopping often, and stays under the brush. It pops up for a moment on a low stem, raises the crown and drops back out of sight. Song Sparrows sit up on top of the bush.',
+      cue: 'Creeps with the body low and the head drawn in, picking up fallen seed, stopping often, and stays under the brush. It pops up for a moment on a low stem, raises the crown and drops back out of sight. Song Sparrows sit up on top of the bush.',
     },
   };
 
@@ -457,13 +457,13 @@ export abstract class Laniidae extends Passeriformes {
     forage: {
       eats: 'voles',
       label: 'Hunt from a high perch',
-      cue: 'Sits bolt upright on the very top of a shrub, post or snag and scans the ground. Then a low swoop, a catch, and a climb back to a perch. A kestrel hovers to hunt; a shrike waits.',
+      cue: 'Sits bolt upright on the very top of a shrub, post or snag and scans the ground for voles. Then a low swoop, a catch, and a climb back to a perch. A kestrel hovers to hunt; a shrike waits.',
     },
     impale: {
       eats: 'grassBugs',
       label: 'Impale prey on a thorn',
       feeding: true,
-      cue: 'Carries its catch to a thorn or twig fork and jams it on, then tears off pieces. Impaled prey left on a thorn or a wire fence is the sign of a shrike.',
+      cue: 'Catches a grasshopper or other big insect, carries it to a thorn, a twig fork or a splinter on a fence post and jams it on, then tears off pieces. Impaled prey left on a thorn or a wire fence is the sign of a shrike.',
     },
   };
 
@@ -484,24 +484,28 @@ export abstract class Laniidae extends Passeriformes {
   }
 
   *impale(): Script {
-    yield* this.toGround(8);
-    this.take(Infinity);
-    yield* this.peck(2, 1.2);
-    const thorn = this.findPerch(['shrub'], 'near') ?? this.findPerch(['post'], 'near');
-    if (!thorn) return;
+    // Drops from a perch onto a grasshopper in the grass.
+    yield* this.toPerch(['post', 'shrub', 'treetop'], 'any');
+    yield* this.lookAround(1.2);
+    yield* this.strikeAt(this.preySpot(this.groundSpot(this.pos.x + (this.pos.x < 50 ? 1 : -1) * 9, 2)), { land: true, speed: 1.2, hold: Infinity });
+    // Up to a fence post or the shrub, to jam it onto a splinter or a twig fork.
+    const spike = this.findPerch(['post'], 'near') ?? this.findPerch(['shrub'], 'near');
+    if (!spike) return;
     const item = this.pose.carry;
-    yield* this.flyTo(thorn);
+    yield* this.flyTo(spike);
     const rest = this.restingPose();
+    const at = { x: spike.x + this.pose.facing * this.size * 0.45, y: spike.y + 0.2 };
     for (let i = 0; i < 3; i++) {
       yield* this.poseTo({ pitch: rest.pitch - 0.3, head: -0.9, neck: 0.3 }, 0.08);
       yield* this.poseTo({ pitch: rest.pitch, head: -0.2, neck: 0.9 }, 0.1);
     }
     this.hold(null);
-    // The grasshopper stays on the thorn for a few seconds.
-    if (item) this.world.emit(item, thorn.x + this.pose.facing * this.size * 0.4, thorn.y - 0.3, { life: 8 });
+    // The grasshopper stays stuck there while it tears at it.
+    const stuck = item && this.world.emit(item, at.x, at.y, { gravity: 0, floor: at.y, life: 8 });
     yield* this.wait(0.4);
-    yield* this.peck(3, 1);
+    yield* this.peck(3, 1, false);
     yield* this.relax();
+    if (stuck) stuck.life = 0;
   }
 }
 
@@ -563,7 +567,7 @@ export abstract class Myadestes extends Turdidae {
     forage: {
       eats: 'berries',
       label: 'Guard a berry tree',
-      cue: 'Perches upright on the top of one tree and chases off any bird that comes near, then returns to the same spot. Robins and waxwings feed in flocks; a solitaire is always alone.',
+      cue: 'Perches upright on top of the berry bush it has claimed for the winter, drops into it to eat the berries, and goes straight back to the same lookout to watch over it. Robins and waxwings feed in flocks; a solitaire is always alone.',
     },
   };
 
@@ -572,16 +576,20 @@ export abstract class Myadestes extends Turdidae {
   }
 
   *guardBerries(): Script {
-    yield* this.toPerch(['treetop'], 'any');
+    // Its lookout is the top of the berry bush it defends.
+    const top = this.world.habitat.perches.find((q) => q.kind === 'shrub');
+    if (top && Math.hypot(top.x - this.pos.x, top.y - this.pos.y) > 1) yield* this.flyTo(top);
+    else if (!top) yield* this.toPerch(['treetop'], 'any');
     const post = { ...this.pos };
     yield* this.lookAround(2);
-    const dir = post.x < 50 ? 1 : -1;
     this.say(this.ecology.call, 1.2);
-    yield* this.flyTo({ x: clamp(post.x + dir * 14, 6, 94), y: Math.max(8, post.y - 4) }, { land: false, speed: 1.4 });
-    // The intruder gone, it takes a berry for itself and goes back on guard.
-    yield* this.flyTo(this.preySpot(this.findPerch(['shrub']) ?? post));
-    yield* this.peck(2);
-    yield* this.flyTo(post);
+    // Drops into the bush for a berry and goes straight back on guard.
+    for (let i = 0; i < 2; i++) {
+      yield* this.flyTo(this.preySpot(post));
+      yield* this.peck(1);
+      yield* this.flyTo(post);
+      yield* this.lookAround(1.2);
+    }
     yield* this.poseTo({ tailAngle: this.look.tailCock + 0.3 }, 0.08);
     yield* this.relax(0.2);
   }
@@ -701,7 +709,7 @@ export abstract class Motacillidae extends Passeriformes {
     forage: {
       eats: 'grassBugs',
       label: 'Walk, bobbing the tail',
-      cue: 'Walks in short, quick steps and every few steps pumps the tail up and down. A sparrow hops and does not bob. A spotted sandpiper bobs the rear half of the body, a pipit only the tail.',
+      cue: 'Walks in short, quick steps picking up grasshoppers and other insects, and every few steps pumps the tail up and down. A sparrow hops and does not bob. A spotted sandpiper bobs the rear half of the body, a pipit only the tail.',
     },
   };
 
@@ -972,13 +980,13 @@ export class RoughLeggedHawk extends Buteo {
     forage: {
       eats: 'voles',
       label: 'Hover over a field',
-      cue: 'Hangs in one spot on rapidly beating wings, tail fanned and head down, then slides sideways and hangs again. A Red-tailed Hawk mostly sits and watches, or kites on a steady wind without flapping.',
+      cue: 'Hangs in one spot on rapidly beating wings, tail fanned and head down watching for voles, then slides sideways and hangs again. A Red-tailed Hawk mostly sits and watches, or kites on a steady wind without flapping.',
     },    // Its second way to hunt, and the one the rest of its genus uses.
     perchHunt: {
       eats: 'voles',
       label: 'Hunt from a perch',
       feeding: true,
-      cue: 'Just as often it sits on a pole or a fence post at the edge of a field and drops on prey from there, like a Red-tailed Hawk.',
+      cue: 'Just as often it sits on a pole or a fence post at the edge of a field and drops on a vole from there, like a Red-tailed Hawk.',
     },
   };
 
@@ -988,11 +996,13 @@ export class RoughLeggedHawk extends Buteo {
 
   *hoverHunt(): Script {
     yield* this.flyTo(this.huntSpot(16) ?? { x: this.pos.x < 50 ? 62 : 38, y: 16 }, { land: false });
+    // Hangs over the vole it has seen, slides a little way and hangs again, then drops on it.
+    const vole = this.world.prey ? { x: this.world.prey.x, y: this.world.prey.y } : this.groundSpot(this.pos.x, 2);
     for (let i = 0; i < 2; i++) {
       yield* this.hoverFor(i ? 3 : 4, { aim: -1 });
-      yield* this.flyTo({ x: clamp(this.pos.x + this.pose.facing * 10, 6, 94), y: 14 }, { land: false, glide: true });
+      yield* this.flyTo({ x: clamp(vole.x + (i ? -1 : 1) * 3, 6, 94), y: 14 }, { land: false, glide: true });
     }
-    yield* this.grab(this.preySpot(this.groundSpot(this.pos.x + this.pose.facing * 8, 2)), 3);
+    yield* this.grab(vole, 3);
     yield* this.toPerch();
   }
 }
@@ -1152,7 +1162,7 @@ export abstract class Asio extends Strigidae {
     forage: {
       eats: 'voles',
       label: 'Quarter the field',
-      cue: 'Flies back and forth a few feet above the grass in a loose, wobbling, moth-like flight, tilting from wing to wing, then drops. A harrier does the same by day with a white rump and a steadier tilt; a short-eared owl hunts at dusk.',
+      cue: 'Flies back and forth a few feet above the grass in a loose, wobbling, moth-like flight, tilting from wing to wing, then drops onto a vole. A harrier does the same by day with a white rump and a steadier tilt; a short-eared owl hunts at dusk.',
     },
   };
 

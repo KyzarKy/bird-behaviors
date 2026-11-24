@@ -112,6 +112,8 @@ export interface Look {
   headSize: number;
   /** Multiple of head diameter. */
   beakLength: number;
+  /** Color of a throat pouch under the bill, for a pelican. */
+  pouch?: string;
   beakShape: 'cone' | 'stout' | 'thin' | 'needle' | 'dagger' | 'hook' | 'chisel';
   tailShape: 'square' | 'fan' | 'pointed' | 'forked';
   /** Resting tail angle above horizontal, radians. */

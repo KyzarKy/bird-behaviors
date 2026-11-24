@@ -161,7 +161,7 @@ export abstract class Zonotrichia extends Passerellidae {
     forage: {
       eats: 'fallenSeed',
       label: 'Hop, peck, look up',
-      cue: 'Three short hops, a peck, then it stands tall with head up and scans before the next hop. This is the usual feeding pattern, with little leaf-kicking, unlike a towhee or Fox Sparrow.',
+      cue: 'Three short hops, a peck at the fallen seed, then it stands tall with head up and scans before the next hop. This is the usual feeding pattern, with little leaf-kicking, unlike a towhee or Fox Sparrow.',
     },
   };
 
@@ -267,7 +267,7 @@ export abstract class Passerella extends Passerellidae {
   static override behaviors: BehaviorTable<Passerella> = {
     forage: {
       label: 'Double-scratch',
-      cue: 'Two long bouts of hop-and-kick, with leaves flying a body length behind it, enough to hear from across the yard. A towhee does the same, but a Fox Sparrow is the only one with a spotted, rust-tailed look.',
+      cue: 'Two long bouts of hop-and-kick, with leaves flying a body length behind it, enough to hear from across the yard, then it picks up the beetles and grubs it turned up. A towhee does the same, but a Fox Sparrow is the only one with a spotted, rust-tailed look.',
     },
   };
 
@@ -323,7 +323,7 @@ export abstract class Passerculus extends Passerellidae {
     forage: {
       eats: 'grassBugs',
       label: 'Run, freeze, flush and drop',
-      cue: 'Runs through the grass like a mouse, freezes with its head down, then flushes low and drops back into cover a few yards on. Compare a Song Sparrow, which dives into a thicket, and a towhee, which scratches.',
+      cue: 'Runs through the grass like a mouse after grasshoppers and other insects, freezes with its head down, then flushes low and drops back into cover a few yards on. Compare a Song Sparrow, which dives into a thicket, and a towhee, which scratches.',
     },
   };
 
@@ -780,7 +780,7 @@ export abstract class Icteridae extends Passeriformes {
     forage: {
       eats: { yard: 'worms', beach: 'wrack' },
       label: 'Walk and peck',
-      cue: 'Strides across the grass and stabs at the ground without hopping. A sparrow of similar size hops.',
+      cue: 'Strides across the lawn stabbing at worms, or along the beach wrack snapping up kelp flies, walking without hopping. A sparrow of similar size hops.',
     },
   };
 
@@ -973,11 +973,23 @@ export abstract class Passeridae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.75, beakLength: 0.4 };
 
   static override behaviors: BehaviorTable<Passeridae> = {
+    forage: {
+      eats: 'fallenSeed',
+      label: 'Hop and peck seeds',
+      cue: 'Hops about on the ground in a chattering group, picking up fallen seed and squabbling over it. Never far from buildings.',
+    },
     dustBath: {
       label: 'Dust-bathe',
       cue: 'Squats on bare ground, flutters the wings and shuffles in a cloud of dust. It does this in groups, and the shallow dents it makes remain.',
     },
   };
+
+  override *forage(): Script {
+    yield* this.toGround();
+    // The chattering group it feeds with.
+    this.company(2);
+    yield* super.forage();
+  }
 
   *dustBath(): Script {
     yield* this.toGround(6);
@@ -1056,7 +1068,7 @@ export abstract class Sturnidae extends Passeriformes {
     forage: {
       eats: { yard: 'worms', beach: 'wrack' },
       label: 'Probe by gaping',
-      cue: 'Walks briskly, pushes the closed bill into the turf, then opens it to widen the hole and look in. A robin pulls worms with a stab; a starling pries.',
+      cue: 'Walks briskly, pushes the closed bill into the turf (or the beach wrack, after kelp flies), then opens it to widen the hole and look in. A robin pulls worms with a stab; a starling pries.',
     },
   };
 

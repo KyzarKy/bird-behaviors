@@ -85,8 +85,10 @@ export interface FoodSite {
   y: number;
   /** How far above or below `y` it reaches, for food without pieces: insects through a tree crown, a swarm. Defaults to 3. */
   spread?: number;
-  /** Pieces drawn in place, eaten one or two at a time and grown back. Small animals have none and only peek. */
+  /** Pieces drawn in place. One a bird takes is gone until the bird's behavior ends. Small animals have none and only peek. */
   units?: Vec[];
+  /** The pieces lie on the seabed: their y is height above the bottom wherever they are. */
+  onBottom?: boolean;
 }
 
 /** The food a behavior goes after in a scene, if any. */
@@ -97,9 +99,6 @@ export function eatsIn(spec: BehaviorSpec, habitat: HabitatId): FoodKind | null 
 
 /** Shown in a scene whatever bird is in it. */
 export const EXTRAS: Record<HabitatId, FoodKind[]> = { yard: ['berries'], beach: ['wrack'] };
-
-/** Seconds for an eaten piece to grow back. */
-export const REGROW = 60;
 
 // A fixed seed, so food is laid out the same way every time.
 let seed = 7;
@@ -137,7 +136,8 @@ export const FOOD_SITES: Record<HabitatId, Partial<Record<FoodKind, FoodSite>>> 
     grassBugs: { x: [15, 30], y: 0 },
     litterBugs: { x: [60, 73], y: 0 },
     barkBugs: { x: [31, 33], y: 15, spread: 14 },
-    leafBugs: { x: [68, 98], y: 24, spread: 12 },
+    // Under the leaves at the ends of the low oak limbs and along the bottom of the crown.
+    leafBugs: { x: [68, 98], y: 18, units: [[70.6, 16.5], [71.9, 17], [74.4, 20.6], [75.8, 21.2], [96.6, 18.5], [97.8, 18.9], [79, 21.6], [92.5, 23.6]].map(([x, y]) => ({ x, y })) },
     swarm: { x: [34, 60], y: 15, spread: 6 },
     voles: { x: [16, 44], y: 0 },
     flock: { x: [44, 56], y: 4, spread: 4 },
@@ -153,14 +153,17 @@ export const FOOD_SITES: Record<HabitatId, Partial<Record<FoodKind, FoodSite>>> 
     carrion: { x: [36, 39], y: 0 },
     swarm: { x: [31, 45], y: 5, spread: 5 },
     // A mussel bed on the bottom of the shallows, for the diving ducks.
-    shellfish: { x: [62, 82], y: -2, spread: 2, units: along(9, 62, 82).map((u) => ({ x: u.x, y: 0.15 - Math.min(2.4, (u.x - 58) * 0.22) })) },
+    shellfish: { x: [62, 76], y: -3.3, spread: 2.5, onBottom: true, units: along(8, 62, 76, 0.35) },
     mussels: { x: [41, 51], y: 1.5, units: [[40.4, 0.3], [41, 0.7], [41.6, 0.3], [46.4, 0.3], [47, 0.7], [47.6, 0.35], [48.2, 0.75], [50.4, 0.3], [51, 0.25], [50.8, 0.7]].map(([x, y]) => ({ x, y })) },
     sandCritters: { x: [46, 64], y: 0 },
     clams: { x: [52, 57.5], y: 0, units: along(6, 52, 57.5, 0.05) },
     flock: { x: [50, 56], y: 0 },
-    minnows: { x: [59, 66], y: -0.5 },
-    eelgrass: { x: [60, 70], y: -1 },
+    // Small fish in the shallows, near the surface: for waders, kingfishers and the Hooded Merganser.
+    minnows: { x: [60, 72], y: -0.8, spread: 1 },
+    // Rooted on the bottom of the shallows and reaching up toward the surface.
+    eelgrass: { x: [60, 70], y: -1.6, spread: 2.4 },
     plankton: { x: [72, 88], y: 0 },
-    baitfish: { x: [70, 94], y: -1 },
+    // A school of herring and sand lance from near the surface down to the deep water.
+    baitfish: { x: [70, 94], y: -1.5, spread: 2.5 },
   },
 };

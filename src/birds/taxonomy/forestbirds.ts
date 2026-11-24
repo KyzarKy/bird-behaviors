@@ -85,7 +85,7 @@ export abstract class Aegithalidae extends Passeriformes {
     forage: {
       eats: 'leafBugs',
       label: 'Stream through the bushes',
-      cue: 'One bird commits to the next bush and the others follow in a string, calling the whole way. At each stop they hang upside down and pick at the twig tips, then all leave within seconds.',
+      cue: 'Hangs upside down at the twig tips picking off aphids and tiny caterpillars, then moves on to the next bush within seconds, calling the whole way. Flocks travel this way, one bird after another in a string.',
     },
   };
 
@@ -160,7 +160,7 @@ export abstract class Certhiidae extends Passeriformes {
     forage: {
       eats: 'barkBugs',
       label: 'Spiral up the trunk',
-      cue: 'Starts at the foot of a tree and works up in short hitches, swinging round to the other side now and then. At the top it lets go and flutters down to the base of the next tree. A nuthatch goes down head first; a creeper never does.',
+      cue: 'Starts at the foot of a tree and works up in short hitches, picking tiny insects and spiders from the bark, swinging round to the other side now and then. At the top it lets go and flutters down to the base of the next tree. A nuthatch goes down head first; a creeper never does.',
     },
   };
 
@@ -257,7 +257,7 @@ export abstract class Troglodytidae extends Passeriformes {
     forage: {
       eats: 'litterBugs',
       label: 'Creep through the litter',
-      cue: 'Body low and tail up, it threads between roots and fallen logs in short hops, poking into every crevice. It looks more like a mouse than a bird.',
+      cue: 'Body low and tail up, it threads between roots and fallen logs in short hops, poking into every crevice for spiders and beetles. It looks more like a mouse than a bird.',
     },
     sing: {
       label: 'Sing',
@@ -434,7 +434,7 @@ export abstract class Regulidae extends Passeriformes {
     forage: {
       eats: 'leafBugs',
       label: 'Hover-glean at a twig tip',
-      cue: 'Flutters in place at the very end of a branch, picking from needles and buds it never lands on, then flits to the next. Chickadees hang from twigs; kinglets hover in front of them.',
+      cue: 'Flutters in place at the very end of a branch, picking tiny insects and caterpillars from needles and buds it never lands on, then flits to the next. Chickadees hang from twigs; kinglets hover in front of them.',
     },
     flickWings: {
       label: 'Flick the wings',
@@ -455,14 +455,26 @@ export abstract class Regulidae extends Passeriformes {
     for (let visit = 0; visit < 3; visit++) {
       const twig = this.findPerch(undefined, 'any');
       if (!twig) return;
-      // Hovers at a leaf where the caterpillars are.
-      yield* this.flyTo(this.preySpot({ x: twig.x, y: twig.y + 0.5 }), { land: false, speed: 0.8 });
+      // Hovers just off a leaf where the caterpillars are, bill to the leaf, not sitting on it.
+      const leaf = this.preySpot({ x: twig.x, y: twig.y + 0.5 });
+      // From the side that keeps it inside the scene.
+      const dir = leaf.x + this.size * 1.1 > 98 ? 1 : leaf.x - this.size * 1.1 < 2 ? -1 : leaf.x >= this.pos.x ? 1 : -1;
+      yield* this.flyTo({ x: leaf.x - dir * this.size * 1.1, y: leaf.y - this.size * 0.25 }, { land: false, speed: 0.8 });
+      this.pose.facing = dir;
       yield* this.hoverFor(this.hoverSeconds, { aim: -0.6 });
+      // Eases in until the bill is at the leaf.
+      const bill = this.billTip();
+      yield* this.hoverFor(0.25, { aim: -0.6, drift: { x: leaf.x - bill.x, y: leaf.y - bill.y } });
       // Picks a caterpillar off the leaf tip in the hover.
+      yield* this.glimpse();
       if (!this.pose.carry && this.atFood()) this.take(0.5);
-      yield* this.flyTo(twig);
-      yield* this.flickWings();
+      // Flits on to the next tip without landing.
+      yield* this.hoverFor(0.3, { drift: { x: rand(-2, 2), y: 1 } });
     }
+    // Only now perches, flicking its wings.
+    const twig = this.findPerch(undefined, 'near');
+    if (twig) yield* this.flyTo(twig);
+    yield* this.flickWings();
   }
 
   *flickWings(): Script {
@@ -817,9 +829,9 @@ export abstract class Bombycillidae extends Passeriformes {
     },
     flycatch: {
       eats: 'swarm',
-      label: 'Flycatch over the water',
+      label: 'Flycatch from a treetop',
       feeding: true,
-      cue: 'Sits on an exposed treetop, darts out after an insect, and returns, often with several birds taking turns. It sallies like a flycatcher but is stockier and keeps a crest.',
+      cue: 'Sits on an exposed treetop, darts out after an insect, and returns to the same lookout. It sallies like a flycatcher but is stockier and keeps a crest.',
     },
   };
 
@@ -837,16 +849,19 @@ export abstract class Bombycillidae extends Passeriformes {
     yield* this.peck(1, 0.8);
     this.hold(this.pose.carry);
     yield* this.poseTo({ neck: 1.2, head: 0.2, crest: 0.6 }, 0.2);
-    yield* this.wait(0.4);
-    // Sidle toward the neighbor and hand the berry over.
+    // The neighbor along the branch, facing it.
     const x0 = this.pos.x;
+    const [mate] = this.company(1);
+    mate.pos = { x: x0 + this.pose.facing * (2 + this.size * 0.8), y: this.pos.y };
+    mate.pose.facing = this.pose.facing === 1 ? -1 : 1;
+    yield* this.wait(0.4);
+    // Sidle toward the neighbor and hand the berry over, bill to bill.
     yield* this.tween(0.5, (t) => (this.pos.x = x0 + this.pose.facing * 2 * t));
     yield* this.poseTo({ neck: 1.5, head: 0.4 }, 0.15);
-    const item = this.pose.carry;
+    mate.pose.carry = this.pose.carry;
     this.hold(null);
-    const berry = item && this.world.emit(item, this.pos.x + this.pose.facing * this.size * 0.7, this.pos.y + 0.5, { life: 1.2 });
     yield* this.wait(0.9);
-    if (berry) berry.life = 0;
+    mate.pose.carry = null;
     // Take another and swallow it whole.
     yield* this.relax(0.15);
     yield* this.peck(1, 0.8);
@@ -951,6 +966,7 @@ export abstract class Vireonidae extends Passeriformes {
       yield* this.wait(this.pace / 2);
       // Reach under the leaf.
       yield* this.poseTo({ neck: 0.3, head: -1.1, pitch: -0.3 }, 0.25);
+      yield* this.glimpse();
       if (this.atFood()) this.take(0.4);
       yield* this.wait(0.3);
       yield* this.relax(0.2);
@@ -1033,7 +1049,7 @@ export class WarblingVireo extends Vireo {
       eats: 'leafBugs',
       label: 'Sing while foraging',
       feeding: true,
-      cue: 'Warbles from inside the foliage and keeps working the leaves between phrases, often well above eye level. It sings from the nest too.',
+      cue: 'Warbles from inside the foliage and keeps picking caterpillars off the leaves between phrases, often well above eye level. It sings from the nest too.',
     },
   };
 

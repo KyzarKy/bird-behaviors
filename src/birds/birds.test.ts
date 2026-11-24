@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { drawnFlapRate } from './core/Bird';
 import { behaviorsOf, buildTree, lineage, resolveTraits, traitSources, type BirdClass } from './core/reflect';
-import { HABITATS, World } from './core/World';
-import { EXTRAS, FOOD_SITES, FOODS, REGROW, eatsIn, type FoodKind } from './core/food';
-import { PEEKS } from '../render/drawFood';
+import { DEEP, HABITATS, World } from './core/World';
+import { EXTRAS, FOOD_SITES, FOODS, eatsIn, type FoodKind } from './core/food';
+import { drawFoodBack, PEEKS, PREY } from '../render/drawFood';
 import type { Ecology, HabitatId } from './core/traits';
 import { inScene } from '../ui/season';
 import { SPECIES } from './taxonomy';
@@ -100,12 +100,70 @@ describe('simulation', () => {
           expect(Number.isFinite(bird.pos.x + bird.pos.y)).toBe(true);
           expect(bird.pos.x).toBeGreaterThanOrEqual(0);
           expect(bird.pos.x).toBeLessThanOrEqual(100);
-          expect(bird.pos.y).toBeGreaterThan(-4);
+          expect(bird.pos.y).toBeGreaterThan(-DEEP - 1);
           expect(bird.pos.y).toBeLessThan(54);
+          // Never head first into the ground or the seabed. A bill may probe in; the head stays out.
+          const head = bird.headPoint();
+          const t = (frames / 60).toFixed(1);
+          expect(head.y - head.r * 0.5, `head in the ground at ${t}s, x=${head.x.toFixed(1)}`).toBeGreaterThanOrEqual(bird.world.floorY(head.x) - 0.05);
+          // A bird that doesn't swim wades no deeper than most of the way up its legs.
+          if (!bird.ecology.swims && !bird.airborne && bird.pose.rotation === 0 && bird.pos.y < 0)
+            expect(-bird.pos.y, `wading over its legs at ${t}s, x=${bird.pos.x.toFixed(1)}`).toBeLessThanOrEqual(bird.frame.legFull * 0.7 + 0.05);
           if (++frames > 60 * 90) throw new Error(`${key} did not finish within 90 simulated seconds`);
         }
       });
     }
+  }
+});
+
+describe('everyone in the story', () => {
+  // A behavior whose description names another bird shows that bird.
+  const robbers: [BirdClass, string][] = [
+    [SPECIES.find((c) => c.taxon.common === 'Parasitic Jaeger')!, 'forage'],
+    [SPECIES.find((c) => c.taxon.common === 'Heermann’s Gull')!, 'pirate'],
+  ];
+  for (const [cls, key] of robbers) {
+    it(`${cls.taxon.common}: ${key} shows the bird it robs`, () => {
+      const bird = make(cls as (typeof SPECIES)[number], 'beach');
+      bird.update(1 / 60);
+      bird.perform(key);
+      let seen = false;
+      for (let frames = 0; bird.current !== null && frames < 60 * 90; frames++) {
+        bird.world.step(1 / 60);
+        bird.update(1 / 60);
+        seen ||= bird.world.others.length > 0;
+      }
+      expect(seen).toBe(true);
+      expect(bird.world.others).toEqual([]);
+    });
+  }
+
+  // A description that says the bird feeds in a group, or hands food to a neighbor, shows the others.
+  const groups: [string, HabitatId, string][] = [
+    ['Canada Goose', 'beach', 'graze'],
+    ['Canada Goose', 'yard', 'graze'],
+    ['Brant', 'beach', 'graze'],
+    ['Cackling Goose', 'beach', 'graze'],
+    ['Snow Goose', 'beach', 'forage'],
+    ['Greater White-fronted Goose', 'beach', 'forage'],
+    ['House Sparrow', 'yard', 'forage'],
+    ['Cedar Waxwing', 'yard', 'forage'],
+  ];
+  for (const [name, scene, key] of groups) {
+    it(`${name} (${scene}): ${key} shows the others of its kind`, () => {
+      const cls = SPECIES.find((c) => c.taxon.common === name)!;
+      const bird = make(cls, scene);
+      bird.update(1 / 60);
+      bird.perform(key);
+      let most = 0;
+      for (let frames = 0; bird.current !== null && frames < 60 * 90; frames++) {
+        bird.world.step(1 / 60);
+        bird.update(1 / 60);
+        if (bird.world.others.every((o) => o.constructor === cls)) most = Math.max(most, bird.world.others.length);
+      }
+      expect(most).toBeGreaterThan(0);
+      expect(bird.world.others).toEqual([]);
+    });
   }
 });
 
@@ -147,7 +205,7 @@ describe('auto mode', () => {
         bird.world.step(1 / 60);
         bird.update(1 / 60);
         if (bird.current) seen.add(bird.current);
-        expect(bird.pos.x >= 0 && bird.pos.x <= 100 && bird.pos.y > -4 && bird.pos.y < 54).toBe(true);
+        expect(bird.pos.x >= 0 && bird.pos.x <= 100 && bird.pos.y > -DEEP - 1 && bird.pos.y < 54).toBe(true);
       }
       expect(seen.size).toBeGreaterThan(1);
     });
@@ -219,30 +277,34 @@ describe('food in the scene', () => {
     }
   });
 
-  it('peeks within 10 seconds, then one to three times a minute', () => {
+  it('peeks within 10 seconds, then every 10 to 15 seconds, taking turns', () => {
     for (let run = 0; run < 20; run++) {
       const world = new World(HABITATS.yard);
       world.stock(['worms', 'voles']);
-      let first = -1;
-      let peeks = 0;
+      const starts: number[] = [];
+      const kinds = new Set<string>();
       for (let t = 0; t < 600; t += 0.1) {
         const before = world.peek;
         world.step(0.1);
-        if (world.peek && world.peek !== before) {
-          peeks++;
-          if (first < 0) first = t;
-        }
+        if (world.peek && world.peek !== before) starts.push(t), kinds.add(world.peek.kind);
       }
-      expect(first).toBeGreaterThanOrEqual(0);
-      expect(first).toBeLessThan(10);
-      expect(peeks).toBeGreaterThanOrEqual(10);
-      expect(peeks).toBeLessThanOrEqual(30);
+      expect(starts[0]).toBeLessThan(10);
+      for (let i = 1; i < starts.length; i++) {
+        expect(starts[i] - starts[i - 1]).toBeGreaterThanOrEqual(9.9);
+        expect(starts[i] - starts[i - 1]).toBeLessThanOrEqual(15.1);
+      }
+      expect([...kinds].sort()).toEqual(['voles', 'worms']);
     }
   });
 
   it('draws a peek for each small animal that keeps out of sight, and for nothing else', () => {
     const hidden = (Object.keys(FOODS) as FoodKind[]).filter((k) => FOODS[k].hidden).sort();
     expect(Object.keys(PEEKS).sort()).toEqual(hidden);
+  });
+
+  it('draws the animal a bird hunts for every food that is not already in view', () => {
+    const hidden = (Object.keys(FOODS) as FoodKind[]).filter((k) => FOODS[k].hidden);
+    expect(Object.keys(PREY).sort()).toEqual([...hidden, 'flock'].sort());
   });
 
   // Every feeding behavior ends with the bird eating: it takes its food at least once, always where that food is,
@@ -258,16 +320,49 @@ describe('food in the scene', () => {
             const site = bird.world.site(kind)!;
             const at: { x: number; y: number }[] = [];
             const eat = bird.world.eat.bind(bird.world);
-            bird.world.eat = (k, where) => (at.push({ ...where }), eat(k, where));
+            // Where the bill (or the feet, for a catch in the talons) was each frame.
+            const track: number[] = [];
+            const takes: number[] = [];
+            bird.world.eat = (k, where) => {
+              const bill = bird.billTip();
+              // Taken at the bill or the feet, not somewhere the bird isn't.
+              const gap = Math.min(Math.hypot(where.x - bill.x, where.y - bill.y), Math.hypot(where.x - bird.pos.x, where.y - bird.pos.y));
+              expect(gap, `takes it ${gap.toFixed(1)} away from its bill and feet`).toBeLessThan(2.5);
+              takes.push(track.length);
+              at.push({ ...where });
+              // An animal that keeps out of sight is seen before it is taken: drawn where the bird takes it.
+              if (FOODS[k].hidden) {
+                const prey = bird.world.prey;
+                expect(prey, `takes a ${k} that was never drawn`).not.toBeNull();
+                if (prey) expect(Math.hypot(prey.x - where.x, prey.y - where.y), `takes a ${k} away from where it was drawn`).toBeLessThan(4);
+              }
+              const patch = bird.world.food.find((f) => f.kind === k)!;
+              const left = patch.units.filter((u) => !u.gone).length;
+              eat(k, where);
+              // A berry, a seed, a mussel: the piece it took is gone from the scene.
+              if (left) expect(patch.units.filter((u) => !u.gone).length, `takes no ${k} from where it pecks`).toBe(left - 1);
+            };
             let held = false;
             bird.update(1 / 60);
             bird.perform(b.key);
+            let under = false;
             for (let frames = 0; bird.current !== null && frames < 60 * 90; frames++) {
               bird.world.step(1 / 60);
               bird.update(1 / 60);
               held ||= bird.pose.carry === FOODS[kind].item;
+              track.push(bird.billTip().x);
+              // A diver swallows each catch before it goes under for the next.
+              if (bird.submerged && !under) expect(bird.pose.carry, 'dives again still holding its last catch').toBeNull();
+              under = bird.submerged;
             }
             expect(at.length, 'never takes any').toBeGreaterThan(0);
+            // From the first bite to the last it stays at the food. Insects caught in the air are taken on
+            // sallies from a perch, so a flycatcher goes back to its perch between catches.
+            const margin = kind === 'swarm' ? Infinity : Math.max(8, bird.size);
+            for (const x of track.slice(takes[0], takes[takes.length - 1]))
+              expect(x, `wanders to x=${x.toFixed(1)} between bites, away from the ${kind}`).toBeGreaterThanOrEqual(site.x[0] - margin);
+            for (const x of track.slice(takes[0], takes[takes.length - 1]))
+              expect(x, `wanders to x=${x.toFixed(1)} between bites, away from the ${kind}`).toBeLessThanOrEqual(site.x[1] + margin);
             for (const p of at) expect(p.x, `takes it at x=${p.x.toFixed(1)}, away from the ${kind}`).toBeGreaterThanOrEqual(site.x[0] - 3);
             for (const p of at) expect(p.x, `takes it at x=${p.x.toFixed(1)}, away from the ${kind}`).toBeLessThanOrEqual(site.x[1] + 3);
             if (FOODS[kind].item) expect(held, `never holds a ${FOODS[kind].item}`).toBe(true);
@@ -277,14 +372,78 @@ describe('food in the scene', () => {
     }
   }
 
-  it('runs down where a bird feeds and grows back', () => {
+  // Someone watching should be able to tell what the bird is after from the label or the description.
+  const WORDS: Record<FoodKind, RegExp> = {
+    berries: /berr|fruit/i,
+    acorns: /acorn/i,
+    cones: /cone|seed/i,
+    seedHeads: /seed/i,
+    fallenSeed: /seed/i,
+    nectar: /nectar|flower/i,
+    sap: /sap/i,
+    grass: /grass|graz/i,
+    eelgrass: /eelgrass|weed|green/i,
+    worms: /worm/i,
+    ants: /\bants?\b/i,
+    grassBugs: /grasshopper|insect|bug|beetle|cricket/i,
+    litterBugs: /insect|bug|beetle|grub|spider|millipede/i,
+    barkBugs: /insect|bug|beetle|grub|larva|ants?\b|spider/i,
+    leafBugs: /insect|caterpillar|bug|spider|aphid/i,
+    swarm: /insect|gnat|midge|fl(y|ies)|moth|bug/i,
+    sandCritters: /crab|amphipod|worm|crustacean|invertebrate|sand flea|hopper/i,
+    clams: /clam|shell/i,
+    mussels: /mussel|shell|limpet|barnacle|snail/i,
+    shellfish: /mussel|shell|clam|crab/i,
+    wrack: /fl(y|ies)|hopper|insect|sand flea/i,
+    plankton: /plankton|krill|copepod|tiny|invertebrate/i,
+    minnows: /fish|minnow/i,
+    baitfish: /fish|herring|sand lance/i,
+    voles: /vole|rodent|mouse|mice/i,
+    flock: /bird|sparrow|finch|songbird/i,
+    carrion: /carrion|dead|carcass/i,
+  };
+  for (const cls of SPECIES) {
+    for (const scene of (Object.keys(HABITATS) as HabitatId[]).filter((h) => inScene(cls, h))) {
+      for (const b of behaviorsOf(cls).filter((b) => b.spec.feeding)) {
+        const kind = eatsIn(b.spec, scene)!;
+        it(`${cls.taxon.common} (${scene}): ${b.key} says it eats ${kind}`, () => {
+          expect(`${b.spec.label}. ${b.spec.cue}`).toMatch(WORDS[kind]);
+        });
+      }
+    }
+  }
+
+  it('shows every food without a bird going after it, or has it peek', () => {
+    // A canvas that only counts what gets drawn.
+    let marks = 0;
+    const ctx = new Proxy({}, {
+      get: (_, key) => (['fill', 'stroke', 'fillRect'].includes(key as string) ? () => marks++ : typeof key === 'string' && /^[a-z]/.test(key) && !['fillStyle', 'strokeStyle', 'lineWidth', 'lineCap', 'globalAlpha'].includes(key) ? () => {} : undefined),
+      set: () => true,
+    }) as unknown as CanvasRenderingContext2D;
+    for (const id of Object.keys(HABITATS) as HabitatId[]) {
+      for (const kind of Object.keys(FOOD_SITES[id]) as FoodKind[]) {
+        const world = new World(HABITATS[id]);
+        world.food = [];
+        world.stock([kind]);
+        world.food = world.food.filter((f) => f.kind === kind);
+        marks = 0;
+        drawFoodBack(ctx, world);
+        const shown = marks > 0 || (kind === 'nectar' && HABITATS[id].perches.some((q) => q.kind === 'flower')) || (kind === 'grass' && HABITATS[id].ground === 'grass');
+        expect(shown || (!!FOODS[kind].hidden && !!PEEKS[kind]), `${kind} in the ${id}`).toBe(true);
+      }
+    }
+  });
+
+  it('puts back what a bird took once its behavior is over', () => {
     const world = new World(HABITATS.yard);
     const berries = world.food.find((f) => f.kind === 'berries')!;
-    const whole = () => berries.units.filter((u) => u.left >= 1).length;
-    const all = whole();
+    const left = () => berries.units.filter((u) => !u.gone).length;
+    const all = left();
     world.eat('berries', { x: 50, y: 6 });
-    expect(whole()).toBeLessThan(all);
-    for (let t = 0; t <= REGROW; t += 0.5) world.step(0.5);
-    expect(whole()).toBe(all);
+    expect(left()).toBe(all - 1);
+    for (let t = 0; t <= 120; t += 0.5) world.step(0.5);
+    expect(left(), 'nothing grows back by itself').toBe(all - 1);
+    world.restore();
+    expect(left()).toBe(all);
   });
 });

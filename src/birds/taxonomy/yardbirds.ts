@@ -91,7 +91,7 @@ export class DownyWoodpecker extends Dryobates {
       eats: 'seedHeads',
       label: 'Probe weed stems',
       feeding: true,
-      cue: 'Small enough to work thin stalks and shrub twigs that would bend under a Hairy. Hangs on the stem, taps lightly and moves on. A Hairy is almost always on a trunk or a big limb.',
+      cue: 'Small enough to work thin stalks and shrub twigs that would bend under a Hairy. Hangs on a weed stem, taps lightly to get at the seed and the grubs inside, and moves on. A Hairy is almost always on a trunk or a big limb.',
     },
   };
 
@@ -145,7 +145,7 @@ export abstract class Dryocopus extends Picidae {
     forage: {
       eats: 'barkBugs',
       label: 'Excavate a hole',
-      cue: 'Braces its tail, throws its whole body back, and hits the trunk with single heavy blows. Chips fly several feet. No other woodpecker here leaves holes this big or this squared off.',
+      cue: 'Braces its tail, throws its whole body back, and hits the trunk with single heavy blows to reach the carpenter ants inside. Chips fly several feet. No other woodpecker here leaves holes this big or this squared off.',
     },
     drum: {
       label: 'Drum',
@@ -167,11 +167,12 @@ export abstract class Dryocopus extends Picidae {
       for (let blow = 0; blow < 3; blow++) {
         yield* this.poseTo({ neck: -0.7, head: -1.2 }, 0.06);
         this.world.burst('chip', this.pos.x, this.pos.y + this.size * 0.5, 5, side);
+        // The last blow breaks into the carpenter ants' gallery.
+        if (round === 3 && blow === 1) yield* this.glimpse();
+        if (round === 3 && blow === 2) this.take(1.2);
         yield* this.poseTo({ neck: 1.1, head: 0.4 }, 0.12);
       }
       yield* this.wait(rand(0.3, 0.7));
-      // The hole reaches the carpenter ants' gallery.
-      if (round === 3) this.take(0.8);
     }
     yield* this.relax(0.2);
   }
@@ -267,7 +268,9 @@ export abstract class Sphyrapicus extends Picidae {
   *tapWells(): Script {
     const trunk = this.findTrunk();
     if (!trunk?.climb) return;
-    const rows = [0, 1, 2, 3].map((i) => trunk.climb![0] + 2.5 + i * 2.5);
+    // The wells: where the sap is on this trunk, or a column up the bark.
+    const sap = this.world.food.find((f) => f.kind === 'sap')?.units.filter((u) => Math.abs(u.x - trunk.x) < 2) ?? [];
+    const rows = sap.length ? [...new Set(sap.map((u) => u.y))].sort((a, b) => a - b) : [0, 1, 2, 3].map((i) => trunk.climb![0] + 2.5 + i * 2.5);
     const goTo = (y: number) => {
       const y0 = this.pos.y;
       return this.tween(0.25, (t) => (this.pos.y = y0 + (y - y0) * t));
@@ -275,7 +278,8 @@ export abstract class Sphyrapicus extends Picidae {
     const side = yield* this.flyToTrunk(trunk, rows[0], true);
     for (const y of rows) {
       yield* goTo(y);
-      yield* this.peck(3, 0.9);
+      // Drilling only opens the well; the sap comes later.
+      yield* this.peck(3, 0.9, false);
       this.world.burst('chip', this.pos.x, y, 2, side);
     }
     // Leave for a while, then come back to the first well and lick up the column.
@@ -456,11 +460,15 @@ export abstract class Patagioenas extends Columbidae {
     const berry = this.preySpot(this.findPerch(['shrub', 'branch'], 'any') ?? { ...this.pos });
     yield* this.flyTo(berry);
     for (let i = 0; i < 4; i++) {
-      yield* this.poseTo({ pitch: 0.7, neckExt: 1.7, head: 0.3 }, 0.2);
+      // Stretches for a berry, flapping to keep its balance on the thin twigs.
+      this.pose.wings = 'open';
+      yield* this.poseTo({ pitch: 0.7, neckExt: 1.7, head: 0.3, flap: 0.6 }, 0.2);
+      yield* this.poseTo({ flap: -0.4 }, 0.12);
       if (i % 2 === 0) this.take(0.5, berry);
-      yield* this.wait(rand(0.3, 0.6));
-      yield* this.poseTo({ pitch: this.restingPose().pitch, neckExt: 1, head: 0 }, 0.2);
-      yield* this.lookAround(0.6);
+      yield* this.poseTo({ flap: 0.4 }, 0.12);
+      this.pose.wings = 'folded';
+      yield* this.poseTo({ pitch: this.restingPose().pitch, neckExt: 1, head: 0, flap: 0 }, 0.2);
+      yield* this.wait(rand(0.2, 0.4));
     }
     yield* this.relax();
   }

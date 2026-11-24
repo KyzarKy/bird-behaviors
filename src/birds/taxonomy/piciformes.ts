@@ -38,7 +38,7 @@ export abstract class Picidae extends Piciformes {
       eats: 'barkBugs',
       label: 'Hitch up the trunk',
       needs: 'bark',
-      cue: 'Lands low and works upward in jerks, tail pressed to the bark as a prop, stopping to tap and probe. Reaches the top, drops to the base of the next tree, and starts again.',
+      cue: 'Lands low and works upward in jerks, tail pressed to the bark as a prop, stopping to tap and probe for beetle grubs and ants. Reaches the top, drops to the base of the next tree, and starts again.',
     },
     drum: {
       label: 'Drum',
@@ -116,7 +116,7 @@ export abstract class Colaptes extends Picidae {
     forage: {
       eats: 'ants',
       label: 'Probe for ants',
-      cue: 'A woodpecker on the lawn. Hops, then drives its bill into the ground again and again in one spot, lapping ants with a tongue that reaches two inches past the bill tip.',
+      cue: 'A woodpecker on the ground, on a lawn or the open sand above the beach. Hops, then drives its bill into the ground again and again in one spot, lapping ants with a tongue that reaches two inches past the bill tip.',
     },
   };
 

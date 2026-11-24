@@ -1,7 +1,7 @@
 import { eatsIn, FOODS, type FoodKind, type FoodSite } from './food';
 import { behaviorsOf, resolveTraits, type BirdClass } from './reflect';
 import type { BehaviorTable, Ecology, FlightProfile, Item, Look, PerchKind, Script, Taxon, Vec } from './traits';
-import type { Trunk, World } from './World';
+import { SHELVE, type Trunk, type World } from './World';
 
 /** Stage units per second for each m/s of real airspeed. */
 const SPEED = 2.2;
@@ -196,8 +196,14 @@ export abstract class Bird {
   taken = 0;
   /** Seconds left before the bird lets go of what it holds. */
   private holdTimer = 0;
+  /** Moves the other birds in the running behavior's story (world.others), every frame until it ends. */
+  private others: ((dt: number) => void) | null = null;
 
-  constructor(readonly world: World) {
+  /** `stock` false is a bird that only plays a part in another's behavior, such as the tern a jaeger robs: it leaves the scene's food alone. */
+  constructor(
+    readonly world: World,
+    stock = true,
+  ) {
     const cls = this.constructor as BirdClass;
     this.flight = resolveTraits<FlightProfile>(cls, 'flight');
     this.ecology = resolveTraits<Ecology>(cls, 'ecology');
@@ -213,7 +219,7 @@ export abstract class Bird {
       ...this.restingPose(),
     };
     this.spawn();
-    world.stock(this.diet());
+    if (stock) world.stock(this.diet());
   }
 
   /** Every food this bird can go after in its scene. */
@@ -232,6 +238,8 @@ export abstract class Bird {
     const p = this.pose;
     p.kickNear = p.kickFar = p.stride = p.headThrust = p.roll = p.beakOpen = p.crest = 0;
     this.hold(null);
+    this.world.restore();
+    this.others = null;
     this.current = this.last = key;
     const spec = behaviorsOf(this.constructor as BirdClass).find((b) => b.key === key)?.spec;
     const kind = spec && eatsIn(spec, this.world.habitat.id);
@@ -273,8 +281,13 @@ export abstract class Bird {
       this.perform(this.choose());
     }
     if (this.holdTimer > 0 && (this.holdTimer -= dt) <= 0) this.hold(null);
+    this.others?.(dt);
     if (this.script.next(dt).done) {
-      if (this.current) this.hold(null);
+      if (this.current) {
+        this.hold(null);
+        this.world.restore();
+        this.others = null;
+      }
       this.meal = null;
       this.script = null;
     }
@@ -601,43 +614,118 @@ export abstract class Bird {
     if (spot && (!this.afloat || offFood)) yield* this.flyOver(spot);
   }
 
+  /** Swimming under the surface: no legs showing, body level with where it swims. */
+  get submerged(): boolean {
+    const water = this.world.habitat.water;
+    return this.ecology.swims && !this.airborne && !!water && this.pos.x > water.from && this.pos.y < -0.05;
+  }
+
   /**
-   * Go under and come up `dx` away. Loons, grebes, cormorants, sea ducks and
-   * auks are unrelated and all hunt this way, so the routine lives here.
-   * `leap` is the forward jump some of them make to get under.
+   * Go under, swim to the food and take it there, and come up again. Loons, grebes, cormorants,
+   * sea ducks and auks are unrelated and all hunt this way, so the routine lives here. Without food
+   * it surfaces `dx` away. `leap` is the forward jump some of them make to get under.
    */
   protected *diveUnder(seconds: number, dx: number, leap = 0): Script {
-    if (!this.afloat) return;
+    const water = this.world.habitat.water;
+    if (!this.afloat || !water) return;
     const p = this.pose;
+    // The last catch is swallowed before it goes under again.
+    this.hold(null);
     const from = { ...this.pos };
-    const to = clamp(from.x + dx, (this.world.habitat.water?.from ?? 0) + 4, 96);
-    if (to !== from.x) p.facing = to > from.x ? 1 : -1;
-    const depth = Math.min(2, -this.world.floorY(to) - 0.2, -this.world.floorY(from.x) - 0.2);
+    const lo = water.from + 4;
+    const caught = this.catchPoint(from.x + dx);
+    // Bottom food is taken from just above it, so the head stays clear of the seabed.
+    const food = caught && caught.y <= this.world.floorY(caught.x) + 0.8 ? { x: caught.x, y: caught.y + 0.4 } : caught;
+    const goal = food ?? { x: clamp(from.x + dx, lo, 96), y: this.world.floorY(clamp(from.x + dx, lo, 96)) * 0.5 };
+    if (Math.abs(goal.x - from.x) > 0.3) p.facing = goal.x > from.x ? 1 : -1;
+    // Where the body has to be for the bill to reach the goal: bill down to the bottom, level after a fish.
+    const bottom = !!food && goal.y <= this.world.floorY(goal.x) + 0.8;
+    const reach: Partial<NumericPose> = bottom ? { pitch: -0.5, neck: -0.3, head: -0.6 } : { pitch: -0.1, neck: 0.1, head: -0.1 };
+    const saved = { ...p };
+    const y0 = this.pos.y;
+    this.pos.y = -1;
+    Object.assign(p, reach);
+    const tip = this.billTip();
+    const off = { x: tip.x - this.pos.x, y: tip.y - this.pos.y };
+    Object.assign(p, saved);
+    this.pos.y = y0;
+    const bodyX = clamp(goal.x - off.x, lo, 96);
+    // All the way under if the water is deep enough there, and never into the bottom.
+    const under = -(this.frame.b * 1.85 + 0.2);
+    const bodyY = Math.max(this.world.floorY(bodyX) + 0.1, bottom ? goal.y - off.y : Math.min(under, goal.y - off.y));
+
+    // Over and under in a forward roll.
     yield* this.tween(0.3, (t) => {
-      p.pitch = -1.1 * t;
-      p.neck = 0.95 - 0.9 * t;
-      this.pos.y = leap * Math.sin(Math.PI * t) - depth * 0.4 * t;
+      p.pitch = -0.9 * t;
+      p.neck = 0.95 - 0.8 * t;
+      this.pos.y = leap * Math.sin(Math.PI * t) - 0.3 * t;
     });
     this.world.burst('splash', from.x, 0, 4);
-    yield* this.tween(seconds, (t) => {
-      this.pos.x = from.x + (to - from.x) * t;
-      this.pos.y = -depth * (0.4 + 0.6 * Math.sin(Math.PI * Math.min(1, t * 1.2)));
-      p.pitch = -1.1 + 1.6 * t;
-      p.stride = Math.sin(t * seconds * 14);
+    const start = { ...this.pos };
+    // Down and along to the food, paddling.
+    yield* this.tween(seconds * 0.6, (t) => {
+      this.pos.x = start.x + (bodyX - start.x) * t;
+      this.pos.y = start.y + (bodyY - start.y) * t;
+      p.pitch = -0.9 + (0.9 + (reach.pitch ?? 0)) * t;
+      p.neck = 0.15 + ((reach.neck ?? 0) - 0.15) * t;
+      p.head = (reach.head ?? 0) * t;
+      p.stride = Math.sin(t * seconds * 12);
     });
-    this.pos = { x: to, y: 0 };
+    // The fish or mussel is right at the bill as it takes it.
+    if (food) {
+      this.aimAt(this.billTip());
+      this.take(Infinity);
+    }
+    // Back up to the surface with it.
+    const up = clamp(bodyX + p.facing * 1.5, lo, 96);
+    yield* this.tween(seconds * 0.4, (t) => {
+      this.pos.x = bodyX + (up - bodyX) * t;
+      this.pos.y = bodyY * (1 - t);
+      p.pitch = (reach.pitch ?? 0) + (0.6 - (reach.pitch ?? 0)) * Math.sin(Math.PI * t * 0.9);
+      p.neck = 0.6;
+      p.head = 0;
+      p.stride = Math.sin(t * seconds * 12);
+    });
+    this.pos = { x: up, y: 0 };
     p.stride = 0;
-    if (this.atFood()) this.take(1);
-    this.world.burst('splash', to, 0, 3);
+    this.world.burst('splash', up, 0, 3);
+    // Shown at the surface for a moment, then swallowed.
+    if (food && this.pose.carry) this.holdTimer = 1.2;
     yield* this.relax(0.25);
+  }
+
+  /** Where a dive near x ends with the bill on the food: a piece of it, or the water it swims in. Null when not feeding. */
+  protected catchPoint(x: number): Vec | null {
+    const site = this.meal?.site;
+    const water = this.world.habitat.water;
+    if (!site || !water) return null;
+    const patch = this.world.food.find((f) => f.kind === this.meal!.kind);
+    // Where the water is deep enough to swim under, if any of the food is.
+    const deep = (this.frame.b * 1.85 + 0.6) / SHELVE + water.from;
+    const wet = patch?.units.filter((u) => !u.gone && u.x > water.from + 4) ?? [];
+    const pieces = wet.some((u) => u.x > deep) ? wet.filter((u) => u.x > deep) : wet;
+    if (pieces.length) return { ...pieces.sort((a, b) => Math.abs(a.x - x) - Math.abs(b.x - x))[0] };
+    const lo = Math.max(site.x[0], water.from + 4);
+    const hi = Math.min(site.x[1], 96);
+    const cx = clamp(x, hi > deep ? Math.max(lo, deep) : lo, hi);
+    const spread = site.spread ?? 0;
+    return this.aimAt({ x: cx, y: clamp(site.y - rand(0, spread), this.world.floorY(cx) + 0.6, -0.6) });
   }
 
   get onGround(): boolean {
     return !this.airborne && this.pose.rotation === 0 && Math.abs(this.pos.y - this.restY(this.pos.x)) < 0.05;
   }
 
+  /** How far out a bird that doesn't swim can wade: until the water is most of the way up its legs. */
+  protected wadeMax(): number {
+    const water = this.world.habitat.water;
+    if (!water || this.ecology.swims) return 100;
+    return water.from + (this.look.legLength * this.size * 0.6) / SHELVE;
+  }
+
   /** Walk, run or hop to x, as the species' gait dictates. Birds that cannot walk fly. */
   protected *moveOnGround(x: number, speedMul = 1): Script {
+    x = Math.min(x, this.wadeMax());
     const gait = this.ecology.gait;
     if (!this.onGround || gait === 'none') {
       yield* this.flyOver({ x, y: this.restY(x) });
@@ -675,6 +763,7 @@ export abstract class Bird {
 
   /** Get to `target` by whichever means suits the distance. */
   protected *travelTo(target: Vec): Script {
+    if (target.y <= 0.05 && target.x > this.wadeMax()) target = { x: this.wadeMax(), y: this.restY(this.wadeMax()) };
     const gait = this.ecology.gait;
     const span = Math.abs(target.x - this.pos.x);
     const onFoot = this.onGround && target.y <= 0.05 && gait !== 'none' && span < (gait === 'hop' ? 10 : 30);
@@ -705,20 +794,105 @@ export abstract class Bird {
     yield* this.flyTo(this.findPerch(undefined, 'near') ?? this.waterSpot() ?? this.groundSpot(this.pos.x, 6));
   }
 
-  protected *peck(times = 1, depth = 1): Script {
+  /** Peck `times` times. The first takes the food the behavior is after if the bill is on it, unless `eat` is false. */
+  protected *peck(times = 1, depth = 1, eat = true): Script {
     const rest = this.restingPose();
-    // Food just behind it: turn round to it first.
-    if (this.meal && !this.pose.carry && !this.atFood()) {
+    // Food just behind it: turn round to it first. Only the bill's x matters here; the peck brings it down.
+    const site = this.meal?.site;
+    const off = (x: number) => (site ? Math.max(0, site.x[0] - x, x - site.x[1]) : 0);
+    if (site && !this.pose.carry && off(this.billTip().x) > 0) {
       this.pose.facing = this.pose.facing === 1 ? -1 : 1;
-      if (!this.atFood()) this.pose.facing = this.pose.facing === 1 ? -1 : 1;
+      if (off(this.billTip().x) > 0) this.pose.facing = this.pose.facing === 1 ? -1 : 1;
     }
+    // Down to the food, or the ground, or what it holds in its feet: a long-legged bird reaches further.
+    const low = this.peckHeight();
     for (let i = 0; i < times; i++) {
-      yield* this.poseTo({ pitch: rest.pitch - 0.55 * depth, neck: -0.6 * depth, head: -1.1 * depth }, 0.09);
-      if (i === 0 && !this.pose.carry && this.atFood()) this.take();
+      const spot = eat && i === 0 && (yield* this.glimpse());
+      if (low === null) yield* this.poseTo({ pitch: rest.pitch - 0.55 * depth, neck: -0.6 * depth, head: -1.1 * depth }, 0.09);
+      else yield* this.reachDown({ pitch: rest.pitch - 0.9 * depth, neck: -1.4, head: -1.5, crouch: 0.45 }, 0.09, low - 0.3 * (depth - 1));
+      if (spot) this.aimAt(this.billTip());
+      if (eat && i === 0 && !this.pose.carry && this.atFood()) this.take();
       yield* this.wait(0.04);
-      yield* this.poseTo({ pitch: rest.pitch, neck: rest.neck, head: 0 }, 0.11);
+      yield* this.poseTo({ pitch: rest.pitch, neck: rest.neck, head: 0, crouch: rest.crouch }, 0.11);
       yield* this.wait(rand(0.08, 0.22));
     }
+  }
+
+  /**
+   * A hidden animal (a caterpillar under a leaf, a grub in the bark, a crab in the sand) shows at the
+   * bill for a moment as the bird goes for it, so it is seen before it is taken. True if it showed.
+   */
+  protected *glimpse(): Generator<void, boolean, number> {
+    const site = this.meal?.site;
+    if (!site || !FOODS[this.meal!.kind].hidden || this.pose.carry) return false;
+    // Where the bill is about to come down: on the ground just ahead of the feet, or right at the bill up in a plant.
+    // Clinging to bark, the bill meets the food where it is now.
+    const low = this.takesInFeet || this.pose.rotation !== 0 ? null : this.peckHeight();
+    const at = this.takesInFeet ? { ...this.pos } : low === null ? this.billTip() : { x: this.pos.x + this.pose.facing * this.groundReach, y: low };
+    if (at.x < site.x[0] - 3 || at.x > site.x[1] + 3) return false;
+    this.aimAt(at);
+    yield* this.wait(0.3);
+    return true;
+  }
+
+  private reachCache: number | null = null;
+
+  /** How far ahead of its feet the bill comes down when it pecks at the ground, measured on the bird's own drawing. */
+  protected get groundReach(): number {
+    if (this.reachCache !== null) return this.reachCache;
+    const saved = { pos: { ...this.pos }, airborne: this.airborne, pose: { ...this.pose } };
+    this.pos = { x: 30, y: 0 };
+    this.airborne = false;
+    Object.assign(this.pose, this.restingPose(), { facing: 1, rotation: 0 });
+    const rest = this.restingPose();
+    const down = this.reachDown({ pitch: rest.pitch - 0.9, neck: -1.4, head: -1.5, crouch: 0.45 }, 0.09, 0);
+    while (!down.next(0.02).done);
+    this.reachCache = Math.max(0.3, this.billTip().x - this.pos.x);
+    Object.assign(this, { pos: saved.pos, airborne: saved.airborne });
+    Object.assign(this.pose, saved.pose);
+    return this.reachCache;
+  }
+
+  /** How low a peck goes: to the food on or under the ground or water, to the ground, or to the feet on a perch. Null: food up in a plant, peck as usual. */
+  protected peckHeight(): number | null {
+    const site = this.meal?.site;
+    const b = this.billTip();
+    if (site) {
+      const piece = site.units?.reduce<Vec | null>((best, u) => (!best || Math.hypot(u.x - b.x, u.y - b.y) < Math.hypot(best.x - b.x, best.y - b.y) ? u : best), null);
+      if (piece && Math.abs(piece.y - this.pos.y) < this.size) return piece.y;
+      if (site.y <= 0 && this.onGround) return Math.max(site.y, this.world.floorY(b.x));
+      if (site.y > 0) return null;
+    }
+    if (this.onGround) return this.world.floorY(b.x);
+    return this.pose.rotation === 0 ? this.pos.y : null;
+  }
+
+  /** poseTo, but stopping where the bill meets the ground or the bottom (or `low`): a long neck reaches the bottom, not into it. */
+  protected *reachDown(to: Partial<NumericPose>, seconds: number, low = -Infinity): Script {
+    const p = this.pose as unknown as Record<string, number>;
+    const keys = Object.keys(to) as (keyof NumericPose)[];
+    const from = keys.map((k) => p[k]);
+    const set = (t: number) => keys.forEach((k, i) => (p[k] = from[i] + (to[k]! - from[i]) * t));
+    const below = () => {
+      const b = this.billTip();
+      return b.y < Math.max(low, this.world.floorY(b.x));
+    };
+    let last = 0;
+    yield* this.tween(seconds, (t) => {
+      if (last < 0) return;
+      set(t);
+      if (!below()) return void (last = t);
+      // Gone past it this frame: find where the bill just touches.
+      let lo = last;
+      for (let i = 0; i < 10; i++) {
+        const mid = (lo + t) / 2;
+        set(mid);
+        if (below()) t = mid;
+        else lo = mid;
+      }
+      set(lo);
+      last = -1;
+    });
   }
 
   protected *lookAround(seconds: number): Script {
@@ -743,22 +917,26 @@ export abstract class Bird {
     yield* this.travelTo(this.mealRange(true) ? this.foodSpot(4) : { x: this.world.clampLand(rock.x + 9), y: 0 });
     yield* this.peck(3);
     this.hold(item);
+    // It drops the shell onto the rock top just ahead of where it will stand, so the bill comes down on it.
+    const at = { x: rock.x + this.groundReach, y: rock.y - 0.2 };
+    let shell = null as ReturnType<World['emit']> | null;
     for (let tries = Math.random() < 0.5 ? 2 : 1; tries > 0; tries--) {
-      yield* this.flyTo({ x: rock.x, y: rock.y + 17 }, { land: false });
+      yield* this.flyTo({ x: at.x, y: rock.y + 17 }, { land: false });
       this.hold(null);
-      const shell = this.world.emit(item, this.pos.x, this.pos.y, { gravity: 30, floor: rock.y, life: 6 });
-      yield* this.flyTo({ x: rock.x + 3, y: 0 });
-      this.pose.facing = -1;
+      shell = this.world.emit(item, at.x, this.pos.y, { gravity: 30, floor: at.y, life: 30 });
+      yield* this.flyTo({ x: rock.x, y: rock.y });
+      this.pose.facing = 1;
       yield* this.wait(0.3);
-      shell.life = 0;
       if (tries > 1) {
         // Not broken. Pick it up and go again, higher.
-        yield* this.peck(1);
+        yield* this.peck(1, 1, false);
+        shell.life = 0;
         this.hold(item);
       }
     }
-    this.world.burst('chip', rock.x, rock.y, 5);
+    this.world.burst('chip', at.x, at.y, 5);
     yield* this.peck(4, 0.8);
+    if (shell) shell.life = 0;
     yield* this.relax();
   }
 
@@ -828,6 +1006,8 @@ export abstract class Bird {
     const m = this.mealRange();
     const fed = m && pick !== 'far' ? options.filter((q) => q.x >= m[0] - 4 && q.x <= m[1] + 4) : [];
     if (fed.length) return fed[Math.floor(Math.random() * fed.length)];
+    // Otherwise the perch nearest the food, so a hunter is not watching it from across the scene.
+    if (m && pick !== 'far') return options.reduce((a, b) => (Math.abs(b.x - (m[0] + m[1]) / 2) < Math.abs(a.x - (m[0] + m[1]) / 2) ? b : a));
     if (pick === 'near') return options[0];
     if (pick === 'far') return options[options.length - 1];
     return options[Math.floor(Math.random() * options.length)];
@@ -861,10 +1041,57 @@ export abstract class Bird {
     return false;
   }
 
-  /** Roughly where the bill tip is. On a trunk it is close enough to say the body. */
-  protected billTip(): Vec {
-    if (this.pose.rotation !== 0) return { ...this.pos };
-    return { x: this.pos.x + this.pose.facing * this.size * 0.45, y: this.pos.y + this.size * 0.15 };
+  /**
+   * The body's proportions and where the head sits this frame, in the body's own frame: x forward
+   * along the body, y up, origin at the body's center. drawBird draws from these numbers, so
+   * billTip() and headPoint() are exactly where the drawing puts the bill and head.
+   */
+  get frame() {
+    const k = this.look;
+    const p = this.pose;
+    const L = this.size;
+    const a = L * 0.27;
+    const b = a * (0.5 + 0.35 * k.build);
+    const hr = b * 0.62 * k.headSize;
+    const legFull = k.legLength * L;
+    const legLen = this.airborne || this.afloat || this.submerged ? 0 : legFull * (1 - p.crouch);
+    // A swimming bird rides with the lower third of its body under the surface.
+    const cy = this.afloat ? b * 0.45 : legLen + b * 0.85;
+    const neckLen = k.neckLength * 2 * a * p.neckExt + hr * 0.5;
+    const neckAngle = p.neck - p.pitch;
+    const hx = a * 0.7 + Math.cos(neckAngle) * neckLen + p.headThrust * L * 0.12;
+    const hy = b * 0.3 + Math.sin(neckAngle) * neckLen;
+    return { a, b, hr, legFull, legLen, cy, neckLen, hx, hy, beakLen: k.beakLength * 2 * hr };
+  }
+
+  /** A point in the body's frame (see frame), in stage coordinates. */
+  protected toStage(x: number, y: number): Vec {
+    const p = this.pose;
+    const cos = Math.cos(p.pitch);
+    const sin = Math.sin(p.pitch);
+    const bx = (x * cos - y * sin) * p.facing;
+    const by = (x * sin + y * cos) * Math.cos(p.roll) + this.frame.cy;
+    const rc = Math.cos(p.rotation);
+    const rs = Math.sin(p.rotation);
+    return { x: this.pos.x + bx * rc - by * rs, y: this.pos.y + bx * rs + by * rc };
+  }
+
+  /** A point `along` the head's axis from its center: 0 is the center of the head. */
+  private alongHead(along: number): Vec {
+    const f = this.frame;
+    const turn = this.pose.head - this.pose.pitch;
+    return this.toStage(f.hx + along * Math.cos(turn), f.hy + along * Math.sin(turn));
+  }
+
+  /** The tip of the bill, where it is drawn. */
+  billTip(): Vec {
+    const f = this.frame;
+    return this.alongHead(f.hr * 0.75 + f.beakLen);
+  }
+
+  /** The center of the head, and its radius. */
+  headPoint(): Vec & { r: number } {
+    return { ...this.alongHead(0), r: this.frame.hr };
   }
 
   /** Whether the bill (or feet) are at the food the running behavior is after. */
@@ -873,7 +1100,8 @@ export abstract class Bird {
     if (!site) return false;
     const b = this.takesInFeet ? this.pos : this.billTip();
     if (b.x < site.x[0] - 2 || b.x > site.x[1] + 2) return false;
-    return site.units ? site.units.some((u) => Math.hypot(u.x - b.x, u.y - b.y) < 4) : Math.abs(b.y - site.y) <= (site.spread ?? 3);
+    const pieces = this.world.food.find((f) => f.kind === this.meal!.kind)?.units.filter((u) => !u.gone);
+    return site.units ? !!pieces?.some((u) => Math.hypot(u.x - b.x, u.y - b.y) < 4) : Math.abs(b.y - site.y) <= (site.spread ?? 3);
   }
 
   /**
@@ -881,7 +1109,8 @@ export abstract class Bird {
    * startled as the hunter comes in, and the hunter takes it at `target`.
    */
   protected *strikeAt(target: Vec, { land = false, speed = 1.3, hold = 1.2 }: { land?: boolean; speed?: number; hold?: number } = {}): Script {
-    this.startlePrey(target.x);
+    this.startlePrey();
+    this.aimAt(target);
     yield* this.flyTo(target, { land, speed });
     this.take(hold, target);
   }
@@ -892,7 +1121,10 @@ export abstract class Bird {
    * `miss` comes up empty, as many plunges do; the last one of a behavior should not.
    */
   protected *plungeAt(x: number, { speed = 1.6, depth = 1.2, miss = false } = {}): Script {
-    yield* this.flyTo({ x, y: -depth }, { land: false, speed });
+    // Plunge-divers take fish from the top of the water.
+    if (this.meal) this.aimAt({ x, y: -0.6 });
+    // Head first, but not into the bottom of the shallows.
+    yield* this.flyTo({ x, y: Math.max(-depth, this.world.floorY(x) + this.size * 0.4) }, { land: false, speed });
     this.world.burst('splash', x, 0, 12);
     yield* this.wait(0.35);
     if (!miss) this.take(Infinity, { x, y: 0 });
@@ -900,11 +1132,124 @@ export abstract class Bird {
     this.world.burst('splash', x, 0, 6);
   }
 
-  /** How far to swim underwater, up to `span`: to come up with the bill on the food, else away from the nearer end of the water. */
+  /** How far to swim underwater, up to `span`: toward somewhere in the food, else away from the nearer end of the water. */
   protected diveDx(span: number): number {
-    if (this.mealRange()) return clamp(this.foodSpot(span).x - this.pos.x, -span, span);
+    const site = this.meal?.site;
+    const water = this.world.habitat.water;
+    if (site && water) {
+      const x = rand(Math.max(site.x[0], water.from + 4, this.pos.x - span), Math.min(site.x[1], 96, this.pos.x + span));
+      return clamp(x - this.pos.x, -span, span) || rand(-1, 1);
+    }
     const dir = this.pos.x > 80 ? -1 : this.pos.x < 68 ? 1 : Math.random() < 0.5 ? -1 : 1;
     return dir * span * rand(0.7, 1.1);
+  }
+
+  /** Run `main` to the end, calling `side` every frame alongside it. */
+  protected *alongside(main: Script<unknown>, side: (dt: number) => void): Script {
+    for (;;) {
+      const dt = yield;
+      side(dt);
+      if (main.next(dt).done) return;
+    }
+  }
+
+  /**
+   * Others of its kind feeding on the ground beside it, for a bird whose description speaks of a
+   * flock. They only dip their heads to the ground and look up again, and leave the food alone;
+   * with `watch` the first one stands with its neck up the whole time, the flock's sentry.
+   */
+  protected company(n: number, { watch = false } = {}): Bird[] {
+    const Kind = this.constructor as new (world: World, stock: boolean) => Bird;
+    const [lo, hi] = this.world.habitat.land;
+    const flock = Array.from({ length: n }, (_, i) => {
+      const b = new Kind(this.world, false);
+      const side = i % 2 ? 1 : -1;
+      b.pos = { x: clamp(this.pos.x + side * this.size * (1.3 + 0.8 * Math.floor(i / 2)), lo, hi), y: 0 };
+      b.airborne = false;
+      b.pose.facing = Math.random() < 0.5 ? 1 : -1;
+      return b;
+    });
+    this.world.others = flock;
+    // Each one's head-down pose, with the bill on the ground: found the way a peck finds it.
+    const keys = ['pitch', 'neck', 'head', 'crouch'] as const;
+    const poses = flock.map((b) => {
+      const rest = b.restingPose();
+      const saved = { ...b.pose };
+      const reach = b.reachDown({ pitch: rest.pitch - 0.9, neck: -1.4, head: -1.5, crouch: 0.45 }, 0.09, b.pos.y);
+      while (!reach.next(0.02).done);
+      const down = Object.fromEntries(keys.map((k) => [k, b.pose[k]])) as Record<(typeof keys)[number], number>;
+      Object.assign(b.pose, saved);
+      return { up: { pitch: rest.pitch, neck: rest.neck, head: 0.1, crouch: rest.crouch }, down };
+    });
+    let t = 0;
+    this.others = (dt) => {
+      t += dt;
+      flock.forEach((b, i) => {
+        const down = !(watch && i === 0) && Math.sin(t * 1.1 + i * 2.4) > -0.3;
+        const goal = down ? poses[i].down : poses[i].up;
+        const k = Math.min(1, dt * 5);
+        for (const key of keys) b.pose[key] += (goal[key] - b.pose[key]) * k;
+      });
+    };
+    return flock;
+  }
+
+  /**
+   * Rob `victim`, another bird carrying a fish: chase it through every twist and turn until it drops
+   * the fish, and catch the fish before it hits the water. Jaegers and Heermann's Gulls are unrelated
+   * and both do this. The victim is drawn for the rest of the behavior, flying off empty.
+   */
+  protected *robInFlight(victim: Bird): Script {
+    const water = this.world.habitat.water;
+    if (!water) return;
+    const item = (this.meal && FOODS[this.meal.kind].item) || 'fish';
+    // The victim comes in over the water with its catch, from the far end of the bay.
+    const dir: 1 | -1 = this.pos.x < 77 ? -1 : 1;
+    const x0 = dir === -1 ? 97 : water.from + 2;
+    const CHASE = 5;
+    const v = victim.pose;
+    victim.airborne = true;
+    victim.pos = { x: x0, y: 9 };
+    Object.assign(v, { facing: dir, wings: 'open', carry: item, carryInFeet: false, neck: 0.25, head: 0 });
+    this.world.others = [victim];
+    let clock = 0;
+    let dropped = false;
+    // Weaving and climbing to shake off the chaser, then off and away once it has let go of the fish.
+    const path = (t: number): Vec =>
+      dropped ? { x: clamp(x0 + dir * (CHASE * 4.5 + (t - CHASE) * 9), 1, 99), y: 9 + (t - CHASE) * 4 } : { x: x0 + dir * t * 4.5, y: 9 + 3 * Math.sin(t * 2.4) };
+    const fly = (dt: number) => {
+      clock += dt;
+      const a = path(clock);
+      const b = path(clock + 0.05);
+      victim.pos = a;
+      v.facing = b.x >= a.x ? 1 : -1;
+      v.pitch = clamp(Math.atan2(b.y - a.y, Math.abs(b.x - a.x)) * 0.7, -0.8, 0.8);
+      v.flap = Math.sin(clock * TAU * 4);
+    };
+    this.others = fly;
+    // Up to meet it, then in behind it, matching every turn.
+    yield* this.wait(0.6);
+    while (clock < CHASE) {
+      const ahead = path(clock + 0.4);
+      yield* this.flyTo({ x: ahead.x - dir * 3, y: ahead.y - 0.5 }, { land: false, speed: 1.4 });
+    }
+    // The victim lets go of its fish, and the robber drops after it.
+    dropped = true;
+    v.carry = null;
+    const from = { ...victim.billTip() };
+    const fish = this.world.emit(item, from.x, from.y, { vx: dir * 2, gravity: 6, floor: 0, life: 4 });
+    const at = { x: from.x + dir * 2.4, y: Math.max(1.2, from.y - 3) };
+    this.startlePrey();
+    yield* this.alongside(this.flyTo(at, { land: false, speed: 1.9 }), () => {
+      // The fish falls to meet it.
+      const k = clamp(1 - Math.hypot(at.x - this.pos.x, at.y - this.pos.y) / 10, 0, 1);
+      fish.x += (at.x - fish.x) * k * 0.2;
+      fish.y += (at.y - fish.y) * k * 0.2;
+    });
+    fish.life = 0;
+    // The dropped fish, caught where it falls.
+    this.aimAt(at);
+    this.take(Infinity, at);
   }
 
   /** Tear at a catch held in the feet, bite by bite, until it is gone. Hawks, falcons and owls on a perch. */
@@ -925,9 +1270,29 @@ export abstract class Bird {
     this.hold(null);
   }
 
-  /** Warn the prey: a hunter is coming in at x. */
-  protected startlePrey(x: number) {
-    if (this.meal) this.world.startle(this.meal.kind, x);
+  /**
+   * Low passes back and forth over the stretch from a to b, starting from the nearer end, the way a
+   * harrier, a barn owl or a vulture searches open ground. Ends over whichever end the last pass reaches.
+   */
+  protected *quarterOver(a: number, b: number, height: number, passes = 2, speed = 0.6): Script {
+    let [from, to] = Math.abs(this.pos.x - a) < Math.abs(this.pos.x - b) ? [a, b] : [b, a];
+    yield* this.flyTo({ x: from, y: height }, { land: false });
+    for (let i = 0; i < passes; i++) {
+      yield* this.flyTo({ x: (from + to) / 2, y: height + 0.8 }, { land: false, speed });
+      yield* this.flyTo({ x: to, y: height }, { land: false, speed });
+      [from, to] = [to, from];
+    }
+  }
+
+  /** Warn the prey: a hunter is coming in. */
+  protected startlePrey() {
+    if (this.meal) this.world.startle(this.meal.kind);
+  }
+
+  /** The animal this bird is going after is at `at`: it is drawn there until the bird takes it. Returns `at`. */
+  protected aimAt<V extends Vec>(at: V): V {
+    if (this.meal) this.world.prey = { kind: this.meal.kind, x: at.x, y: at.y };
+    return at;
   }
 
   /** Drop onto prey on the ground, mantle over it with wings spread, then tear at it. Hawks, owls and the harrier. */
@@ -954,7 +1319,7 @@ export abstract class Bird {
     if (!site || !over([lo, hi])) return at(clamp(this.pos.x + rand(-range, range), lo, hi));
     // Walking turns the bird to face the way it goes, so it reaches a bill point b by walking toward
     // it and stopping a head-and-bill short: from the right of here if b is far enough right, and so on.
-    const off = this.size * 0.45;
+    const off = this.groundReach;
     const gap = off + 0.2;
     const bodyFor = (b: number) => (b > this.pos.x ? b - off : b + off);
     const ok = (b: number) => Math.abs(b - this.pos.x) >= gap && bodyFor(b) >= lo && bodyFor(b) <= hi;
@@ -974,6 +1339,7 @@ export abstract class Bird {
     const near = options.filter((b) => Math.abs(b - this.pos.x) <= range + off);
     const pool = near.length ? near : options;
     const b = pool[Math.floor(Math.random() * pool.length)] + (pieces?.length ? 0 : rand(-0.2, 0.2));
+    this.aimAt({ x: b, y: site.y });
     return at(clamp(bodyFor(b), lo, hi));
   }
 
@@ -981,7 +1347,9 @@ export abstract class Bird {
   protected huntSpot(height: number): Vec | null {
     const site = this.meal?.site;
     if (!site) return null;
-    return { x: rand(site.x[0], site.x[1]), y: Math.min(this.flight.ceiling, site.y + height) };
+    const x = rand(site.x[0], site.x[1]);
+    this.aimAt({ x, y: site.y });
+    return { x, y: Math.min(this.flight.ceiling, site.y + height) };
   }
 
   /** The point a strike aims at: on the food, else `fallback`. */
@@ -992,7 +1360,7 @@ export abstract class Bird {
     if (piece) return { ...piece };
     // Anywhere through a loose swarm or flock's depth, but not into the ground under it.
     const y = site.y + (site.spread ? rand(-1, 1) * site.spread : 0);
-    return { x: rand(site.x[0], site.x[1]), y: site.y > 0 ? Math.max(1, y) : y };
+    return this.aimAt({ x: rand(site.x[0], site.x[1]), y: site.y > 0 ? Math.max(1, y) : y });
   }
 
   /** The x range of the food the running behavior is after, optionally only if it lies on dry ground. */

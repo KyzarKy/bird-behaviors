@@ -67,7 +67,7 @@ export class NorthernShoveler extends Spatula {
     forage: {
       eats: 'plankton',
       label: 'Sieve the surface',
-      cue: 'Swims in tight circles with the big bill laid flat on the water, sweeping it from side to side. Often several birds circle together, each stirring up food for the next. A Mallard upends; a shoveler rarely does.',
+      cue: 'Swims in tight circles with the big bill laid flat on the water, sweeping it from side to side to strain out plankton. A Mallard upends; a shoveler rarely does.',
     },
   };
 
@@ -114,7 +114,7 @@ export abstract class Aythya extends Anatidae {
     forage: {
       eats: 'shellfish',
       label: 'Dive',
-      cue: 'Springs forward and goes under with a small jump, and stays down much longer than a Bufflehead. A flock dives raggedly, so heads keep disappearing and reappearing across the raft.',
+      cue: 'Springs forward and goes under with a small jump, and stays down much longer than a Bufflehead, pulling mussels and clams off the bottom, and comes up a little way from where it went down.',
     },
   };
 
@@ -255,7 +255,7 @@ export abstract class Oxyura extends Anatidae {
   static override behaviors: BehaviorTable<Oxyura> = {
     forage: {
       label: 'Sink and dive',
-      cue: 'Slides under without a jump and without much splash, the tail the last thing to go. Unlike a scaup, it also dives to escape rather than flying.',
+      cue: 'Slides under without a jump and without much splash, the tail the last thing to go, and comes up with eelgrass and other weed from the bottom. Unlike a scaup, it also dives to escape rather than flying.',
     },
     bubbleDisplay: {
       label: 'Bubble display',
@@ -378,6 +378,7 @@ export abstract class Anser extends Anatidae {
   };
 
   protected override feeding: Feeding = 'graze';
+  protected override grazeFlock = 3;
   protected override runUp = 8;
   /** Cruising height of a migrating flock, in stage units. */
   protected altitude = 30;
@@ -766,7 +767,7 @@ export abstract class Phalaropus extends Scolopacidae {
     forage: {
       eats: 'plankton',
       label: 'Spin on the water',
-      cue: 'Swims in quick circles, sometimes ten or more in a row, then picks at the surface. The spin pulls small animals up from below. No other sandpiper swims at all.',
+      cue: 'Swims in quick circles, sometimes ten or more in a row, then picks at the surface. The spin pulls plankton up from below. No other sandpiper swims at all.',
     },
   };
 
@@ -909,7 +910,7 @@ export abstract class Sterna extends Laridae {
     forage: {
       eats: 'baitfish',
       label: 'Hover and plunge',
-      cue: 'Flies slowly with the head and bill pointed down, stops in a short hover, then folds and drops. If it misses it climbs and tries again a short way on. Smaller than a Caspian Tern, with a thin bill and quicker, lighter wingbeats.',
+      cue: 'Flies slowly with the head and bill pointed down, stops in a short hover over a small fish, then folds and drops. If it misses it climbs and tries again a short way on. Smaller than a Caspian Tern, with a thin bill and quicker, lighter wingbeats.',
     },
   };
 
@@ -996,16 +997,9 @@ export abstract class Stercorariidae extends Charadriiformes {
   *pirate(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x0 = (this.mealRange()?.[0] ?? water.from + 14) + rand(0, 4);
-    yield* this.flyTo({ x: x0, y: 8 }, { land: false, speed: 1.2 });
-    for (let i = 0; i < 4; i++) {
-      yield* this.flyTo({ x: x0 + 4 * i, y: i % 2 ? 12 : 6 }, { land: false, speed: 1.5 });
-    }
+    // A Common Tern coming in from the tide rips with a fish.
+    yield* this.robInFlight(new CommonTern(this.world, false));
     const dir = this.pose.facing;
-    const fish = this.world.emit('fish', this.pos.x + dir * 4, this.pos.y - 1, { gravity: 30, floor: 0, life: 2 });
-    yield* this.flyTo({ x: this.pos.x + dir * 6, y: 1.2 }, { land: false, speed: 1.8 });
-    fish.life = 0;
-    this.take(Infinity, { x: this.pos.x, y: 0 });
     yield* this.flyTo({ x: clamp(this.pos.x + dir * 8, water.from + 2, 95), y: 5 }, { land: false });
     yield* this.flyTo(this.findPerch() ?? this.groundSpot(water.from - 8, 6));
     yield* this.poseTo({ head: 0.7, neck: 1.2 }, 0.15);
@@ -1200,6 +1194,7 @@ export class BrownPelican extends Pelecanus {
     wing: '#7d786e',
     tail: '#6a655c',
     beak: '#a09a8a',
+    pouch: '#5a5048',
     legs: '#2a2a2a',
     eye: '#2a2420',
   };
@@ -1208,7 +1203,7 @@ export class BrownPelican extends Pelecanus {
     forage: {
       eats: 'baitfish',
       label: 'Plunge-dive',
-      cue: 'Circles 30 feet or more above the water, then folds the wings and drops headfirst with a huge splash. It comes up with the pouch full, tips the bill down to drain the water, then swallows. No other large waterbird here dives from this height.',
+      cue: 'Circles 30 feet or more above the water, then folds the wings and drops headfirst with a huge splash onto a school of fish. It comes up with the pouch full, tips the bill down to drain the water, then swallows. No other large waterbird here dives from this height.',
     },
   };
 

@@ -39,7 +39,7 @@ export abstract class Galliformes extends Bird {
     forage: {
       eats: 'fallenSeed',
       label: 'Scratch and peck',
-      cue: 'One foot at a time rakes backward, then the bird steps back and inspects what it uncovered. Compare the towhee, which kicks with both feet at once.',
+      cue: 'One foot at a time rakes backward, then the bird steps back and picks up the seeds it uncovered. Compare the towhee, which kicks with both feet at once.',
     },
     dustBathe: {
       label: 'Dust bathe',

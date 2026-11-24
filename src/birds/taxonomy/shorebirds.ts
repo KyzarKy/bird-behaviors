@@ -28,7 +28,7 @@ export abstract class Charadriidae extends Charadriiformes {
     forage: {
       eats: { yard: 'grassBugs', beach: 'sandCritters' },
       label: 'Run, stop, peck',
-      cue: 'A burst of fast running, a dead stop with the body drawn upright and the head cocked, then one stab. A sandpiper walks steadily and probes without stopping to look.',
+      cue: 'A burst of fast running, a dead stop with the body drawn upright and the head cocked, then one stab at an insect in the grass or a small crab or worm on the sand. A sandpiper walks steadily and probes without stopping to look.',
     },
   };
 
@@ -210,19 +210,20 @@ export abstract class Haematopodidae extends Charadriiformes {
 
   *pryShellfish(): Script {
     const rock = this.findPerch(['rock'], 'near');
-    yield* this.travelTo({ x: this.world.clampLand((rock?.x ?? this.pos.x) - 5), y: 0 });
-    this.pose.facing = 1;
+    yield* this.travelTo(this.mealRange(true) ? this.foodSpot(6) : { x: this.world.clampLand((rock?.x ?? this.pos.x) - 5), y: 0 });
+    // Bill down on a mussel, then hammer and pry at it until it opens.
+    yield* this.peck(1, 0, false);
+    yield* this.reachDown({ pitch: this.restingPose().pitch - 0.9, neck: -1.4, head: -1.5, crouch: 0.45 }, 0.2, this.peckHeight() ?? 0);
     for (let i = 0; i < 3; i++) {
-      yield* this.poseTo({ pitch: -0.25, neck: -0.2, head: -1.2 }, 0.2);
       for (let k = 0; k < 5; k++) {
-        yield* this.poseTo({ head: -1.5 }, 0.05);
-        yield* this.poseTo({ head: -1 }, 0.05);
+        yield* this.poseTo({ headThrust: 0.15 }, 0.05);
+        yield* this.poseTo({ headThrust: 0 }, 0.05);
       }
-      this.world.burst('chip', this.pos.x + this.size * 0.5, 0.3, 2);
+      this.world.burst('chip', this.billTip().x, this.billTip().y, 2);
       yield* this.wait(0.3);
     }
+    if (this.atFood()) this.take(Infinity);
     yield* this.relax(0.15);
-    this.take(Infinity);
     yield* this.poseTo({ head: 0.7, neck: 1.2 }, 0.2);
     yield* this.wait(0.3);
     this.hold(null);
@@ -304,7 +305,7 @@ export abstract class Scolopacidae extends Charadriiformes {
     forage: {
       eats: 'sandCritters',
       label: 'Probe the sand',
-      cue: 'Walks without stopping and pushes the bill in again and again, like a sewing machine. Compare where each species feeds: Western in the shallows, Dunlin at the edge, Least on the dry mud above.',
+      cue: 'Walks without stopping and pushes the bill in again and again, like a sewing machine, feeling for worms and tiny crabs. Compare where each species feeds: Western in the shallows, Dunlin at the edge, Least on the dry mud above.',
     },
   };
 
@@ -327,6 +328,7 @@ export abstract class Scolopacidae extends Charadriiformes {
     for (let i = 0; i < this.probeBouts; i++) {
       yield* this.moveOnGround(this.mealRange(true) ? this.foodSpot(4).x : clamp(this.pos.x + rand(-4, 2), centre - 6, centre + 2));
       yield* this.poseTo({ pitch: rest.pitch - 0.45, neck: -0.3, head: -1 }, 0.07);
+      yield* this.glimpse();
       for (let k = 0; k < this.probeStitch * 2; k++) yield* this.poseTo({ neck: k % 2 ? -0.3 : -0.55 }, 0.04);
       if (this.atFood()) this.take();
       yield* this.relax(0.1);
@@ -349,7 +351,7 @@ export abstract class Arenaria extends Scolopacidae {
     forage: {
       eats: 'wrack',
       label: 'Flip stones and weed',
-      cue: 'Pushes its bill under the edge of a stone or a mat of seaweed and heaves it over with a jerk of the neck, then picks at what was hiding underneath. No sandpiper does this.',
+      cue: 'Pushes its bill under the edge of a stone or a mat of seaweed and heaves it over with a jerk of the neck, then picks off the kelp flies and sand hoppers that were hiding underneath. No sandpiper does this.',
     },
   };
 
@@ -445,7 +447,7 @@ export class Sanderling extends Calidris {
     forage: {
       eats: 'sandCritters',
       label: 'Chase the wave edge',
-      cue: 'Races down the wet sand after a wave slides back, stabs at what it uncovered, and sprints back up the beach ahead of the next one, legs a blur. Other sandpipers keep away from the surf.',
+      cue: 'Races down the wet sand after a wave slides back, stabs at the tiny crabs and worms it uncovered, and sprints back up the beach ahead of the next one, legs a blur. Other sandpipers keep away from the surf.',
     },
   };
 
@@ -646,19 +648,20 @@ export class GreaterYellowlegs extends Tringa {
 
   *chaseMinnows(): Script {
     const edge = edgeOf(this.world.habitat.water);
-    const x = edge + rand(2, 6);
+    const x = Math.min(edge + rand(2, 6), this.wadeMax() - 1);
     yield* this.travelTo({ x, y: this.world.floorY(x) });
-    yield* this.poseTo({ pitch: 0.05, neck: 0.2, head: -0.7 }, 0.2);
+    // Bill down in the water, ready to sweep it from side to side.
+    yield* this.poseTo({ pitch: -0.1, neck: -0.5, head: -1.1 }, 0.2);
     for (let i = 0; i < 4; i++) {
       const dir = i % 2 ? -1 : 1;
       const x0 = this.pos.x;
-      const x1 = clamp(x0 + dir * 4, edge + 1, edge + 8);
+      const x1 = clamp(x0 + dir * 4, edge + 1, this.wadeMax());
       this.pose.facing = dir;
       yield* this.tween(0.8, (t) => {
         this.pos.x = x0 + (x1 - x0) * t;
         this.pos.y = this.world.floorY(this.pos.x);
         this.pose.stride = Math.sin(t * 35);
-        this.pose.head = -0.7 + 0.35 * Math.sin(t * 30);
+        this.pose.head = -1.1 + 0.3 * Math.sin(t * 30);
       });
       this.world.burst('splash', this.pos.x, this.pos.y, 2);
     }
@@ -788,7 +791,7 @@ export class ShortBilledGull extends Larus {
       eats: 'plankton',
       label: 'Dip-feed',
       feeding: true,
-      cue: 'Hovers on fast wingbeats a metre above the water and dips to take small food from the surface without landing. Larger gulls land or plunge.',
+      cue: 'Hovers on fast wingbeats a metre above the water and dips to take plankton and tiny shrimp from the surface without landing. Larger gulls land or plunge.',
     },
   };
 
@@ -801,6 +804,8 @@ export class ShortBilledGull extends Larus {
     yield* this.flyTo({ x: x + 3, y: 0.3 }, { land: false, speed: 0.6 });
     this.world.burst('splash', this.pos.x, 0, 3);
     this.take(0.5, { x: this.pos.x, y: 0 });
+    // Up off the water before heading back to the beach.
+    yield* this.flyTo({ x: this.pos.x + 2, y: 4 }, { land: false });
     yield* this.flyTo(this.groundSpot(water.from - 8, 6));
     yield* this.relax();
   }
@@ -840,7 +845,7 @@ export class CaliforniaGull extends Larus {
     forage: {
       eats: 'wrack',
       label: 'Work the wrack line',
-      cue: 'Walks the line of seaweed at the high-tide mark, turning over debris and picking up anything edible. Gulls like this one are more often scavenging than hunting.',
+      cue: 'Walks the line of seaweed at the high-tide mark, turning over debris and snapping up the kelp flies and sand hoppers that swarm out. Gulls like this one are more often scavenging than hunting.',
     },
   };
 
@@ -899,20 +904,15 @@ export class HeermannsGull extends Larus {
       eats: 'baitfish',
       label: 'Steal a fish',
       feeding: true,
-      cue: 'Chases another seabird low over the water, matching every twist, until the victim drops its catch. It lands with the stolen fish and swallows it fast.',
+      cue: 'Chases another seabird, here a Caspian Tern, low over the water, matching every twist, until the victim drops its catch. It lands with the stolen fish and swallows it fast.',
     },
   };
 
   *pirate(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    // Over the school, after a bird that has just caught a fish.
-    const x = this.preySpot({ x: water.from + rand(10, 20), y: 0 }).x;
-    yield* this.flyTo({ x, y: 4 }, { land: false });
-    for (let i = 0; i < 3; i++) {
-      yield* this.flyTo({ x: clamp(x + rand(-8, 8), water.from + 3, 96), y: rand(1, 6) }, { land: false, speed: 1.4 });
-    }
-    this.take(Infinity, { x, y: 0 });
+    // After a Caspian Tern that has just caught a fish over the school.
+    yield* this.robInFlight(new CaspianTern(this.world, false));
     yield* this.flyTo(this.groundSpot(water.from - 6, 6));
     yield* this.peck(2, 1.2);
     yield* this.relax();
@@ -950,7 +950,7 @@ export abstract class Chroicocephalus extends Laridae {
       eats: 'plankton',
       label: 'Skim and dip',
       feeding: true,
-      cue: 'Flutters low over the water and dips down three or four times in a row to pick from the surface, climbing between dips. Tern-like, and nothing a Larus gull does.',
+      cue: 'Flutters low over the water and dips down three or four times in a row to pick plankton and tiny shrimp from the surface, climbing between dips. Tern-like, and nothing a Larus gull does.',
     },
   };
 
@@ -1015,7 +1015,7 @@ export abstract class Hydroprogne extends Laridae {
     forage: {
       eats: 'baitfish',
       label: 'Hover and plunge',
-      cue: 'Patrols with the bill angled down, stops to hover for a moment, then folds and drops headfirst into the water. A gull never dives from the air like this.',
+      cue: 'Patrols with the bill angled down, stops to hover for a moment over a fish, then folds and drops headfirst into the water. A gull never dives from the air like this.',
     },
   };
 
@@ -1214,7 +1214,7 @@ export abstract class Cerorhinca extends Alcidae {
       eats: 'baitfish',
       label: 'Carry fish to the colony',
       feeding: true,
-      cue: 'Surfaces with several small fish held crosswise in the bill and flies straight out toward the colony, low and fast. It does not eat them.',
+      cue: 'Surfaces with several small fish held crosswise in the bill and flies straight out toward the colony on Protection Island, low and fast. It does not eat them.',
     },
   };
 
@@ -1225,10 +1225,9 @@ export abstract class Cerorhinca extends Alcidae {
     // A bill full of fish, carried home to the burrow.
     this.hold(this.pose.carry);
     yield* this.wait(0.6);
-    yield* this.flyOver({ x: rand(88, 95), y: 0 });
-    yield* this.wait(0.5);
+    // Off low and fast toward the colony, out past the end of the bay.
+    yield* this.flyTo({ x: 97, y: 2.5 }, { land: false, speed: 1.3 });
     this.hold(null);
-    yield* this.relax();
   }
 }
 

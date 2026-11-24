@@ -207,7 +207,7 @@ export abstract class Parulidae extends Passeriformes {
     forage: {
       eats: 'leafBugs',
       label: 'Glean from twig tips',
-      cue: 'Flits from tip to tip, pecking at leaves and buds, with a flick of the tail between pecks. Compare the height it works and how long it stays at each stop; a warbler that never pauses is typical.',
+      cue: 'Flits from tip to tip, picking caterpillars and other insects off the leaves and buds, with a flick of the tail between pecks. Compare the height it works and how long it stays at each stop; a warbler that never pauses is typical.',
     },
   };
 
@@ -329,7 +329,7 @@ export class YellowRumpedWarbler extends Setophaga {
       eats: 'leafBugs',
       label: 'Glean from twig tips',
       feeding: true,
-      cue: 'Between sallies it works the twigs like any other warbler, pecking at leaves and buds.',
+      cue: 'Between sallies it works the twigs like any other warbler, picking caterpillars off the leaves and buds.',
       weight: 2,
     },
   };
@@ -569,6 +569,11 @@ export abstract class Cardinalidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.6, beakShape: 'stout', beakLength: 0.7, tailLength: 0.6 };
 
   static override behaviors: BehaviorTable<Cardinalidae> = {
+    forage: {
+      eats: 'grassBugs',
+      label: 'Hop and pick insects',
+      cue: 'Drops to the ground and hops through the grass picking up grasshoppers and other insects, most of all when it has young to feed.',
+    },
     pluckFruit: {
       eats: 'berries',
       label: 'Pluck a berry',

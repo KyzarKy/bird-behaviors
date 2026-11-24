@@ -116,8 +116,15 @@ export abstract class Anatidae extends Anseriformes {
     yield* this.toWater();
     const p = this.pose;
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.foodSpot(6).x);
-      yield* this.poseTo({ pitch: -clamp(0.5 + 0.5 * this.reach, 0.5, 1.4), neck: -0.5, neckExt: 0.8 + 0.4 * this.reach, head: -0.9 }, 0.35);
+      // Out over the deeper end of the weed bed, where reaching the bottom takes upending.
+      const m = this.mealRange();
+      yield* this.moveOnGround(m ? clamp(rand(m[1] - 4, m[1]), water.from + 4, 94) : this.foodSpot(6).x);
+      // Head and neck straight down, then the neck stretches and the stern tips up until the bill is on
+      // the bottom. In the shallows that is only the neck; in deeper water the bird upends as far as it can.
+      p.facing = 1;
+      yield* this.reachDown({ neck: -1.45, neckExt: 0.25, head: -1.5 }, 0.2);
+      yield* this.reachDown({ neckExt: 0.8 + 0.4 * this.reach }, 0.25);
+      yield* this.reachDown({ pitch: -clamp(0.5 + 0.5 * this.reach, 0.5, 1.4) }, 0.25);
       for (let t = 0; t < 0.8 + 0.6 * this.reach; ) {
         t += yield;
         p.stride = Math.sin(t * 10) * 0.6;
@@ -159,8 +166,13 @@ export abstract class Anatidae extends Anseriformes {
   }
 
   /** Walk ashore and crop low plants. */
+  /** How many others of its kind graze with it. */
+  protected grazeFlock = 0;
+
   protected *grazeOnLand(): Script {
     yield* this.travelTo(this.mealRange(true) ? this.foodSpot(4) : { x: this.world.clampLand(this.world.habitat.land[1] - rand(2, 18)), y: 0 });
+    // Geese graze in flocks, with one standing watch.
+    if (this.grazeFlock) this.company(this.grazeFlock, { watch: true });
     for (let i = 0; i < this.grazeBites; i++) {
       yield* this.moveOnGround(this.foodSpot(5).x);
       yield* this.peck(Math.ceil(rand(2, 4)), 0.9);
@@ -185,7 +197,7 @@ export abstract class Anas extends Anatidae {
   static override behaviors: BehaviorTable<Anas> = {
     forage: {
       label: 'Dabble and tip up',
-      cue: 'Stern in the air, head and neck under, feet paddling to hold position. It reaches only as far as its neck allows, so the length of the upended stretch of body tells long-necked Pintails from short-necked Teal. A diving duck never does this.',
+      cue: 'Stern in the air, head and neck under, feet paddling to hold position while it pulls eelgrass and other weed off the bottom. It reaches only as far as its neck allows, so the length of the upended stretch of body tells long-necked Pintails from short-necked Teal. A diving duck never does this.',
     },
   };
 
@@ -384,7 +396,7 @@ export abstract class Bucephala extends Anatidae {
     forage: {
       eats: 'shellfish',
       label: 'Dive',
-      cue: 'Pops up and down with a small forward jump, spending only a few seconds under. It surfaces within a few yards of where it went down.',
+      cue: 'Pops up and down with a small forward jump, spending only a few seconds under, and comes up with a small mussel or crab from the bottom. It surfaces within a few yards of where it went down.',
     },
     headThrow: {
       label: 'Head-throw display',
@@ -604,7 +616,7 @@ export abstract class Histrionicus extends Anatidae {
     forage: {
       eats: 'shellfish',
       label: 'Dive in the surf',
-      cue: 'Bobs like a cork in the wash around rocks and goes under between waves, working the rock face for crabs and mussels. Other ducks stay out of the surf zone.',
+      cue: 'Bobs like a cork in the surf and goes under between waves to pull mussels off the bottom; along rocky shores it works the rock face for crabs too. Other ducks stay out of the surf zone.',
     },
     haulOut: {
       label: 'Haul out on a rock',
@@ -675,7 +687,7 @@ export abstract class Clangula extends Anatidae {
     forage: {
       eats: 'shellfish',
       label: 'Dive deep',
-      cue: 'Leaps clear of the water to go under and stays down longer than the other ducks, using the wings underwater. It comes up well away from where it went down.',
+      cue: 'Leaps clear of the water to go under and stays down longer than the other ducks, using the wings underwater to reach mussels and other shellfish on the bottom. It comes up well away from where it went down.',
     },
     yodel: {
       label: 'Yodel',
@@ -751,12 +763,12 @@ export abstract class Mergus extends Anatidae {
 
   static override behaviors: BehaviorTable<Mergus> = {
     forage: {
-      eats: 'minnows',
+      eats: 'baitfish',
       label: 'Pursuit dive',
       cue: 'Swims with the face in the water, then dives in a smooth forward roll and chases fish underwater. Fish are swallowed head first at the surface.',
     },
     snorkel: {
-      eats: 'minnows',
+      eats: 'baitfish',
       label: 'Snorkel',
       feeding: true,
       cue: 'Cruises along with the head down and the bill underwater, scanning for fish before committing to a dive. No other duck does this for long.',
@@ -949,11 +961,12 @@ export abstract class Branta extends Anatidae {
       eats: 'grass',
       label: 'Graze',
       feeding: true,
-      cue: 'Walks up the beach in a loose group and crops with short, jerky pulls, head down, one or two birds always standing watch with the neck up.',
+      cue: 'Walks up the beach or across a lawn in a loose group and crops with short, jerky pulls, head down, one or two birds always standing watch with the neck up.',
     },
   };
 
   protected override feeding: Feeding = 'graze';
+  protected override grazeFlock = 3;
   protected override runUp = 7;
 
   /** Geese hold the neck upright. */
@@ -1062,7 +1075,7 @@ export abstract class Cygnus extends Anatidae {
   static override behaviors: BehaviorTable<Cygnus> = {
     forage: {
       label: 'Upend',
-      cue: 'The neck goes down vertically and the whole front of the body tips after it, tail high. It reaches farther than any duck and stays under longer, pulling roots and eelgrass.',
+      cue: 'The neck goes straight down to the bottom, pulling roots and eelgrass. In the shallows the neck alone reaches; in deeper water the whole front of the body tips after it, tail high. It reaches farther than any duck and stays under longer.',
     },
   };
 

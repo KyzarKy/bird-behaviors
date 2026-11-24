@@ -1,4 +1,5 @@
-import { EXTRAS, FOOD_SITES, FOODS, REGROW, type FoodKind, type FoodSite } from './food';
+import { EXTRAS, FOOD_SITES, FOODS, type FoodKind, type FoodSite } from './food';
+import type { Bird } from './Bird';
 import type { HabitatId, Item, PerchKind, Vec } from './traits';
 
 /**
@@ -6,6 +7,11 @@ import type { HabitatId, Item, PerchKind, Vec } from './traits';
  * ground line. Distances and bird sizes are stylized, not to scale.
  */
 export const STAGE = { width: 100, top: 53, bottom: -9 };
+
+/** Depth of the bay where the beach has shelved away, deep enough for a diving bird to swim under. */
+export const DEEP = 7;
+/** How fast the bottom drops away from the waterline: depth per stage unit out. */
+export const SHELVE = 0.3;
 
 export interface Perch extends Vec {
   kind: PerchKind;
@@ -50,15 +56,15 @@ export interface Particle extends Vec {
   life: number;
 }
 
-/** A food on show. `left` is 1 for a whole piece, and climbs back from 0 after one is eaten. */
+/** A food on show. A piece a bird takes is gone until its behavior ends, then the food is as it was. */
 export interface FoodPatch {
   kind: FoodKind;
   site: FoodSite;
-  units: (Vec & { left: number })[];
-  /** Seconds before it peeks again, after a bird has just fed on it. */
-  quiet: number;
-  /** Seconds since a hunter last startled it. The flock takes cover for a while after. */
-  startled: number;
+  units: (Vec & { gone: boolean })[];
+  /** Set while a hunter is after the flock: it bursts out of cover, and settles back once the hunt is over. */
+  flushed: boolean;
+  /** 0 settled .. 1 gone from view, easing toward `flushed`. */
+  away: number;
 }
 
 /** A small animal that keeps out of sight showing itself for a moment. */
@@ -69,8 +75,10 @@ export interface Peek extends Vec {
   seconds: number;
 }
 
-/** Seconds a startled flock stays away before it drifts back in. */
-export const FLUSH = 22;
+/** The one animal a hunting bird is going after, drawn where it is until the bird takes it. */
+export interface Prey extends Vec {
+  kind: FoodKind;
+}
 
 /** How far from the bill a piece of food can be and still be taken. */
 const REACH = 4;
@@ -79,10 +87,14 @@ export class World {
   particles: Particle[] = [];
   food: FoodPatch[] = [];
   peek: Peek | null = null;
+  prey: Prey | null = null;
+  /** Other birds in the story of a behavior, such as the tern a jaeger robs. Drawn, and moved by the bird that brought them. */
+  others: Bird[] = [];
   /** Seconds since the scene was made. */
   time = 0;
-  // The first peek comes soon after a bird arrives, then only one to three a minute.
+  // The first peek comes within a few seconds of a bird arriving, then one every 10 to 15 seconds.
   private nextPeek = 2 + Math.random() * 6;
+  private peeked = 0;
 
   constructor(readonly habitat: Habitat) {
     this.stock([]);
@@ -93,7 +105,7 @@ export class World {
     const sites = FOOD_SITES[this.habitat.id];
     this.food = [...new Set([...EXTRAS[this.habitat.id], ...kinds])].flatMap((kind) => {
       const site = sites[kind];
-      return site ? [{ kind, site, units: (site.units ?? []).map((u) => ({ ...u, left: 1 })), quiet: 0, startled: Infinity }] : [];
+      return site ? [{ kind, site, units: (site.units ?? []).map((u) => ({ x: u.x, y: site.onBottom ? this.floorY(u.x) + u.y : u.y, gone: false })), flushed: false, away: 0 }] : [];
     });
   }
 
@@ -101,41 +113,47 @@ export class World {
     return this.food.find((f) => f.kind === kind)?.site ?? null;
   }
 
-  /** A bird took some at `at`: the nearest whole piece within reach goes, and the food keeps out of sight for a while. */
+  /** A bird took some at `at`: the nearest piece within reach goes, and so does the animal it was after. */
   eat(kind: FoodKind, at: Vec) {
+    this.prey = null;
     const patch = this.food.find((f) => f.kind === kind);
     if (!patch) return;
-    patch.quiet = 20;
     const d = (u: Vec) => Math.hypot(u.x - at.x, u.y - at.y);
-    const piece = patch.units.filter((u) => u.left >= 1 && d(u) < REACH).sort((a, b) => d(a) - d(b))[0];
-    if (piece) piece.left = 0;
+    const piece = patch.units.filter((u) => !u.gone && d(u) < REACH).sort((a, b) => d(a) - d(b))[0];
+    if (piece) piece.gone = true;
   }
 
-  /** A hunter is coming in at x: the flock bursts out of cover, a vole bolts, fish flash as they scatter. */
-  startle(kind: FoodKind, x: number) {
+  /** A behavior is over: every food goes back to how it was, and any other bird in its story leaves. */
+  restore() {
+    for (const f of this.food) {
+      f.flushed = false;
+      for (const u of f.units) u.gone = false;
+    }
+    this.prey = null;
+    this.others = [];
+  }
+
+  /** A hunter is coming in: the flock bursts out of cover until the hunt is over. */
+  startle(kind: FoodKind) {
     const patch = this.food.find((f) => f.kind === kind);
-    if (!patch) return;
-    patch.startled = 0;
-    if (FOODS[kind].hidden) this.peek = { kind, x, y: patch.site.y, t: 0, seconds: 1.5 };
+    if (patch) patch.flushed = true;
   }
 
   step(dt: number) {
     this.time += dt;
-    for (const f of this.food) {
-      f.quiet -= dt;
-      f.startled += dt;
-      for (const u of f.units) u.left = Math.min(1, u.left + dt / REGROW);
-    }
+    for (const f of this.food) f.away = Math.max(0, Math.min(1, f.away + (f.flushed ? dt / 1.2 : -dt / 2)));
     if (this.peek && (this.peek.t += dt) > this.peek.seconds) this.peek = null;
     if ((this.nextPeek -= dt) <= 0) {
-      // Only small animals that keep out of sight peek. Plants and the flock are always in view.
-      const ready = this.food.filter((f) => f.quiet <= 0 && FOODS[f.kind].hidden);
-      const f = ready[Math.floor(Math.random() * ready.length)];
+      // Only small animals that keep out of sight peek, taking turns. Plants and the flock are always in view.
+      const hidden = this.food.filter((f) => FOODS[f.kind].hidden);
+      const f = hidden[this.peeked++ % Math.max(1, hidden.length)];
       if (f) {
+        // At one of its places when it has them (a caterpillar under a leaf), else anywhere along its patch.
         const [lo, hi] = f.site.x;
-        this.peek = { kind: f.kind, x: lo + Math.random() * (hi - lo), y: f.site.y, t: 0, seconds: 2 };
-        this.nextPeek = 20 + Math.random() * 40;
-      } else this.nextPeek = 3;
+        const u = f.units[Math.floor(Math.random() * f.units.length)];
+        this.peek = { kind: f.kind, x: u ? u.x : lo + Math.random() * (hi - lo), y: u ? u.y : f.site.y, t: 0, seconds: 2 };
+      }
+      this.nextPeek = 10 + Math.random() * 5;
     }
     for (const p of this.particles) {
       p.life -= dt;
@@ -171,7 +189,7 @@ export class World {
   /** Height of whatever a bird's feet would rest on: 0 on land, the bottom under water. */
   floorY(x: number): number {
     const w = this.habitat.water;
-    return w && x > w.from ? -Math.min(2.4, (x - w.from) * 0.22) : 0;
+    return w && x > w.from ? -Math.min(DEEP, (x - w.from) * SHELVE) : 0;
   }
 
   clampLand(x: number): number {
@@ -210,6 +228,10 @@ export const HABITATS: Record<HabitatId, Habitat> = {
       { x: 78, y: 27, r: 6, color: '#8ab864' },
       { x: 94, y: 29, r: 6, color: '#8ab864' },
       { x: 86, y: 37, r: 6, color: '#7fae5a' },
+      // Leafy sprays at the ends of the low oak limbs, where gleaners work.
+      { x: 70.8, y: 18.3, r: 2.1, color: '#8ab864' },
+      { x: 74.6, y: 22.5, r: 2.2, color: '#7fae5a' },
+      { x: 97.2, y: 20.3, r: 2.1, color: '#8ab864' },
       { x: 46, y: 3.6, r: 4, color: '#4f8a4a' },
       { x: 50.5, y: 4.6, r: 4.6, color: '#458043' },
       { x: 54, y: 3.2, r: 3.4, color: '#4f8a4a' },

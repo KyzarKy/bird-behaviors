@@ -310,7 +310,7 @@ export abstract class Podicipedidae extends Podicipediformes {
     forage: {
       eats: 'baitfish',
       label: 'Leap and dive',
-      cue: 'A quick glance below, then a forward jump that arches the body out of the water and a head-first plunge. The dive is short and the bird comes up not far away. A loon slips under with no arch and stays down longer.',
+      cue: 'A quick glance below, then a forward jump that arches the body out of the water and a head-first plunge after a small fish. The dive is short and the bird comes up not far away. A loon slips under with no arch and stays down longer.',
     },
     sinkLow: {
       label: 'Sink low',
@@ -532,7 +532,7 @@ export abstract class Podilymbus extends Podicipedidae {
   static override behaviors: BehaviorTable<Podilymbus> = {
     forage: {
       label: 'Sink out of sight',
-      cue: 'No leap. The body settles lower and lower as it squeezes air out of its plumage, until only the head is above water, then it goes straight down and comes up close by, often near cover. Most other grebes jump.',
+      cue: 'No leap. The body settles lower and lower as it squeezes air out of its plumage, until only the head is above water, then it goes straight down after a small fish and comes up close by, often near cover. Most other grebes jump.',
     },
   };
 
