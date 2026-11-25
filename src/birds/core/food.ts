@@ -138,7 +138,7 @@ export const FOOD_SITES: Record<HabitatId, Partial<Record<FoodKind, FoodSite>>> 
     barkBugs: { x: [31, 33], y: 15, spread: 14 },
     // Under the leaves at the ends of the low oak limbs and along the bottom of the crown.
     leafBugs: { x: [68, 98], y: 18, units: [[70.6, 16.5], [71.9, 17], [74.4, 20.6], [75.8, 21.2], [96.6, 18.5], [97.8, 18.9], [79, 21.6], [92.5, 23.6]].map(([x, y]) => ({ x, y })) },
-    swarm: { x: [34, 60], y: 15, spread: 6 },
+    swarm: { x: [42, 52], y: 15, spread: 2.5 },
     voles: { x: [16, 44], y: 0 },
     flock: { x: [44, 56], y: 4, spread: 4 },
     carrion: { x: [91, 95], y: 0 },
@@ -151,7 +151,7 @@ export const FOOD_SITES: Record<HabitatId, Partial<Record<FoodKind, FoodSite>>> 
     ants: { x: [21, 31], y: 1.6 },
     wrack: { x: [33, 42], y: 0 },
     carrion: { x: [36, 39], y: 0 },
-    swarm: { x: [31, 45], y: 5, spread: 5 },
+    swarm: { x: [33, 43], y: 5, spread: 2.5 },
     // A mussel bed on the bottom of the shallows, for the diving ducks.
     shellfish: { x: [62, 76], y: -3.3, spread: 2.5, onBottom: true, units: along(8, 62, 76, 0.35) },
     // Clusters at the foot of the rocks, clear of the wrack line so they can be seen.

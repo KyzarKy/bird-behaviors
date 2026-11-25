@@ -812,6 +812,8 @@ export abstract class Bird {
       else yield* this.reachDown({ pitch: rest.pitch - 0.9 * depth, neck: -1.4, head: -1.5, crouch: 0.45 }, 0.09, low - 0.3 * (depth - 1));
       if (spot) this.aimAt(this.billTip());
       if (eat && i === 0 && !this.pose.carry && this.atFood()) this.take();
+      // Missed: the animal that showed hides again rather than staying drawn.
+      else if (spot) this.world.prey = null;
       yield* this.wait(0.04);
       yield* this.poseTo({ pitch: rest.pitch, neck: rest.neck, head: 0, crouch: rest.crouch }, 0.11);
       yield* this.wait(rand(0.08, 0.22));
@@ -986,10 +988,11 @@ export abstract class Bird {
   }
 
   /** A climbable trunk, preferring one the bird is not already on. */
-  protected findTrunk(): Trunk | null {
+  /** A trunk to climb: the one with the food on it, or with `next`, any other than the one it is on. */
+  protected findTrunk(next = false): Trunk | null {
     const trunks = this.world.habitat.trunks.filter((t) => t.climb);
     const m = this.mealRange();
-    const fed = m && trunks.find((t) => t.x >= m[0] - 3 && t.x <= m[1] + 3);
+    const fed = !next && m && trunks.find((t) => t.x >= m[0] - 3 && t.x <= m[1] + 3);
     if (fed) return fed;
     const others = trunks.filter((t) => Math.abs(t.x - this.pos.x) > 3);
     const pool = others.length ? others : trunks;

@@ -177,7 +177,8 @@ export abstract class Certhiidae extends Passeriformes {
 
   *spiralUp(): Script {
     for (let tree = 0; tree < 2; tree++) {
-      const trunk = this.findTrunk();
+      // A creeper never climbs the same tree twice running: after the top it drops to the foot of another.
+      const trunk = this.findTrunk(tree > 0);
       if (!trunk?.climb) return;
       const [bottom, top] = trunk.climb;
       // The drop from the last tree is a flutter down, so the bird arrives at the base.

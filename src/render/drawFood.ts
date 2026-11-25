@@ -64,11 +64,14 @@ const BACK: Record<FoodKind, Draw> = {
     ctx.fill();
   },
   swarm(ctx, f, world) {
+    // The cloud fills the site exactly, so a bird hawking anywhere in the site is in the swarm.
     const mid = (f.site.x[0] + f.site.x[1]) / 2;
+    const wide = (f.site.x[1] - f.site.x[0]) / 2 - 0.6;
+    const tall = (f.site.spread ?? 3) - 0.4;
     ctx.fillStyle = 'rgba(40,40,40,0.55)';
     for (let i = 0; i < 9; i++) {
-      const x = mid + Math.sin(world.time * 0.7 + i * 2.1) * 4 + Math.sin(world.time * 3.1 + i) * 0.6;
-      const y = f.site.y + Math.cos(world.time * 0.9 + i * 1.7) * 2 + Math.sin(world.time * 4 + i * 3) * 0.4;
+      const x = mid + Math.sin(world.time * 0.7 + i * 2.1) * wide + Math.sin(world.time * 3.1 + i) * 0.6;
+      const y = f.site.y + Math.cos(world.time * 0.9 + i * 1.7) * tall + Math.sin(world.time * 4 + i * 3) * 0.4;
       dot(ctx, x, y, 0.09);
     }
   },
