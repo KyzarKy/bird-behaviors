@@ -4,7 +4,7 @@
  * the order's `sing`; each family below adds the way it moves through cover.
  */
 import { clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants, Vec } from '../core/traits';
 import { Passeriformes, Poecile, Turdidae } from './passeriformes';
 
 /** Open-and-close the bill n times, the same gesture `sing` uses. */
@@ -87,6 +87,17 @@ export abstract class Aegithalidae extends Passeriformes {
       label: 'Stream through the bushes',
       cue: 'Hangs upside down at the twig tips picking off aphids and tiny caterpillars, then moves on to the next bush within seconds, calling the whole way. Flocks travel this way, one bird after another in a string.',
     },
+    trickle: {
+      label: 'Cross a gap in a string',
+      cue: 'Rather than flying as a group, the flock crosses open ground one or two birds at a time, each following the last a second or so later with a constant thin twitter, until the whole flock has trickled into the next bush.',
+      flock: true,
+      weight: 2,
+    },
+    huddle: {
+      label: 'Huddle to roost',
+      cue: 'On cold evenings the flock gathers in a sheltered tree and the birds press tightly together in rows on the branches, side by side, fluffed into gray balls to share warmth through the night.',
+      flock: true,
+    },
   };
 
   override forage(): Script {
@@ -102,6 +113,37 @@ export abstract class Aegithalidae extends Passeriformes {
       yield* this.reachFor(leaf, reach, { hang: true, bites: Math.ceil(rand(2, 4)), hold: 0.4 });
       yield* this.poseTo({ rotation: 0 }, 0.15);
     }
+    yield* this.relax();
+  }
+
+  /** One after another, a second or so apart, each to a bush of its own on the far side. */
+  *trickle(): Script {
+    const f = this.flock;
+    if (!f) return yield* this.fly();
+    this.say(this.ecology.call, 1.5);
+    yield* this.wait(f.delay(this) * 3);
+    const perch = this.findPerch(this.ecology.perches, 'far');
+    if (perch) yield* this.flyTo(perch);
+    yield* this.relax();
+  }
+
+  /** The flock pressed into short rows, five to a branch, on the branches nearest its middle, fluffed and still. */
+  *huddle(): Script {
+    const f = this.flock;
+    const c = f?.center() ?? this.pos;
+    const d = (q: Vec) => Math.hypot(q.x - c.x, q.y - c.y);
+    const spots = this.world.habitat.perches.filter((q) => (q.kind === 'branch' || q.kind === 'twig') && q.y <= this.flight.ceiling);
+    if (!spots.length) return yield* this.relax();
+    spots.sort((a, b) => d(a) - d(b));
+    const birds = f?.birds ?? [this];
+    const i = [...birds].sort((a, b) => a.pos.x - b.pos.x).indexOf(this);
+    const row = Math.min(Math.floor(i / 5), spots.length - 1);
+    const spot = spots[row];
+    const inRow = Math.min(5, birds.length - row * 5);
+    yield* this.wait((f?.delay(this) ?? 0) * 1.5);
+    yield* this.flyTo({ x: spot.x + ((i % 5) - (inRow - 1) / 2) * this.size * 0.35, y: spot.y });
+    yield* this.poseTo({ crouch: 0.8, neck: -0.2, head: -0.1 }, 0.5);
+    yield* this.wait(rand(8, 12));
     yield* this.relax();
   }
 }
@@ -120,7 +162,7 @@ export class Bushtit extends Psaltriparus {
     rank: 'species',
     name: 'Psaltriparus minimus',
     common: 'Bushtit',
-    note: 'A plain gray ball with a long tail, smaller than a chickadee. Flocks pass through the Miller Peninsula brush all year. Males have a dark eye, females a pale yellow one.',
+    note: 'A plain gray ball with a long tail, smaller than a chickadee. Flocks pass through the Miller Peninsula brush all year. Males have a dark eye, females a pale yellow one. Outside the nesting season they travel in flocks of about 10 to 40, crossing open gaps one bird at a time, and on cold nights the birds huddle in tight rows on the branches of one roost tree.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -139,6 +181,10 @@ export class Bushtit extends Psaltriparus {
     tail: '#76726c',
     beak: '#222222',
     legs: '#2a2826',
+  };
+
+  static override variants: Variants = {
+    female: { eye: '#e6d68a' },
   };
 }
 
