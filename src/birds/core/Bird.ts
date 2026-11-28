@@ -407,6 +407,31 @@ export abstract class Bird {
     yield* this.relax();
   }
 
+  /** The whole flock feeds at once, a perch or spot each, with a contact call as it starts. Listed by flocking families. */
+  *feedTogether(): Script {
+    yield* this.wait((this.flock?.delay(this) ?? 0) * 1.5);
+    this.say(this.ecology.call, 1.2);
+    yield* this.forage();
+  }
+
+  /**
+   * The flock perched in short rows, `perRow` to a perch, on the perches of `kinds` nearest its middle, `spacing`
+   * body lengths apart. Birds past the last row join it.
+   */
+  protected *perchInRows(kinds: PerchKind[], perRow: number, spacing: number): Script<boolean> {
+    const c = this.flock?.center() ?? this.pos;
+    const d = (q: Vec) => Math.hypot(q.x - c.x, q.y - c.y);
+    const spots = this.world.habitat.perches.filter((q) => kinds.includes(q.kind) && q.y <= this.flight.ceiling).sort((p, q) => d(p) - d(q));
+    if (!spots.length) return false;
+    const birds = this.flock?.birds ?? [this];
+    const i = [...birds].sort((p, q) => p.pos.x - q.pos.x).indexOf(this);
+    const row = Math.min(Math.floor(i / perRow), spots.length - 1);
+    const inRow = Math.min(perRow, birds.length - row * perRow);
+    yield* this.wait((this.flock?.delay(this) ?? 0) * 1.5);
+    yield* this.flyTo({ x: spots[row].x + ((i % perRow) - (inRow - 1) / 2) * this.size * spacing, y: spots[row].y });
+    return true;
+  }
+
   /**
    * High-tide roost: the flock packs into a tight row on the upper beach, all facing the same way, hunched. Listed
    * by the shorebirds.

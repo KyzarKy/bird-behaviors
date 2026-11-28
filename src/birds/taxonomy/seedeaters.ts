@@ -430,13 +430,6 @@ export abstract class Fringillidae extends Passeriformes {
     }
     yield* this.relax();
   }
-
-  /** Everyone feeds at once, a perch each, with a contact call as it starts. */
-  *feedTogether(): Script {
-    yield* this.wait((this.flock?.delay(this) ?? 0) * 1.5);
-    this.say(this.ecology.call, 1.2);
-    yield* this.forage();
-  }
 }
 
 // ---- Haemorhous

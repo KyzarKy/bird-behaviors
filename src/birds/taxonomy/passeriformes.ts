@@ -501,6 +501,13 @@ export abstract class Paridae extends Passeriformes {
       feeding: true,
       cue: 'Takes one seed and leaves. On a branch it pins the seed under both feet and hammers it open with its bill; it never sits on a seed head cracking seeds like a finch.',
     },
+    feedTogether: {
+      eats: 'leafBugs',
+      label: 'Move through the trees together',
+      cue: 'Winter flocks work through the trees together, birds spread out a little, calling back and forth as they hang from twigs and pick insects from the bark, then drift on to the next tree.',
+      feeding: true,
+      flock: true,
+    },
   };
 
   override forage(): Script {

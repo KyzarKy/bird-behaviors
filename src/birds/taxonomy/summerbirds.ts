@@ -1,5 +1,5 @@
 import { rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, PerchKind, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, PerchKind, Script, Taxon, Variants } from '../core/traits';
 import { Contopus, Passeriformes, Tyrannidae } from './passeriformes';
 
 // Summer songbirds of the Miller Peninsula: swallows, warblers, tanagers, grosbeaks and the
@@ -37,6 +37,19 @@ export abstract class Hirundinidae extends Passeriformes {
       label: 'Hawk insects on the wing',
       cue: 'Never still in the air: a few quick flaps, a long swoop or glide, a sharp turn toward an insect, and the bill gapes. Height over the ground and how much of the time the wings are set tell the species apart.',
     },
+    feedTogether: {
+      eats: 'swarm',
+      label: 'Hawk insects together',
+      cue: 'The flock feeds together over water or a field, each bird swooping and twisting after flying insects, often low over the surface in cool weather.',
+      feeding: true,
+      flock: true,
+      weight: 2,
+    },
+    lineUp: {
+      label: 'Line up on a perch',
+      cue: 'Swallows rest together in rows on a bare branch or fence, evenly spaced and facing the same way, especially in late summer before they migrate.',
+      flock: true,
+    },
   };
 
   /** Lowest and highest height of the feeding sweeps, in stage units. */
@@ -60,6 +73,14 @@ export abstract class Hirundinidae extends Passeriformes {
       this.pose.beakOpen = 0;
     }
     yield* this.toPerch();
+    yield* this.relax();
+  }
+
+  /** Evenly spaced along a perch, all facing the same way. */
+  *lineUp(): Script {
+    if (!(yield* this.perchInRows(['branch', 'post', 'twig', 'treetop'], 5, 0.55))) return yield* this.relax();
+    this.pose.facing = 1;
+    yield* this.wait(rand(6, 10));
     yield* this.relax();
   }
 }
@@ -102,6 +123,10 @@ export class VioletGreenSwallow extends Tachycineta {
     beak: '#222222',
     legs: '#4a4038',
   };
+  static override variants: Variants = {
+    // Female: duller and browner above, with less white on the face.
+    female: { body: '#4e6e58', head: '#566a5e', cap: '#566a5e' },
+  };
 
   protected override hawkLow = 12;
   protected override hawkHigh = 34;
@@ -113,11 +138,11 @@ export class TreeSwallow extends Tachycineta {
     rank: 'species',
     name: 'Tachycineta bicolor',
     common: 'Tree Swallow',
-    note: 'Glossy blue-green above, white below, with a white throat that stops at a clean dark cap and no white on the rump. The earliest swallow back, from March, perching on bare twigs and nest boxes in the yard.',
+    note: 'Glossy blue-green above, white below, with a white throat that stops at a clean dark cap and no white on the rump. The earliest swallow back, from March, perching on bare twigs and nest boxes in the yard. Gathers in flocks in late summer before migrating.',
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 10 };
-  static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
+  static override ecology: Partial<Ecology> = { flockSize: 20, scenes: { beach: 2 },
     habitat: 'yard',
     perches: ['twig', 'post'],
     call: 'chee-weet, chi-veet',
@@ -134,6 +159,10 @@ export class TreeSwallow extends Tachycineta {
     tail: '#1f2d3d',
     beak: '#222222',
     legs: '#4a4038',
+  };
+  static override variants: Variants = {
+    // Juvenile: plain gray-brown above, with a faint gray-brown wash across the breast.
+    juvenile: { body: '#6a6662', head: '#6a6662', cap: '#6a6662', wing: '#4e4a46', tail: '#4e4a46' },
   };
 
   protected override hawkLow = 5;
@@ -180,6 +209,10 @@ export class BarnSwallow extends Hirundo {
     tail: '#17284a',
     beak: '#222222',
     legs: '#4a4038',
+  };
+  static override variants: Variants = {
+    // Female: paler buff underparts and shorter tail streamers.
+    female: { belly: '#e8c8a8', tailLength: 0.6 },
   };
 
   // The only swallow here that works the grass tops: low passes, mostly flapped.

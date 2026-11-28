@@ -4,7 +4,7 @@
  * the order's `sing`; each family below adds the way it moves through cover.
  */
 import { clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants, Vec } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants } from '../core/traits';
 import { Passeriformes, Poecile, Turdidae } from './passeriformes';
 
 /** Open-and-close the bill n times, the same gesture `sing` uses. */
@@ -23,7 +23,7 @@ export class BlackCappedChickadee extends Poecile {
     rank: 'species',
     name: 'Poecile atricapillus',
     common: 'Black-capped Chickadee',
-    note: 'Black cap and bib, white cheek, gray back, buff flanks. Resident around Discovery Bay and the Miller Peninsula, in deciduous edges more than the dense conifers its chestnut-backed cousin prefers. The only chickadee here that whistles a song.',
+    note: 'Black cap and bib, white cheek, gray back, buff flanks. Resident around Discovery Bay and the Miller Peninsula, in deciduous edges more than the dense conifers its chestnut-backed cousin prefers. The only chickadee here that whistles a song. In winter they travel in small flocks, often joined by kinglets, nuthatches and creepers.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -129,19 +129,7 @@ export abstract class Aegithalidae extends Passeriformes {
 
   /** The flock pressed into short rows, five to a branch, on the branches nearest its middle, fluffed and still. */
   *huddle(): Script {
-    const f = this.flock;
-    const c = f?.center() ?? this.pos;
-    const d = (q: Vec) => Math.hypot(q.x - c.x, q.y - c.y);
-    const spots = this.world.habitat.perches.filter((q) => (q.kind === 'branch' || q.kind === 'twig') && q.y <= this.flight.ceiling);
-    if (!spots.length) return yield* this.relax();
-    spots.sort((a, b) => d(a) - d(b));
-    const birds = f?.birds ?? [this];
-    const i = [...birds].sort((a, b) => a.pos.x - b.pos.x).indexOf(this);
-    const row = Math.min(Math.floor(i / 5), spots.length - 1);
-    const spot = spots[row];
-    const inRow = Math.min(5, birds.length - row * 5);
-    yield* this.wait((f?.delay(this) ?? 0) * 1.5);
-    yield* this.flyTo({ x: spot.x + ((i % 5) - (inRow - 1) / 2) * this.size * 0.35, y: spot.y });
+    if (!(yield* this.perchInRows(['branch', 'twig'], 5, 0.35))) return yield* this.relax();
     yield* this.poseTo({ crouch: 0.8, neck: -0.2, head: -0.1 }, 0.5);
     yield* this.wait(rand(8, 12));
     yield* this.relax();
@@ -486,6 +474,13 @@ export abstract class Regulidae extends Passeriformes {
       label: 'Flick the wings',
       cue: 'Both wings snap open and shut about every second, even when the bird is otherwise still. Hutton’s Vireo, which looks similar, does not do this.',
     },
+    feedTogether: {
+      eats: 'leafBugs',
+      label: 'Feed together',
+      cue: 'Small winter flocks work through the conifers together, hovering at the twig tips for tiny insects and keeping up constant high, thin calls, often with chickadees.',
+      feeding: true,
+      flock: true,
+    },
   };
 
   /** Seconds each visit to a twig tip holds the hover. */
@@ -574,6 +569,10 @@ export class GoldenCrownedKinglet extends Regulus {
     wing: '#6e7448',
     tail: '#6b6f4a',
   };
+  static override variants: Variants = {
+    // Female: the crown stripe is all yellow, with no orange center.
+    female: { cap: '#f2d23a' },
+  };
 }
 
 export class RubyCrownedKinglet extends Regulus {
@@ -584,7 +583,7 @@ export class RubyCrownedKinglet extends Regulus {
     note: 'Plain olive with a bold broken white eye-ring and a dark bar behind the white wingbar. The red crown is almost always hidden and shows only when a male is excited. Winters in thickets at Discovery Bay and the Miller Peninsula, and passes through in spring and fall.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 1,
     habitat: 'yard',
     perches: ['twig', 'shrub'],
     call: 'je-dit (a dry, scolding chatter)',
@@ -605,6 +604,10 @@ export class RubyCrownedKinglet extends Regulus {
     eyeRing: '#f4f1ea',
     wing: '#6c7250',
     tail: '#686c4c',
+  };
+  static override variants: Variants = {
+    // Female: no red crown patch.
+    female: { cap: undefined, crest: 'none' },
   };
 
   static override behaviors: BehaviorTable<RubyCrownedKinglet> = {
@@ -878,6 +881,19 @@ export abstract class Bombycillidae extends Passeriformes {
       feeding: true,
       cue: 'Sits on an exposed treetop, darts out after an insect, and returns to the same lookout. It sallies like a flycatcher but is stockier and keeps a crest.',
     },
+    feedTogether: {
+      eats: 'berries',
+      label: 'Strip a fruiting tree together',
+      cue: 'The flock drops into a fruiting tree or shrub all at once and works it over, swallowing berries whole, then lifts off together, often leaving the branches nearly bare.',
+      feeding: true,
+      flock: true,
+      weight: 2,
+    },
+    lineUp: {
+      label: 'Sit shoulder to shoulder',
+      cue: 'Between feeding bouts the flock perches close together in a row along a bare branch, sleek and upright, giving thin, high trills.',
+      flock: true,
+    },
   };
 
   override forage(): Script {
@@ -959,6 +975,18 @@ export abstract class Bombycillidae extends Passeriformes {
       yield* this.relax(0.15);
     }
   }
+
+  /** A tight row on a branch, sleek and upright, trilling now and then. */
+  *lineUp(): Script {
+    if (!(yield* this.perchInRows(['branch', 'treetop', 'twig'], 4, 0.42))) return yield* this.relax();
+    const rest = this.restingPose();
+    yield* this.poseTo({ pitch: rest.pitch + 0.25, neck: rest.neck + 0.1 }, 0.3);
+    for (let i = 0; i < 3; i++) {
+      yield* this.wait(rand(2, 4));
+      this.say(this.ecology.call, 1);
+    }
+    yield* this.relax();
+  }
 }
 
 export abstract class Bombycilla extends Bombycillidae {
@@ -975,7 +1003,7 @@ export class CedarWaxwing extends Bombycilla {
     rank: 'species',
     name: 'Bombycilla cedrorum',
     common: 'Cedar Waxwing',
-    note: 'Silky brown with a pale yellow belly, a black mask, a crest, and a yellow tail band. The waxy red wing tips are small and show only up close. Flocks move through Gardiner and the Miller Peninsula yards, most often from May to October, to strip berries and take insects over water.',
+    note: 'Silky brown with a pale yellow belly, a black mask, a crest, and a yellow tail band. The waxy red wing tips are small and show only up close. Flocks move through Gardiner and the Miller Peninsula yards, most often from May to October, to strip berries and take insects over water. Almost always in flocks, which descend on fruiting trees together and strip them quickly.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -998,6 +1026,10 @@ export class CedarWaxwing extends Bombycilla {
     tail: '#7a7d80',
     beak: '#222222',
     legs: '#2a2420',
+  };
+  static override variants: Variants = {
+    // Juvenile: grayer, with blurry streaks on the breast and belly and a smaller mask.
+    juvenile: { body: '#9a8e7e', breast: '#b0a490', belly: '#e0d8c0', spots: '#8a7a68', throat: undefined },
   };
 }
 
