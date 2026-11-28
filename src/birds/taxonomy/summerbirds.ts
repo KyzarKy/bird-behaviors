@@ -33,6 +33,7 @@ export abstract class Hirundinidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Hirundinidae> = {
     forage: {
+      eats: 'swarm',
       label: 'Hawk insects on the wing',
       cue: 'Never still in the air: a few quick flaps, a long swoop or glide, a sharp turn toward an insect, and the bill gapes. Height over the ground and how much of the time the wings are set tell the species apart.',
     },
@@ -52,10 +53,10 @@ export abstract class Hirundinidae extends Passeriformes {
 
   *hawk(): Script {
     for (let i = 0; i < 5; i++) {
-      const bug = this.world.emit('insect', rand(15, 85), rand(this.hawkLow, this.hawkHigh), { life: 4 });
+      const bug = this.preySpot({ x: rand(15, 85), y: rand(this.hawkLow, this.hawkHigh) });
       this.pose.beakOpen = 1;
       yield* this.flyTo(bug, { land: false, speed: this.swoopSpeed, glide: i % this.glideEvery === this.glideEvery - 1 });
-      bug.life = 0;
+      this.take(0.3, bug);
       this.pose.beakOpen = 0;
     }
     yield* this.toPerch();
@@ -204,8 +205,9 @@ export abstract class Parulidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Parulidae> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Glean from twig tips',
-      cue: 'Flits from tip to tip, pecking at leaves and buds, with a flick of the tail between pecks. Compare the height it works and how long it stays at each stop; a warbler that never pauses is typical.',
+      cue: 'Flits from tip to tip, picking caterpillars and other insects off the leaves and buds, with a flick of the tail between pecks. Compare the height it works and how long it stays at each stop; a warbler that never pauses is typical.',
     },
   };
 
@@ -220,7 +222,8 @@ export abstract class Parulidae extends Passeriformes {
 
   *glean(): Script {
     for (let i = 0; i < 4; i++) {
-      const stop = this.findPerch(this.gleanPerches, 'any') ?? this.groundSpot(this.pos.x, 6);
+      // Down in the grass if that is where its insects are, else from twig to twig.
+      const stop = (this.mealRange(true) && this.foodSpot(8)) || (this.findPerch(this.gleanPerches, 'any') ?? this.groundSpot(this.pos.x, 6));
       yield* this.flyOver(stop);
       for (let j = 0; j < 2; j++) {
         yield* this.peck(Math.ceil(rand(1, 2)), 0.6);
@@ -318,13 +321,15 @@ export class YellowRumpedWarbler extends Setophaga {
 
   static override behaviors: BehaviorTable<YellowRumpedWarbler> = {
     forage: {
+      eats: 'swarm',
       label: 'Flycatch from a perch',
       cue: 'Darts out from a branch to snap an insect, banks, and returns. The tail fans on the turn and flashes the yellow rump. Other warblers here glean from leaves and rarely do this.',
     },    // It still gleans like the rest of its family, and in winter eats berries and seeds too.
     glean: {
+      eats: 'leafBugs',
       label: 'Glean from twig tips',
       feeding: true,
-      cue: 'Between sallies it works the twigs like any other warbler, pecking at leaves and buds.',
+      cue: 'Between sallies it works the twigs like any other warbler, picking caterpillars off the leaves and buds.',
       weight: 2,
     },
   };
@@ -338,10 +343,9 @@ export class YellowRumpedWarbler extends Setophaga {
     for (let i = 0; i < 3; i++) {
       const home = { ...this.pos };
       const dir = home.x > 60 ? -1 : 1;
-      const bug = this.world.emit('insect', home.x + dir * rand(4, 9), home.y + rand(-1, 5), { life: 4 });
-      this.pose.facing = dir;
-      yield* this.flyTo(bug, { land: false, speed: 1.2 });
-      bug.life = 0;
+      const bug = this.preySpot({ x: home.x + dir * rand(4, 9), y: home.y + rand(-1, 5) });
+      this.pose.facing = bug.x >= home.x ? 1 : -1;
+      yield* this.strikeAt(bug, { speed: 1.2, hold: 0.5 });
       this.say('snap!', 0.6);
       yield* this.poseTo({ roll: 0.7 * dir, tailFan: 1, beakOpen: 1 }, 0.1);
       yield* this.poseTo({ roll: 0, tailFan: 0, beakOpen: 0 }, 0.1);
@@ -489,6 +493,11 @@ export abstract class Geothlypis extends Parulidae {
   };
 
   static override behaviors: BehaviorTable<Geothlypis> = {
+    forage: {
+      eats: 'grassBugs',
+      label: 'Glean low',
+      cue: 'Works low through grass and weeds, mostly out of sight, hopping and picking insects off stems near the ground.',
+    },
     popUp: {
       label: 'Pop up and sing',
       cue: 'Skulks in the low cover, then flies up to an open post or twig, throws its head back to sing, and drops straight back in. The song is the best way to find one.',
@@ -560,7 +569,13 @@ export abstract class Cardinalidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.6, beakShape: 'stout', beakLength: 0.7, tailLength: 0.6 };
 
   static override behaviors: BehaviorTable<Cardinalidae> = {
+    forage: {
+      eats: 'grassBugs',
+      label: 'Hop and pick insects',
+      cue: 'Comes down into low growth or onto the ground to pick off grasshoppers and other insects. A grosbeak more often gleans up in the foliage; a bunting feeds mainly low.',
+    },
     pluckFruit: {
+      eats: 'berries',
       label: 'Pluck a berry',
       feeding: true,
       cue: 'Reaches out from a perch, snips a berry with the heavy bill, then tips its head back and swallows it whole. Fruit is a large part of the late-summer diet.',
@@ -568,14 +583,16 @@ export abstract class Cardinalidae extends Passeriformes {
   };
 
   *pluckFruit(): Script {
-    yield* this.toPerch(['shrub']);
+    // Into the shrub, beside a berry, and reach out for it.
+    const reach = { neck: 1.1, head: -0.5, pitch: 0.5 };
     for (let i = 0; i < 2; i++) {
-      yield* this.poseTo({ neck: 1.1, head: -0.5, pitch: 0.5 }, 0.2);
-      this.pose.carry = 'seed';
+      const berry = this.pieceInReach(reach);
+      if (!berry) return;
+      yield* this.reachFor(berry, reach, { hold: Infinity });
       yield* this.poseTo({ neck: 0.95, head: 0, pitch: this.restingPose().pitch }, 0.2);
       yield* this.wait(0.3);
       yield* this.poseTo({ head: 0.8, neck: 1.2 }, 0.15);
-      this.pose.carry = null;
+      this.hold(null);
       yield* this.relax(0.2);
       yield* this.wait(0.3);
     }
@@ -594,6 +611,7 @@ export abstract class Piranga extends Cardinalidae {
 
   static override behaviors: BehaviorTable<Piranga> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Work along the canopy',
       cue: 'Moves from branch to branch at a slow pace, stopping to stare for several seconds before reaching out to take an insect or a berry. Compare the pause length with a warbler’s.',
     },
@@ -658,6 +676,7 @@ export abstract class Pheucticus extends Cardinalidae {
 
   static override behaviors: BehaviorTable<Pheucticus> = {
     crackSeed: {
+      eats: 'seedHeads',
       label: 'Crack a seed',
       feeding: true,
       cue: 'Takes a seed to a branch and works it between the two halves of the bill with a slow, rolling chewing motion, then drops the husk. A finch does the same on a smaller scale; the grosbeak takes visibly longer.',
@@ -665,15 +684,15 @@ export abstract class Pheucticus extends Cardinalidae {
   };
 
   *crackSeed(): Script {
-    yield* this.travelTo(this.findPerch(['shrub']) ?? this.groundSpot(this.pos.x, 8));
+    yield* this.travelTo(this.preySpot(this.findPerch(['shrub']) ?? this.groundSpot(this.pos.x, 8)));
     yield* this.peck(1);
-    this.pose.carry = 'seed';
+    this.hold(this.pose.carry);
     yield* this.toPerch(['branch']);
     for (let i = 0; i < 6; i++) {
       yield* this.poseTo({ beakOpen: 0.6, head: -0.3 }, 0.12);
       yield* this.poseTo({ beakOpen: 0, head: 0 }, 0.12);
     }
-    this.pose.carry = null;
+    this.hold(null);
     this.world.burst('chip', this.pos.x, this.pos.y, 3);
     yield* this.relax();
   }

@@ -26,8 +26,9 @@ export abstract class Charadriidae extends Charadriiformes {
 
   static override behaviors: BehaviorTable<Charadriidae> = {
     forage: {
+      eats: { yard: 'grassBugs', beach: 'sandCritters' },
       label: 'Run, stop, peck',
-      cue: 'A burst of fast running, a dead stop with the body drawn upright and the head cocked, then one stab. A sandpiper walks steadily and probes without stopping to look.',
+      cue: 'A burst of fast running, a dead stop with the body drawn upright and the head cocked, then one stab at an insect in the grass or a small crab or worm on the sand. A sandpiper walks steadily and probes without stopping to look.',
     },
   };
 
@@ -43,8 +44,7 @@ export abstract class Charadriidae extends Charadriiformes {
     yield* this.toGround();
     const rest = this.restingPose();
     for (let i = 0; i < this.runCount; i++) {
-      const dir = this.pos.x > 45 ? -1 : this.pos.x < 15 ? 1 : Math.random() < 0.5 ? 1 : -1;
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + dir * rand(0.6, 1) * this.runLength), 1.3);
+      yield* this.moveOnGround(this.foodSpot(this.runLength).x, 1.3);
       yield* this.poseTo({ pitch: rest.pitch + 0.35, neck: rest.neck + 0.15, head: -0.35 }, 0.08);
       yield* this.wait(rand(0.4, 0.9));
       yield* this.peck(1, 1.1);
@@ -198,6 +198,7 @@ export abstract class Haematopodidae extends Charadriiformes {
 
   static override behaviors: BehaviorTable<Haematopodidae> = {
     forage: {
+      eats: 'mussels',
       label: 'Open a mussel',
       cue: 'Stands at the foot of a rock and hammers with short, hard blows, then twists the bill in and levers the shell open. A gull drops the same shellfish from the air instead.',
     },
@@ -209,22 +210,23 @@ export abstract class Haematopodidae extends Charadriiformes {
 
   *pryShellfish(): Script {
     const rock = this.findPerch(['rock'], 'near');
-    yield* this.travelTo({ x: this.world.clampLand((rock?.x ?? this.pos.x) - 5), y: 0 });
-    this.pose.facing = 1;
+    yield* this.travelTo(this.mealRange(true) ? this.foodSpot(6) : { x: this.world.clampLand((rock?.x ?? this.pos.x) - 5), y: 0 });
+    // Bill down on a mussel, then hammer and pry at it until it opens.
+    yield* this.peck(1, 0, false);
+    yield* this.reachDown({ pitch: this.restingPose().pitch - 0.9, neck: -1.4, head: -1.5, crouch: 0.45 }, 0.2, this.peckHeight() ?? 0);
     for (let i = 0; i < 3; i++) {
-      yield* this.poseTo({ pitch: -0.25, neck: -0.2, head: -1.2 }, 0.2);
       for (let k = 0; k < 5; k++) {
-        yield* this.poseTo({ head: -1.5 }, 0.05);
-        yield* this.poseTo({ head: -1 }, 0.05);
+        yield* this.poseTo({ headThrust: 0.15 }, 0.05);
+        yield* this.poseTo({ headThrust: 0 }, 0.05);
       }
-      this.world.burst('chip', this.pos.x + this.size * 0.5, 0.3, 2);
+      this.world.burst('chip', this.billTip().x, this.billTip().y, 2);
       yield* this.wait(0.3);
     }
+    if (this.atFood()) this.take(Infinity);
     yield* this.relax(0.15);
-    this.pose.carry = 'clam';
     yield* this.poseTo({ head: 0.7, neck: 1.2 }, 0.2);
     yield* this.wait(0.3);
-    this.pose.carry = null;
+    this.hold(null);
     yield* this.relax();
   }
 }
@@ -301,8 +303,9 @@ export abstract class Scolopacidae extends Charadriiformes {
 
   static override behaviors: BehaviorTable<Scolopacidae> = {
     forage: {
+      eats: 'sandCritters',
       label: 'Probe the sand',
-      cue: 'Walks without stopping and pushes the bill in again and again, like a sewing machine. Compare where each species feeds: Western in the shallows, Dunlin at the edge, Least on the dry mud above.',
+      cue: 'Walks without stopping and pushes the bill in again and again, like a sewing machine, feeling for worms and tiny crabs. Compare where each species feeds: Western in the shallows, Dunlin at the edge, Least on the dry mud above.',
     },
   };
 
@@ -319,13 +322,15 @@ export abstract class Scolopacidae extends Charadriiformes {
   *probe(): Script {
     const edge = edgeOf(this.world.habitat.water);
     const centre = edge + this.feedOffset;
-    const x = clamp(centre + rand(-4, 0), 6, 95);
+    const x = this.mealRange(true) ? this.foodSpot(6).x : clamp(centre + rand(-4, 0), 6, 95);
     yield* this.travelTo({ x, y: this.world.floorY(x) });
     const rest = this.restingPose();
     for (let i = 0; i < this.probeBouts; i++) {
-      yield* this.moveOnGround(clamp(this.pos.x + rand(-4, 2), centre - 6, centre + 2));
+      yield* this.moveOnGround(this.mealRange(true) ? this.foodSpot(4).x : clamp(this.pos.x + rand(-4, 2), centre - 6, centre + 2));
       yield* this.poseTo({ pitch: rest.pitch - 0.45, neck: -0.3, head: -1 }, 0.07);
+      const shown = yield* this.glimpse();
       for (let k = 0; k < this.probeStitch * 2; k++) yield* this.poseTo({ neck: k % 2 ? -0.3 : -0.55 }, 0.04);
+      this.takeOrHide(shown);
       yield* this.relax(0.1);
     }
     yield* this.relax();
@@ -344,8 +349,9 @@ export abstract class Arenaria extends Scolopacidae {
 
   static override behaviors: BehaviorTable<Arenaria> = {
     forage: {
+      eats: 'wrack',
       label: 'Flip stones and weed',
-      cue: 'Pushes its bill under the edge of a stone or a mat of seaweed and heaves it over with a jerk of the neck, then picks at what was hiding underneath. No sandpiper does this.',
+      cue: 'Pushes its bill under the edge of a stone or a mat of seaweed and heaves it over with a jerk of the neck, then picks off the kelp flies and sand hoppers that were hiding underneath. No sandpiper does this.',
     },
   };
 
@@ -361,7 +367,7 @@ export abstract class Arenaria extends Scolopacidae {
       yield* this.poseTo({ pitch: 0.1, head: -0.2 }, 0.1);
       this.world.burst('dust', this.pos.x + this.pose.facing * this.size * 0.5, 0.3, 4, this.pose.facing);
       yield* this.peck(Math.ceil(rand(2, 3)), 0.8);
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-2, 2)));
+      yield* this.moveOnGround(this.foodSpot(2).x);
     }
     yield* this.relax();
   }
@@ -439,8 +445,9 @@ export class Sanderling extends Calidris {
 
   static override behaviors: BehaviorTable<Sanderling> = {
     forage: {
+      eats: 'sandCritters',
       label: 'Chase the wave edge',
-      cue: 'Races down the wet sand after a wave slides back, stabs at what it uncovered, and sprints back up the beach ahead of the next one, legs a blur. Other sandpipers keep away from the surf.',
+      cue: 'Races down the wet sand after a wave slides back, stabs at the tiny crabs and worms it uncovered, and sprints back up the beach ahead of the next one, legs a blur. Other sandpipers keep away from the surf.',
     },
   };
 
@@ -629,6 +636,7 @@ export class GreaterYellowlegs extends Tringa {
 
   static override behaviors: BehaviorTable<GreaterYellowlegs> = {
     forage: {
+      eats: 'minnows',
       label: 'Chase minnows',
       cue: 'Runs through knee-deep water swinging the bill from side to side to scythe up small fish. A Lesser Yellowlegs picks at the surface instead.',
     },
@@ -640,23 +648,26 @@ export class GreaterYellowlegs extends Tringa {
 
   *chaseMinnows(): Script {
     const edge = edgeOf(this.world.habitat.water);
-    const x = edge + rand(2, 6);
+    const x = Math.min(edge + rand(2, 6), this.wadeMax() - 1);
     yield* this.travelTo({ x, y: this.world.floorY(x) });
-    yield* this.poseTo({ pitch: 0.05, neck: 0.2, head: -0.7 }, 0.2);
+    // Bill down in the water, ready to sweep it from side to side.
+    yield* this.poseTo({ pitch: -0.1, neck: -0.5, head: -1.1 }, 0.2);
     for (let i = 0; i < 4; i++) {
       const dir = i % 2 ? -1 : 1;
       const x0 = this.pos.x;
-      const x1 = clamp(x0 + dir * 4, edge + 1, edge + 8);
+      const x1 = clamp(x0 + dir * 4, edge + 1, this.wadeMax());
       this.pose.facing = dir;
       yield* this.tween(0.8, (t) => {
         this.pos.x = x0 + (x1 - x0) * t;
         this.pos.y = this.world.floorY(this.pos.x);
         this.pose.stride = Math.sin(t * 35);
-        this.pose.head = -0.7 + 0.35 * Math.sin(t * 30);
+        this.pose.head = -1.1 + 0.3 * Math.sin(t * 30);
       });
       this.world.burst('splash', this.pos.x, this.pos.y, 2);
     }
     this.pose.stride = 0;
+    // The last sweep ends in a jab at a minnow.
+    yield* this.peck(1, 1.1);
     yield* this.relax();
   }
 
@@ -721,7 +732,7 @@ export abstract class Actitis extends Scolopacidae {
   override *forage(): Script {
     yield* this.toGround();
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-5, 5)));
+      yield* this.moveOnGround(this.foodSpot(5).x);
       yield* this.teeterFor(1.2);
       yield* this.peck(1, 0.8);
     }
@@ -777,20 +788,24 @@ export class ShortBilledGull extends Larus {
 
   static override behaviors: BehaviorTable<ShortBilledGull> = {
     dipFeed: {
+      eats: 'plankton',
       label: 'Dip-feed',
       feeding: true,
-      cue: 'Hovers on fast wingbeats a metre above the water and dips to take small food from the surface without landing. Larger gulls land or plunge.',
+      cue: 'Hovers on fast wingbeats a metre above the water and dips to take plankton and tiny shrimp from the surface without landing. Larger gulls land or plunge.',
     },
   };
 
   *dipFeed(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x = water.from + rand(6, 16);
+    const x = this.preySpot({ x: water.from + rand(6, 16), y: 0 }).x;
     yield* this.flyTo({ x, y: 2.5 }, { land: false });
     yield* this.hoverFor(1.5, { aim: -0.9 });
     yield* this.flyTo({ x: x + 3, y: 0.3 }, { land: false, speed: 0.6 });
     this.world.burst('splash', this.pos.x, 0, 3);
+    this.take(0.5, { x: this.pos.x, y: 0 });
+    // Up off the water before heading back to the beach.
+    yield* this.flyTo({ x: this.pos.x + 2, y: 4 }, { land: false });
     yield* this.flyTo(this.groundSpot(water.from - 8, 6));
     yield* this.relax();
   }
@@ -828,8 +843,9 @@ export class CaliforniaGull extends Larus {
 
   static override behaviors: BehaviorTable<CaliforniaGull> = {
     forage: {
+      eats: 'wrack',
       label: 'Work the wrack line',
-      cue: 'Walks the line of seaweed at the high-tide mark, turning over debris and picking up anything edible. Gulls like this one are more often scavenging than hunting.',
+      cue: 'Walks the line of seaweed at the high-tide mark, turning over debris and snapping up the kelp flies and sand hoppers that swarm out. Gulls like this one are more often scavenging than hunting.',
     },
   };
 
@@ -839,14 +855,13 @@ export class CaliforniaGull extends Larus {
 
   *wrackLine(): Script {
     const edge = edgeOf(this.world.habitat.water);
-    yield* this.travelTo({ x: this.world.clampLand(edge - rand(4, 8)), y: 0 });
+    yield* this.travelTo(this.mealRange(true) ? this.foodSpot(4) : { x: this.world.clampLand(edge - rand(4, 8)), y: 0 });
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-6, 6)));
+      yield* this.moveOnGround(this.foodSpot(6).x);
       yield* this.peck(Math.ceil(rand(1, 2)), 1);
-      if (Math.random() < 0.5) {
-        this.pose.carry = 'insect';
+      if (this.pose.carry) {
+        // Head up to swallow a sand-hopper.
         yield* this.poseTo({ head: 0.6, neck: 1.2 }, 0.15);
-        this.pose.carry = null;
         yield* this.relax(0.15);
       }
     }
@@ -886,24 +901,20 @@ export class HeermannsGull extends Larus {
 
   static override behaviors: BehaviorTable<HeermannsGull> = {
     pirate: {
+      eats: 'baitfish',
       label: 'Steal a fish',
       feeding: true,
-      cue: 'Chases another seabird low over the water, matching every twist, until the victim drops its catch. It lands with the stolen fish and swallows it fast.',
+      cue: 'Chases another seabird, here a Caspian Tern, low over the water, matching every twist, until the victim drops its catch. It lands with the stolen fish and swallows it fast.',
     },
   };
 
   *pirate(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x = water.from + rand(10, 20);
-    yield* this.flyTo({ x, y: 4 }, { land: false });
-    for (let i = 0; i < 3; i++) {
-      yield* this.flyTo({ x: clamp(x + rand(-12, 12), water.from + 3, 96), y: rand(1, 6) }, { land: false, speed: 1.4 });
-    }
-    this.pose.carry = 'fish';
+    // After a Caspian Tern that has just caught a fish over the school.
+    yield* this.robInFlight(new CaspianTern(this.world, false));
     yield* this.flyTo(this.groundSpot(water.from - 6, 6));
     yield* this.peck(2, 1.2);
-    this.pose.carry = null;
     yield* this.relax();
   }
 
@@ -936,22 +947,24 @@ export abstract class Chroicocephalus extends Laridae {
 
   static override behaviors: BehaviorTable<Chroicocephalus> = {
     skimDips: {
+      eats: 'plankton',
       label: 'Skim and dip',
       feeding: true,
-      cue: 'Flutters low over the water and dips down three or four times in a row to pick from the surface, climbing between dips. Tern-like, and nothing a Larus gull does.',
+      cue: 'Flutters low over the water and dips down three or four times in a row to pick plankton and tiny shrimp from the surface, climbing between dips. Tern-like, and nothing a Larus gull does.',
     },
   };
 
   *skimDips(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x0 = water.from + rand(8, 14);
-    yield* this.flyTo({ x: x0, y: 3 }, { land: false });
+    const [lo, hi] = this.mealRange() ?? [water.from + 15, water.from + 30];
+    yield* this.flyTo({ x: lo - 4, y: 3 }, { land: false });
     for (let i = 0; i < 3; i++) {
-      const x = x0 + (i + 1) * 7;
+      const x = lo + ((hi - lo) * (i + 0.5)) / 3;
       yield* this.flyTo({ x, y: 0.3 }, { land: false, speed: 0.8 });
       this.world.burst('splash', this.pos.x, 0, 2);
-      yield* this.flyTo({ x: x + 4, y: 3 }, { land: false });
+      this.take(0.4, { x, y: 0 });
+      yield* this.flyTo({ x: x + 2, y: 3 }, { land: false });
     }
     yield* this.flyTo(this.groundSpot(water.from - 8, 6));
     yield* this.relax();
@@ -1000,8 +1013,9 @@ export abstract class Hydroprogne extends Laridae {
 
   static override behaviors: BehaviorTable<Hydroprogne> = {
     forage: {
+      eats: 'baitfish',
       label: 'Hover and plunge',
-      cue: 'Patrols with the bill angled down, stops to hover for a moment, then folds and drops headfirst into the water. A gull never dives from the air like this.',
+      cue: 'Patrols with the bill angled down, stops to hover for a moment over a fish, then folds and drops headfirst into the water. A gull never dives from the air like this.',
     },
   };
 
@@ -1012,23 +1026,15 @@ export abstract class Hydroprogne extends Laridae {
   *plungeDive(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x = water.from + rand(14, 24);
+    const x = this.preySpot({ x: water.from + rand(14, 24), y: 0 }).x;
     yield* this.flyTo({ x: x - 6, y: 8 }, { land: false });
     yield* this.flyTo({ x, y: 9 }, { land: false, speed: 0.7 });
     yield* this.hoverFor(1.5, { aim: -1.1 });
-    yield* this.flyTo({ x: x + 1, y: -1 }, { land: false, speed: 1.6 });
-    this.world.burst('splash', this.pos.x, 0, 10);
-    yield* this.wait(0.3);
-    const caught = Math.random() < 0.6;
-    if (caught) this.pose.carry = 'fish';
-    this.vel = { x: 0, y: 8 };
-    this.world.burst('splash', this.pos.x, 0, 5);
+    yield* this.plungeAt(x + 1, { depth: 1 });
     yield* this.flyTo({ x: x - 6, y: 6 }, { land: false });
     yield* this.flyTo(this.findPerch() ?? this.groundSpot(water.from - 8, 6));
-    if (caught) {
-      yield* this.poseTo({ head: 0.7, neck: 1.2 }, 0.15);
-      this.pose.carry = null;
-    }
+    yield* this.poseTo({ head: 0.7, neck: 1.2 }, 0.15);
+    this.hold(null);
     yield* this.relax();
   }
 }
@@ -1064,6 +1070,7 @@ export class CaspianTern extends Hydroprogne {
 // ================================================================== Alcidae
 
 export abstract class Alcidae extends Charadriiformes {
+  protected override diveDepth = 8;
   static override taxon: Taxon = {
     rank: 'family',
     name: 'Alcidae',
@@ -1087,6 +1094,7 @@ export abstract class Alcidae extends Charadriiformes {
 
   static override behaviors: BehaviorTable<Alcidae> = {
     forage: {
+      eats: 'baitfish',
       label: 'Dive for fish',
       cue: 'Peers under the surface, then slips under and flies with its wings. It stays down for many seconds and comes up some way off. Loons and grebes dive with their feet instead.',
     },
@@ -1117,19 +1125,17 @@ export abstract class Alcidae extends Charadriiformes {
     for (let i = 0; i < this.dives; i++) {
       yield* this.poseTo({ head: -0.8, neck: 0.7 }, 0.2);
       yield* this.wait(rand(0.3, 0.8));
-      const dir = this.pos.x > 78 ? -1 : 1;
+      const m = this.mealRange();
+      const dir = (m ? (m[0] + m[1]) / 2 > this.pos.x : this.pos.x <= 78) ? 1 : -1;
       yield* this.diveUnder(this.diveTime, dir * this.diveReach, this.diveLeap);
-      if (Math.random() < 0.4) {
-        this.pose.carry = 'fish';
-        yield* this.wait(0.9);
-        this.pose.carry = null;
-      }
+      if (this.pose.carry) yield* this.wait(0.9);
     }
     yield* this.relax();
   }
 }
 
 export abstract class Cepphus extends Alcidae {
+  protected override diveDepth = 9;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Cepphus',
@@ -1193,6 +1199,7 @@ export class PigeonGuillemot extends Cepphus {
 }
 
 export abstract class Cerorhinca extends Alcidae {
+  protected override diveDepth = 10;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Cerorhinca',
@@ -1207,22 +1214,23 @@ export abstract class Cerorhinca extends Alcidae {
 
   static override behaviors: BehaviorTable<Cerorhinca> = {
     carryFishHome: {
+      eats: 'baitfish',
       label: 'Carry fish to the colony',
       feeding: true,
-      cue: 'Surfaces with several small fish held crosswise in the bill and flies straight out toward the colony, low and fast. It does not eat them.',
+      cue: 'Surfaces with several small fish held crosswise in the bill and flies straight out toward the colony on Protection Island, low and fast. It does not eat them.',
     },
   };
 
   *carryFishHome(): Script {
     if (!this.world.habitat.water) return;
     yield* this.toWater();
-    yield* this.diveUnder(3, (this.pos.x > 78 ? -1 : 1) * 9);
-    this.pose.carry = 'fish';
+    yield* this.diveUnder(3, this.diveDx(9));
+    // A bill full of fish, carried home to the burrow.
+    this.hold(this.pose.carry);
     yield* this.wait(0.6);
-    yield* this.flyOver({ x: rand(88, 95), y: 0 });
-    yield* this.wait(0.5);
-    this.pose.carry = null;
-    yield* this.relax();
+    // Off low and fast toward the colony, out past the end of the bay.
+    yield* this.flyTo({ x: 97, y: 2.5 }, { land: false, speed: 1.3 });
+    this.hold(null);
   }
 }
 
@@ -1258,6 +1266,7 @@ export class RhinocerosAuklet extends Cerorhinca {
 }
 
 export abstract class Brachyramphus extends Alcidae {
+  protected override diveDepth = 7;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Brachyramphus',
@@ -1320,6 +1329,7 @@ export class MarbledMurrelet extends Brachyramphus {
 }
 
 export abstract class Uria extends Alcidae {
+  protected override diveDepth = 11;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Uria',

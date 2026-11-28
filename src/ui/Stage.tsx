@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { Bird } from '../birds/core/Bird';
 import { STAGE } from '../birds/core/World';
 import { drawBird } from '../render/drawBird';
+import { drawFoodBack, drawFoodFront } from '../render/drawFood';
 import { drawBackdrop, drawForeground } from '../render/drawWorld';
 
 const HEIGHT = STAGE.top - STAGE.bottom;
@@ -63,7 +64,10 @@ export function Stage({ bird, speed, closeUp, onBehaviorChange }: Props) {
       const k = (w / STAGE.width) * cam.zoom;
       ctx.setTransform(k, 0, 0, -k, w / 2 - cam.x * k, h / 2 + cam.y * k);
       drawBackdrop(ctx, bird.world);
+      drawFoodBack(ctx, bird.world);
       drawBird(ctx, bird);
+      for (const other of bird.world.others) drawBird(ctx, other);
+      drawFoodFront(ctx, bird.world);
       drawForeground(ctx, bird.world);
 
       if (bird.pose.speech) {

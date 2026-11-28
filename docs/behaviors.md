@@ -66,6 +66,34 @@ override forage(): Script {
 
 Field notes tag every feeding behavior "Feeding", since labels such as "Toss the leaf litter" don't say so. `forage` sets `feeding: true` once in `Bird` and a relabel keeps it; any other behavior about finding, catching, handling or eating food sets it itself.
 
+## Food in the scene
+
+Each feeding behavior names what it eats with `eats`, either one food (`eats: 'berries'`) or one per scene (`eats: { yard: 'worms', beach: 'sandCritters' }`). A relabel keeps the food of the entry it replaces unless it sets its own. Foods and where they sit in each scene are in `src/birds/core/food.ts`.
+
+- **The scene shows only what its bird eats.** When a bird is made, it stocks its `World` with the foods of every behavior it can do there, plus the scene's fixed extras (berries on the yard shrub, a wrack line on the beach). Nothing else is drawn, so the scene stays uncluttered.
+- **Birds go to the food.** While a feeding behavior runs, `toGround`, `findPerch`, `findTrunk` and `waterSpot` pick a spot at that food when it has one there, so a sapsucker goes to the oak with the sap wells and a duck flying in lands by the eelgrass. On foot or afloat, `foodSpot(range)` picks the next step: a point where the bill, not the body, comes down on the food, approached so the bird faces it. How far ahead of the feet the bill comes down is measured on the bird's own drawing (`groundReach`). `huntSpot` and `preySpot` do the same for hunts from the air: over the voles, into the swarm, at a fish in the school. A bird that doesn't swim wades no deeper than most of the way up its legs (`wadeMax`).
+- **The bill is where the drawing puts it.** `Bird.frame` holds the body's proportions and where the head is this frame; `drawBird` draws from the same numbers, so `billTip()` and `headPoint()` are exact. `peck()` brings the bill down to the food, the ground or the bottom and stops there (`reachDown`): a long-legged bird crouches and tips further, a swan's neck reaches the bottom of the shallows and no further.
+- **Every feeding behavior ends with the bird eating.** `take()` is the one place a bird eats: it removes the nearest piece of the food from the scene and puts that food's item in the bill (or, for hawks, falcons and owls, the feet). `peck()` calls it when the bill is on the food, and `strikeAt()` is the catch at the end of a pounce, sally, stoop or dash. Plunge-divers use `plungeAt()`. Divers go under with `diveUnder()`: they swim down to the fish or the mussel, take it there, and come up with it. What a food leaves in the bill is set once in `FOODS`: a berry, a crab from the wet sand, a mussel from the bed, a fish, a grasshopper. Nectar, sap, plankton and carrion leave nothing to show. A tern may miss a plunge or two, but the last one catches.
+- **The animal a bird hunts is drawn until it is caught.** Small animals keep out of sight, so while a bird goes after one, that one is drawn where it is (`world.prey`, set by `aimAt`): the worm the robin pulls, the grasshopper the pipit snaps up, the fish the merganser chases underwater, the small bird the Merlin singles out. A bird that finds one where it stands (a caterpillar under a leaf, a grub in the bark, a crab in the sand) shows it at the bill for a moment before it takes it (`glimpse`). The drawings are the `PREY` table in `src/render/drawFood.ts`.
+- **Birds feed alone unless they can't.** A behavior brings in another bird only when it cannot happen without one: a jaeger or a Heermann's Gull robs a tern (`robInFlight`), which comes in with a fish, is chased through every twist, drops the fish and flies off empty; a waxwing hands its berry to a neighbor on the branch, bill to bill (`company`). Birds that feed in flocks (geese, House Sparrows) feed alone until the scene has a flock setting; then flock feeders will get flock rules, sentries and all. Other birds are in `world.others`, are drawn with the bird, take none of the food, and leave when the behavior ends.
+- **Divers swallow each catch.** A fish or mussel is shown at the surface for a moment, then swallowed, and never carried down into the next dive.
+- **Hunters watch from near the food.** A bird that hunts from a perch picks the perch nearest the food, and harriers, barn owls and vultures search in low passes back and forth over it (`quarterOver`).
+- **A hunter startles its prey.** `strikeAt` calls `world.startle` as the hunter comes in: the flock of small birds bursts out of the bush, and drifts back in once the hunt is over.
+- **Food comes back when the behavior ends.** A piece a bird takes is gone while it eats, and everything is back as it was once the behavior is over (`world.restore`). Nothing runs down or regrows on a timer.
+- **Peeks are for animals that keep out of sight.** Now and then one of them shows itself for two seconds: a worm stretches out of the lawn, a grasshopper hops, a beetle runs out of the leaves, a vole runs between grass clumps, minnows dart through the shallows, baitfish flash at the surface. Plants, the swarm and the flock are always in view, so they don't peek. Which foods are hidden is set in `FOODS`; the peek drawings are a table in `src/render/drawFood.ts`, and a test checks the two match. The first peek comes within 10 seconds of a bird arriving, then one every 10 to 15 seconds; with more than one hidden animal they take turns. Small animals are drawn about twice life size so they can be seen.
+- **Carrion is never drawn as an animal.** It is a dull mound behind a grass tussock in the yard, or inside a heap of kelp on the beach, and it never peeks. A small bird caught by a hawk is only a dark bundle in the feet.
+
+Tests hold every feeding behavior of every bird, in every scene it visits, to these rules:
+
+- It names a food, the scene has that food, and the food shows without the bird doing anything (drawn, or a hidden animal that peeks).
+- The label or the description says what the food is.
+- The bird takes its food at least once, only where that food is, with its bill or feet at the spot, and holds the right item. A piece it takes is gone from the scene.
+- From the first bite to the last it stays at the food. Insects caught on sallies from a perch are the exception.
+- No bird ever puts its head into the ground or the seabed, and a bird that doesn't swim never wades over its legs. These two hold for every behavior, not only feeding.
+- An animal that keeps out of sight is drawn where the bird takes it.
+- A diver never goes under still holding its last catch.
+- Only the behaviors that need another bird (the robbers, the waxwing's berry pass) bring one in, and it is gone when the behavior ends.
+
 A species with a second, genuinely different way to feed lists that method too. The Rough-legged Hawk forages by hovering and still has the perch hunt of its genus; the Yellow-rumped Warbler flycatches and still gleans.
 
 ## Auto mode

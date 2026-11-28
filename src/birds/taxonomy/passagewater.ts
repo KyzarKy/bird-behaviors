@@ -65,8 +65,9 @@ export class NorthernShoveler extends Spatula {
 
   static override behaviors: BehaviorTable<NorthernShoveler> = {
     forage: {
+      eats: 'plankton',
       label: 'Sieve the surface',
-      cue: 'Swims in tight circles with the big bill laid flat on the water, sweeping it from side to side. Often several birds circle together, each stirring up food for the next. A Mallard upends; a shoveler rarely does.',
+      cue: 'Swims in tight circles with the big bill laid flat on the water, sweeping it from side to side to strain out plankton. A Mallard upends; a shoveler rarely does.',
     },
   };
 
@@ -91,6 +92,7 @@ export class NorthernShoveler extends Spatula {
       p.stride = Math.sin(t * 10) * 0.5;
     }
     p.stride = 0;
+    this.take(0.5, { x: cx, y: 0 });
     yield* this.relax(0.3);
   }
 }
@@ -98,6 +100,7 @@ export class NorthernShoveler extends Spatula {
 // ================================================================== Bay ducks
 
 export abstract class Aythya extends Anatidae {
+  protected override diveDepth = 5.5;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Aythya',
@@ -110,8 +113,9 @@ export abstract class Aythya extends Anatidae {
 
   static override behaviors: BehaviorTable<Aythya> = {
     forage: {
+      eats: 'shellfish',
       label: 'Dive',
-      cue: 'Springs forward and goes under with a small jump, and stays down much longer than a Bufflehead. A flock dives raggedly, so heads keep disappearing and reappearing across the raft.',
+      cue: 'Springs forward and goes under with a small jump, and stays down much longer than a Bufflehead. It comes up a little way from where it went down with mussels and clams from the bottom.',
     },
   };
 
@@ -122,6 +126,7 @@ export abstract class Aythya extends Anatidae {
 }
 
 export class GreaterScaup extends Aythya {
+  protected override diveDepth = 7.5;
   static override taxon: Taxon = {
     rank: 'species',
     name: 'Aythya marila',
@@ -156,7 +161,6 @@ export class GreaterScaup extends Aythya {
   // Larger, and it works the deeper water of open bays.
   protected override diveTime = 3;
   protected override diveSpan = 8;
-  protected override prey = 'clam' as const;
 }
 
 export class LesserScaup extends Aythya {
@@ -194,10 +198,10 @@ export class LesserScaup extends Aythya {
 
   protected override diveTime = 2.4;
   protected override diveSpan = 6;
-  protected override prey = 'insect' as const;
 }
 
 export class RingNeckedDuck extends Aythya {
+  protected override diveDepth = 4;
   static override taxon: Taxon = {
     rank: 'species',
     name: 'Aythya collaris',
@@ -211,6 +215,14 @@ export class RingNeckedDuck extends Aythya {
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 8, agility: 0.55 };
+
+  static override behaviors: BehaviorTable<RingNeckedDuck> = {
+    forage: {
+      eats: 'eelgrass',
+      label: 'Dive',
+      cue: 'Springs forward and goes under with a small jump, and stays down much longer than a Bufflehead. It comes up a little way from where it went down with pondweed and seeds from the bottom, and now and then a snail. Unlike the scaups, it lives mostly on plants.',
+    },
+  };
 
   static override look: Partial<Look> = {
     length: 0.4,
@@ -234,12 +246,12 @@ export class RingNeckedDuck extends Aythya {
   // Shallow dives for plants and seeds.
   protected override diveTime = 1.8;
   protected override diveSpan = 5;
-  protected override prey = 'seed' as const;
 }
 
 // ================================================================== Stifftails
 
 export abstract class Oxyura extends Anatidae {
+  protected override diveDepth = 3.5;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Oxyura',
@@ -255,7 +267,7 @@ export abstract class Oxyura extends Anatidae {
   static override behaviors: BehaviorTable<Oxyura> = {
     forage: {
       label: 'Sink and dive',
-      cue: 'Slides under without a jump and without much splash, the tail the last thing to go. Unlike a scaup, it also dives to escape rather than flying.',
+      cue: 'Slides under without a jump and without much splash, the tail the last thing to go, and works the bottom for midge larvae, seeds and bits of weed. Unlike a scaup, it also dives to escape rather than flying.',
     },
     bubbleDisplay: {
       label: 'Bubble display',
@@ -366,6 +378,11 @@ export abstract class Anser extends Anatidae {
   static override look: Partial<Look> = { neckLength: 0.42, headSize: 0.6, beakLength: 0.7, tailLength: 0.15 };
 
   static override behaviors: BehaviorTable<Anser> = {
+    forage: {
+      eats: 'grass',
+      label: 'Feed',
+      cue: 'Grazes ashore in a tight flock, walking and cropping with the head down, a few birds always standing watch.',
+    },
     flyover: {
       label: 'Fly over, calling',
       cue: 'Crosses the bay high up, calling the whole way, and swings round to drop onto the water. Migrating flocks pass over Discovery Bay in spring and fall without stopping, so the voice often comes first.',
@@ -469,6 +486,7 @@ export abstract class Gruiformes extends Bird {
 }
 
 export abstract class Rallidae extends Gruiformes {
+  protected override diveDepth = 2.5;
   static override taxon: Taxon = {
     rank: 'family',
     name: 'Rallidae',
@@ -487,6 +505,7 @@ export abstract class Rallidae extends Gruiformes {
       weight: 2,
     },
     forage: {
+      eats: 'eelgrass',
       label: 'Dive and graze',
       cue: 'Leans forward and goes under with a small jump, bobbing up like a cork a few yards on with a strand of green in the bill. Unlike a duck it also upends and climbs out to graze on the shore.',
     },
@@ -513,7 +532,9 @@ export abstract class Rallidae extends Gruiformes {
     yield* this.toWater();
     for (let i = 0; i < 3; i++) {
       yield* this.poseTo({ pitch: -0.3, neck: 0.3, head: -0.8 }, 0.2);
-      yield* this.diveUnder(1.6, (this.pos.x > 80 ? -1 : 1) * rand(3, 6), 0.4);
+      const m = this.mealRange();
+      const dir = (m ? (m[0] + m[1]) / 2 > this.pos.x : this.pos.x <= 80) ? 1 : -1;
+      yield* this.diveUnder(1.6, dir * rand(2, 4), 0.4);
     }
   }
 }
@@ -638,6 +659,7 @@ export abstract class Numenius extends Scolopacidae {
 
   static override behaviors: BehaviorTable<Numenius> = {
     forage: {
+      eats: 'sandCritters',
       label: 'Probe for crabs',
       cue: 'Pushes the long bill deep into a burrow and holds it there, then draws out a crab, gives it a shake and swallows it whole. A dowitcher probes with a stitching motion and never pulls out anything this big.',
     },
@@ -652,13 +674,15 @@ export abstract class Numenius extends Scolopacidae {
     yield* this.travelTo({ x, y: this.world.floorY(x) });
     const rest = this.restingPose();
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-3, 3)));
+      yield* this.moveOnGround(this.foodSpot(3).x);
       yield* this.poseTo({ pitch: rest.pitch - 0.5, neck: -0.2, head: -1.1 }, 0.2);
-      yield* this.wait(rand(0.5, 0.9));
+      const shown = yield* this.glimpse();
+      yield* this.wait(rand(0.2, 0.6));
+      // The long bill comes up with a crab.
+      this.takeOrHide(shown, Infinity);
       yield* this.poseTo({ pitch: rest.pitch, neck: rest.neck, head: 0.1 }, 0.25);
-      this.pose.carry = 'clam';
       yield* this.poseTo({ head: 0.5 }, 0.12);
-      this.pose.carry = null;
+      this.hold(null);
       yield* this.relax(0.2);
     }
   }
@@ -754,8 +778,9 @@ export abstract class Phalaropus extends Scolopacidae {
 
   static override behaviors: BehaviorTable<Phalaropus> = {
     forage: {
+      eats: 'plankton',
       label: 'Spin on the water',
-      cue: 'Swims in quick circles, sometimes ten or more in a row, then picks at the surface. The spin pulls small animals up from below. No other sandpiper swims at all.',
+      cue: 'Swims in quick circles, sometimes ten or more in a row, then picks at the surface. The spin pulls plankton up from below. No other sandpiper swims at all.',
     },
   };
 
@@ -768,6 +793,7 @@ export abstract class Phalaropus extends Scolopacidae {
   override *probe(): Script {
     if (!this.world.habitat.water) return;
     yield* this.toWater();
+    yield* this.moveOnGround(this.foodSpot(4).x);
     const p = this.pose;
     for (let i = 0; i < 5; i++) {
       for (let k = 0; k < 4; k++) {
@@ -776,6 +802,8 @@ export abstract class Phalaropus extends Scolopacidae {
       }
       this.world.burst('splash', this.pos.x, 0, 2);
       yield* this.poseTo({ neck: 0.2, head: -0.9 }, 0.08);
+      // A peck at the plankton the spin draws up.
+      if (this.atFood()) this.take();
       yield* this.poseTo({ neck: 0.95, head: 0 }, 0.08);
     }
     yield* this.relax();
@@ -893,8 +921,9 @@ export abstract class Sterna extends Laridae {
 
   static override behaviors: BehaviorTable<Sterna> = {
     forage: {
+      eats: 'baitfish',
       label: 'Hover and plunge',
-      cue: 'Flies slowly with the head and bill pointed down, stops in a short hover, then folds and drops. If it misses it climbs and tries again a short way on. Smaller than a Caspian Tern, with a thin bill and quicker, lighter wingbeats.',
+      cue: 'Flies slowly with the head and bill pointed down, stops in a short hover over a small fish, then folds and drops. If it misses it climbs and tries again a short way on. Smaller than a Caspian Tern, with a thin bill and quicker, lighter wingbeats.',
     },
   };
 
@@ -908,25 +937,21 @@ export abstract class Sterna extends Laridae {
   *plungeDive(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x = water.from + rand(10, 24);
-    yield* this.flyTo({ x: x - 6, y: 7 }, { land: false });
-    let caught = false;
-    for (let i = 0; i < this.attempts && !caught; i++) {
-      const at = x + i * 6;
+    // The first plunge is at the fish it marked; the tries after it go on along the water, back toward shore when there is no room ahead.
+    const x = clamp(this.preySpot({ x: water.from + rand(10, 24), y: 0 }).x - 1, water.from + 6, 93);
+    const step = x + (this.attempts - 1) * 6 > 93 ? -6 : 6;
+    yield* this.flyTo({ x: x - step, y: 7 }, { land: false });
+    // Often a miss or two before a fish.
+    const tries = Math.ceil(rand(0, this.attempts)) || 1;
+    for (let i = 0; i < tries; i++) {
+      const at = x + i * step;
       yield* this.flyTo({ x: at, y: 6 }, { land: false, speed: 0.6 });
       yield* this.hoverFor(1, { aim: -1.2 });
-      yield* this.flyTo({ x: at + 1, y: -1 }, { land: false, speed: 1.8 });
-      this.world.burst('splash', this.pos.x, 0, 8);
-      yield* this.wait(0.25);
-      caught = Math.random() < 0.5;
-      this.vel = { x: 0, y: 8 };
+      yield* this.plungeAt(at + 1, { speed: 1.8, depth: 1, miss: i < tries - 1 });
     }
-    if (caught) this.pose.carry = 'fish';
     yield* this.flyTo(this.findPerch() ?? this.groundSpot(water.from - 8, 6));
-    if (caught) {
-      yield* this.poseTo({ head: 0.7, neck: 1.2 }, 0.15);
-      this.pose.carry = null;
-    }
+    yield* this.poseTo({ head: 0.7, neck: 1.2 }, 0.15);
+    this.hold(null);
     yield* this.relax();
   }
 }
@@ -974,6 +999,7 @@ export abstract class Stercorariidae extends Charadriiformes {
 
   static override behaviors: BehaviorTable<Stercorariidae> = {
     forage: {
+      eats: 'baitfish',
       label: 'Chase and rob a tern',
       cue: 'Shadows a tern or gull carrying a fish, matching every twist and turn at speed until the victim drops it. The jaeger then swoops down and catches the fish before it hits the water.',
     },
@@ -986,20 +1012,13 @@ export abstract class Stercorariidae extends Charadriiformes {
   *pirate(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x0 = water.from + rand(14, 22);
-    yield* this.flyTo({ x: x0, y: 8 }, { land: false, speed: 1.2 });
-    for (let i = 0; i < 4; i++) {
-      yield* this.flyTo({ x: x0 + 4 * i, y: i % 2 ? 12 : 6 }, { land: false, speed: 1.5 });
-    }
+    // A Common Tern coming in from the tide rips with a fish.
+    yield* this.robInFlight(new CommonTern(this.world, false));
     const dir = this.pose.facing;
-    const fish = this.world.emit('fish', this.pos.x + dir * 4, this.pos.y - 1, { gravity: 30, floor: 0, life: 2 });
-    yield* this.flyTo({ x: this.pos.x + dir * 6, y: 1.2 }, { land: false, speed: 1.8 });
-    fish.life = 0;
-    this.pose.carry = 'fish';
     yield* this.flyTo({ x: clamp(this.pos.x + dir * 8, water.from + 2, 95), y: 5 }, { land: false });
     yield* this.flyTo(this.findPerch() ?? this.groundSpot(water.from - 8, 6));
     yield* this.poseTo({ head: 0.7, neck: 1.2 }, 0.15);
-    this.pose.carry = null;
+    this.hold(null);
     yield* this.relax();
   }
 }
@@ -1048,6 +1067,7 @@ export class ParasiticJaeger extends Stercorarius {
 // ================================================================== Murrelets
 
 export abstract class Synthliboramphus extends Alcidae {
+  protected override diveDepth = 7.5;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Synthliboramphus',
@@ -1190,14 +1210,16 @@ export class BrownPelican extends Pelecanus {
     wing: '#7d786e',
     tail: '#6a655c',
     beak: '#a09a8a',
+    pouch: '#5a5048',
     legs: '#2a2a2a',
     eye: '#2a2420',
   };
 
   static override behaviors: BehaviorTable<BrownPelican> = {
     forage: {
+      eats: 'baitfish',
       label: 'Plunge-dive',
-      cue: 'Circles 30 feet or more above the water, then folds the wings and drops headfirst with a huge splash. It comes up with the pouch full, tips the bill down to drain the water, then swallows. No other large waterbird here dives from this height.',
+      cue: 'Circles 30 feet or more above the water, then folds the wings and drops headfirst with a huge splash onto a school of fish. It comes up with the pouch full, tips the bill down to drain the water, then swallows. No other large waterbird here dives from this height.',
     },
   };
 
@@ -1208,23 +1230,16 @@ export class BrownPelican extends Pelecanus {
   *plungeDive(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x = water.from + rand(12, 26);
+    const x = this.preySpot({ x: water.from + rand(12, 26), y: 0 }).x;
     yield* this.flyTo({ x: x - 12, y: 14 }, { land: false });
     yield* this.flyTo({ x: x - 2, y: 15 }, { land: false, speed: 0.6 });
-    yield* this.flyTo({ x, y: -1.2 }, { land: false, speed: 2.2 });
-    this.world.burst('splash', x, 0, 16);
-    yield* this.wait(0.4);
-    const caught = Math.random() < 0.55;
-    if (caught) this.pose.carry = 'fish';
-    this.vel = { x: 0, y: 8 };
-    this.world.burst('splash', x, 0, 6);
+    yield* this.plungeAt(x, { speed: 2.2 });
     yield* this.flyTo(this.findPerch() ?? this.groundSpot(water.from - 8, 6));
-    if (caught) {
-      yield* this.poseTo({ head: -1.2, neck: 0.8 }, 0.3);
-      yield* this.wait(0.5);
-      yield* this.poseTo({ head: 0.9, neck: 1.3 }, 0.2);
-      this.pose.carry = null;
-    }
+    // Drains the pouch, then tips the fish down.
+    yield* this.poseTo({ head: -1.2, neck: 0.8 }, 0.3);
+    yield* this.wait(0.5);
+    yield* this.poseTo({ head: 0.9, neck: 1.3 }, 0.2);
+    this.hold(null);
     yield* this.relax();
   }
 }

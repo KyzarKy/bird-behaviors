@@ -41,7 +41,7 @@ export abstract class Junco extends Passerellidae {
   *tailFlash(): Script {
     yield* this.toGround(8);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-4, 4)));
+      yield* this.moveOnGround(this.foodSpot(4).x);
       yield* this.peck(2);
       yield* this.poseTo({ tailFan: 1, tailAngle: this.look.tailCock + 0.3 }, 0.06);
       yield* this.wait(0.2);
@@ -159,8 +159,9 @@ export abstract class Zonotrichia extends Passerellidae {
 
   static override behaviors: BehaviorTable<Zonotrichia> = {
     forage: {
+      eats: 'fallenSeed',
       label: 'Hop, peck, look up',
-      cue: 'Three short hops, a peck, then it stands tall with head up and scans before the next hop. This is the usual feeding pattern, with little leaf-kicking, unlike a towhee or Fox Sparrow.',
+      cue: 'Three short hops, a peck at the fallen seed, then it stands tall with head up and scans before the next hop. This is the usual feeding pattern, with little leaf-kicking, unlike a towhee or Fox Sparrow.',
     },
   };
 
@@ -174,7 +175,7 @@ export abstract class Zonotrichia extends Passerellidae {
   *hopFeed(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * rand(1.5, 4)));
+      yield* this.moveOnGround(this.foodSpot(4).x);
       yield* this.peck(Math.ceil(rand(1, 3)));
       yield* this.poseTo({ pitch: this.alertPitch, neck: 1.2, head: 0.2 }, 0.1);
       yield* this.lookAround(rand(0.5, 1));
@@ -266,7 +267,7 @@ export abstract class Passerella extends Passerellidae {
   static override behaviors: BehaviorTable<Passerella> = {
     forage: {
       label: 'Double-scratch',
-      cue: 'Two long bouts of hop-and-kick, with leaves flying a body length behind it, enough to hear from across the yard. A towhee does the same, but a Fox Sparrow is the only one with a spotted, rust-tailed look.',
+      cue: 'Two long bouts of hop-and-kick, with leaves flying a body length behind it, enough to hear from across the yard, then it picks up the beetles and grubs it turned up. A towhee does the same, but a Fox Sparrow is the only one with a spotted, rust-tailed look.',
     },
   };
 
@@ -320,8 +321,9 @@ export abstract class Passerculus extends Passerellidae {
 
   static override behaviors: BehaviorTable<Passerculus> = {
     forage: {
+      eats: 'grassBugs',
       label: 'Run, freeze, flush and drop',
-      cue: 'Runs through the grass like a mouse, freezes with its head down, then flushes low and drops back into cover a few yards on. Compare a Song Sparrow, which dives into a thicket, and a towhee, which scratches.',
+      cue: 'Runs through the grass like a mouse after grasshoppers and other insects, freezes with its head down, then flushes low and drops back into cover a few yards on. Compare a Song Sparrow, which dives into a thicket, and a towhee, which scratches.',
     },
   };
 
@@ -331,11 +333,10 @@ export abstract class Passerculus extends Passerellidae {
 
   *runAndDrop(): Script {
     yield* this.toGround(10);
-    const dir = this.pos.x > 50 ? -1 : 1;
-    yield* this.moveOnGround(this.world.clampLand(this.pos.x + dir * rand(6, 12)), 1.4);
+    yield* this.moveOnGround(this.foodSpot(12).x, 1.4);
     yield* this.poseTo({ crouch: 0.5, neck: 0.5 }, 0.12);
     yield* this.wait(rand(0.8, 1.4));
-    yield* this.flyOver(this.groundSpot(this.pos.x + dir * 12, 3));
+    yield* this.flyOver(this.foodSpot(12));
     yield* this.peck(2);
     yield* this.relax();
   }
@@ -392,6 +393,7 @@ export abstract class Fringillidae extends Passeriformes {
       cue: 'Flight is a series of bounds: a few quick wingbeats climb, the wings close, and the bird dips. A finch usually calls on the way, which a sparrow in a short hop does not.',
     },
     forage: {
+      eats: 'seedHeads',
       label: 'Husk a seed',
       cue: 'Sits on a seed head or a branch, rolls one seed in its bill, and drops the husk. It eats the seed and spits the hull. A chickadee carries the seed away and hammers it.',
     },
@@ -405,15 +407,15 @@ export abstract class Fringillidae extends Passeriformes {
   }
 
   *seedHusk(): Script {
-    yield* this.travelTo(this.findPerch(['flower', 'shrub']) ?? this.groundSpot(this.pos.x, 8));
+    yield* this.travelTo(this.preySpot(this.findPerch(['flower', 'shrub']) ?? this.groundSpot(this.pos.x, 8)));
     for (let i = 0; i < this.huskCount; i++) {
       yield* this.peck(1, 0.5);
-      this.pose.carry = 'seed';
+      this.hold(this.pose.carry);
       for (let turn = 0; turn < 4; turn++) {
         yield* this.poseTo({ beakOpen: 0.8, head: -0.3 }, 0.07);
         yield* this.poseTo({ beakOpen: 0, head: -0.5 }, 0.07);
       }
-      this.pose.carry = null;
+      this.hold(null);
       this.world.burst('chip', this.pos.x, this.pos.y + 0.5, 2);
       yield* this.relax(0.1);
     }
@@ -522,6 +524,7 @@ export abstract class Spinus extends Fringillidae {
       cue: 'Deep, rolling bounds, a call on each dip. The pattern repeats along the whole flight line, so you hear the rhythm before you see the bird.',
     },
     forage: {
+      eats: 'seedHeads',
       label: 'Hang and feed',
       cue: 'Lands on the tip of a seed head or twig and swings upside down to pick at it, fluttering the wings for balance. Only chickadees and crossbills hang like this.',
     },
@@ -546,8 +549,8 @@ export abstract class Spinus extends Fringillidae {
   }
 
   *hangFeed(): Script {
-    const perch = this.findPerch(this.hangOn);
-    if (!perch) return;
+    // Hangs upside down from a seed head.
+    const perch = this.preySpot(this.findPerch(this.hangOn) ?? { ...this.pos });
     yield* this.flyTo(perch);
     yield* this.poseTo({ rotation: Math.PI * this.pose.facing }, 0.18);
     for (let i = 0; i < 3; i++) {
@@ -640,6 +643,7 @@ export abstract class Loxia extends Fringillidae {
 
   static override behaviors: BehaviorTable<Loxia> = {
     forage: {
+      eats: 'cones',
       label: 'Pry open a cone',
       cue: 'Climbs about a conifer top using bill and feet like a small parrot, hangs from a cone, and twists its bill sideways to spread the scales. Seeds and scales drop. Nothing else in the yard feeds this way.',
     },
@@ -650,26 +654,17 @@ export abstract class Loxia extends Fringillidae {
   }
 
   *pryCones(): Script {
-    const top = this.findPerch(['treetop'], 'any');
-    if (!top) return;
-    yield* this.flyTo(top);
+    // From cone to cone in the crown of a conifer, bill on the cone, twisting the scales apart.
+    const reach = { pitch: -0.3, neck: 0.3, head: -0.9, beakOpen: 0.8 };
     for (let i = 0; i < 3; i++) {
-      const side = i % 2 ? -1 : 1;
-      const x0 = this.pos.x;
-      const y0 = this.pos.y;
-      // Hauls itself along with the bill, then hangs from the cone.
-      yield* this.tween(0.4, (t) => {
-        this.pos.x = x0 + side * 1.2 * t;
-        this.pos.y = y0 - t;
-        this.pose.rotation = this.pose.facing * 0.8 * t;
-      });
-      for (let pry = 0; pry < 4; pry++) {
-        yield* this.poseTo({ beakOpen: 1, head: -0.9 }, 0.1);
-        yield* this.poseTo({ beakOpen: 0.2, head: -0.5 }, 0.1);
-        this.world.emit('seed', this.pos.x, this.pos.y, { vx: rand(-2, 2), gravity: 25, life: 3 });
-      }
+      const cone = this.pieceInReach(reach);
+      if (!cone) break;
+      yield* this.reachFor(cone, reach, { bites: 5, hold: 0.6 });
+      // Scales and the seeds it didn't get drop from the cone.
+      for (let s = 0; s < 3; s++) this.world.emit('seed', cone.x, cone.y, { vx: rand(-2, 2), vy: rand(0, 2), gravity: 25, life: 3 });
+      yield* this.poseTo({ beakOpen: 0 }, 0.1);
+      yield* this.wait(rand(0.3, 0.6));
     }
-    this.pose.rotation = 0;
     yield* this.toPerch();
     yield* this.relax();
   }
@@ -773,8 +768,9 @@ export abstract class Icteridae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Icteridae> = {
     forage: {
+      eats: { yard: 'worms', beach: 'wrack' },
       label: 'Walk and peck',
-      cue: 'Strides across the grass and stabs at the ground without hopping. A sparrow of similar size hops.',
+      cue: 'Strides across the grass picking up insects, worms and seeds, or along the beach wrack snapping up kelp flies, walking without hopping. A sparrow of similar size hops.',
     },
   };
 
@@ -785,7 +781,7 @@ export abstract class Icteridae extends Passeriformes {
   *walkForage(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * rand(2, 6)));
+      yield* this.moveOnGround(this.foodSpot(6).x);
       yield* this.peck(Math.ceil(rand(1, 2)), 0.8);
     }
     yield* this.relax();
@@ -967,6 +963,11 @@ export abstract class Passeridae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.75, beakLength: 0.4 };
 
   static override behaviors: BehaviorTable<Passeridae> = {
+    forage: {
+      eats: 'fallenSeed',
+      label: 'Hop and peck seeds',
+      cue: 'Hops about on the ground in a chattering group, picking up fallen seed and squabbling over it. Never far from buildings.',
+    },
     dustBath: {
       label: 'Dust-bathe',
       cue: 'Squats on bare ground, flutters the wings and shuffles in a cloud of dust. It does this in groups, and the shallow dents it makes remain.',
@@ -1048,8 +1049,9 @@ export abstract class Sturnidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Sturnidae> = {
     forage: {
+      eats: { yard: 'worms', beach: 'wrack' },
       label: 'Probe by gaping',
-      cue: 'Walks briskly, pushes the closed bill into the turf, then opens it to widen the hole and look in. A robin pulls worms with a stab; a starling pries.',
+      cue: 'Walks briskly, pushes the closed bill into the turf (or the beach wrack, after kelp flies), then opens it to widen the hole and look in. A robin pulls worms with a stab; a starling pries.',
     },
   };
 
@@ -1060,9 +1062,12 @@ export abstract class Sturnidae extends Passeriformes {
   *gapeProbe(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * rand(2, 5)));
+      yield* this.moveOnGround(this.foodSpot(5).x);
       yield* this.poseTo({ pitch: -0.35, neck: -0.2, head: -0.9 }, 0.1);
+      const shown = yield* this.glimpse();
       yield* this.poseTo({ beakOpen: 1 }, 0.25);
+      // Prising the soil open with the bill, it finds a grub.
+      this.takeOrHide(shown);
       yield* this.wait(0.2);
       yield* this.poseTo({ beakOpen: 0 }, 0.1);
       yield* this.relax(0.1);

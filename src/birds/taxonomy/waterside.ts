@@ -3,11 +3,15 @@
  * One file because each order contributes a single species.
  */
 import { Bird, clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Vec } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
 
 // ========================================================= Accipitriformes
 
 export abstract class Accipitriformes extends Bird {
+  protected override get takesInFeet() {
+    return true;
+  }
+
   static override taxon: Taxon = {
     rank: 'order',
     name: 'Accipitriformes',
@@ -64,6 +68,7 @@ export abstract class Haliaeetus extends Accipitridae {
 
   static override behaviors: BehaviorTable<Haliaeetus> = {
     forage: {
+      eats: 'baitfish',
       label: 'Snatch a fish',
       needs: 'water',
       cue: 'A long, shallow glide low over the water, feet swung forward at the last second, and the fish is lifted off the surface. The eagle barely gets wet. An Osprey plunges in feet-first with a splash.',
@@ -83,17 +88,16 @@ export abstract class Haliaeetus extends Accipitridae {
     // Strike far enough from the perch for a run-up, toward whichever side has open water.
     const dir = perch.x < water.from + 20 ? 1 : -1;
     const strike = { x: perch.x < water.from ? water.from + 18 : perch.x + dir * 20, y: 0.8 };
+    // The fish it has spotted, just under the surface.
+    this.aimAt({ x: strike.x, y: -0.4 });
     // From the bluff, come down to an approach height first. From a piling the glide starts at the perch.
     if (Math.abs(strike.x - perch.x) > 22) yield* this.flyTo({ x: strike.x - dir * 22, y: 9 }, { land: false });
     yield* this.flyTo(strike, { land: false, glide: true });
     this.world.burst('splash', strike.x, 0, 5);
-    this.pose.carry = 'fish';
-    this.pose.carryInFeet = true;
+    this.take(Infinity, strike);
     yield* this.flyTo({ x: clamp(strike.x + dir * 12, water.from + 2, 97), y: 8 }, { land: false });
     yield* this.flyTo(perch);
     for (let i = 0; i < 3; i++) yield* this.peck(1, 1.2);
-    this.pose.carry = null;
-    this.pose.carryInFeet = false;
     yield* this.relax();
   }
 }
@@ -166,13 +170,15 @@ export abstract class Alcedinidae extends Coraciiformes {
 
   static override behaviors: BehaviorTable<Alcedinidae> = {
     forage: {
+      eats: 'minnows',
       label: 'Plunge from a perch',
       cue: 'Sits over the water staring down, bobs its head, then drops headfirst and goes right under. Back on the perch it beats the fish against the wood before swallowing it head first.',
     },
     hoverHunt: {
+      eats: 'baitfish',
       label: 'Hover and plunge',
       feeding: true,
-      cue: 'With no perch handy it swings up and hovers 20 to 40 feet over the water, bill pointing straight down, body nearly vertical, then folds and drops. Compare the hummingbird’s level, effortless hover.',
+      cue: 'With no perch handy it swings up and hovers 20 to 40 feet over the water, bill pointing straight down at a fish, body nearly vertical, then folds and drops. Compare the hummingbird’s level, effortless hover.',
     },
   };
 
@@ -183,17 +189,17 @@ export abstract class Alcedinidae extends Coraciiformes {
   *plungeDive(): Script {
     yield* this.toPerch();
     const perch = { ...this.pos };
-    const dir = perch.x < 80 ? 1 : -1;
-    this.pose.facing = dir;
+    const at = this.preySpot({ x: perch.x + (perch.x < 80 ? 6 : -6), y: 0 });
+    this.pose.facing = at.x > perch.x ? 1 : -1;
     yield* this.poseTo({ head: -0.7 }, 0.2);
     for (let i = 0; i < 3; i++) {
       yield* this.poseTo({ neck: 1.3, tailAngle: 0.5 }, 0.1);
       yield* this.poseTo({ neck: 0.8, tailAngle: 0 }, 0.12);
       yield* this.wait(0.3);
     }
-    const caught = yield* this.plunge({ x: perch.x + dir * 6, y: -1.2 });
+    yield* this.plungeAt(at.x);
     yield* this.flyTo(perch);
-    if (caught) yield* this.subdue();
+    yield* this.subdue();
     yield* this.relax();
   }
 
@@ -201,27 +207,18 @@ export abstract class Alcedinidae extends Coraciiformes {
     const water = this.world.habitat.water;
     if (!water) return;
     const home = this.findPerch(undefined, 'near') ?? { ...this.pos };
-    const x = water.from + rand(16, 24);
+    const x = this.preySpot({ x: water.from + rand(16, 24), y: 0 }).x;
     yield* this.flyTo({ x: x - 5, y: 7 }, { land: false });
     yield* this.flyTo({ x, y: 12 }, { land: false, speed: 0.6 });
     yield* this.hoverFor(5, { aim: -1.1 });
-    const caught = yield* this.plunge({ x: x + this.pose.facing, y: -1.2 });
+    yield* this.plungeAt(x + this.pose.facing);
     yield* this.flyTo(home);
-    if (caught) yield* this.subdue();
+    yield* this.subdue();
     yield* this.relax();
   }
 
   /** Headfirst into the water. Comes up with a fish a little more than half the time. */
-  protected *plunge(at: Vec): Script<boolean> {
-    yield* this.flyTo(at, { land: false, speed: 1.6 });
-    this.world.burst('splash', at.x, 0, 12);
-    yield* this.wait(0.35);
-    const caught = Math.random() < 0.65;
-    if (caught) this.pose.carry = 'fish';
-    this.vel = { x: 0, y: 8 }; // burst back out of the water
-    this.world.burst('splash', at.x, 0, 6);
-    return caught;
-  }
+
 
   /** Beat the fish on the perch, then swallow it. */
   protected *subdue(): Script {
@@ -230,7 +227,7 @@ export abstract class Alcedinidae extends Coraciiformes {
       yield* this.poseTo({ head: -0.9, neck: 0.1 }, 0.07);
     }
     yield* this.poseTo({ head: 0.6, neck: 1.1 }, 0.15);
-    this.pose.carry = null;
+    this.hold(null);
   }
 }
 
@@ -309,6 +306,7 @@ export abstract class Ardeidae extends Pelecaniformes {
 
   static override behaviors: BehaviorTable<Ardeidae> = {
     forage: {
+      eats: 'minnows',
       label: 'Stalk and strike',
       cue: 'Wades in slow motion, one foot placed at a time, neck easing forward. Freezes completely. The strike itself is too fast to follow; then the head comes up and the fish goes down whole.',
     },
@@ -338,7 +336,10 @@ export abstract class Ardeidae extends Pelecaniformes {
   *stalk(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x = water.from + rand(3, 7);
+    // Stands where three slow steps bring its strike onto the minnows.
+    const m = this.mealRange();
+    // Always in the shallows, never up on the dry sand.
+    const x = clamp(m ? rand(m[0], m[1]) - this.size * 1.15 : water.from + rand(3, 7), water.from + 1, this.wadeMax() - this.size * 0.5);
     yield* this.travelTo({ x, y: this.world.floorY(x) });
     this.pose.facing = 1;
     for (let i = 0; i < 3; i++) {
@@ -346,16 +347,19 @@ export abstract class Ardeidae extends Pelecaniformes {
       yield* this.poseTo({ neck: 0.75, neckExt: 0.8 + i * 0.1, pitch: 0.1 - i * 0.08 }, 0.7);
       yield* this.wait(rand(0.4, 0.9));
     }
+    // A fish comes within reach and it freezes over it, neck cocked.
+    this.aimAt({ x: this.pos.x + this.size * 0.75, y: -0.5 });
     yield* this.poseTo({ neck: 0.45, head: -0.4 }, 0.6);
     yield* this.wait(1.4);
-    yield* this.poseTo({ neck: -0.45, neckExt: 1.25, head: -0.9, pitch: -0.45 }, 0.06);
-    this.world.burst('splash', this.pos.x + this.size * 0.75, 0, 8);
+    // The strike: bill into the water at the fish.
+    yield* this.reachDown({ neck: -0.45, neckExt: 1.25, head: -0.9, pitch: -0.45 }, 0.06, -0.5);
+    this.world.burst('splash', this.billTip().x, 0, 8);
     yield* this.wait(0.12);
-    this.pose.carry = 'fish';
+    this.take(Infinity);
     yield* this.poseTo({ neck: 1.2, neckExt: 1, head: 0.2, pitch: 0.3 }, 0.45);
     yield* this.wait(0.5);
     yield* this.poseTo({ head: 0.7 }, 0.12);
-    this.pose.carry = null;
+    this.hold(null);
     yield* this.wait(0.4);
     yield* this.relax(0.6);
   }
@@ -428,48 +432,19 @@ export abstract class Laridae extends Charadriiformes {
   static override look: Partial<Look> = { build: 0.6, headSize: 0.75, legLength: 0.16, tailLength: 0.3, wingSpan: 2.1, beakShape: 'stout', beakLength: 0.7 };
 
   static override behaviors: BehaviorTable<Laridae> = {
+    forage: {
+      eats: { beach: 'wrack', yard: 'worms' },
+      label: 'Pick along the tideline',
+      cue: 'Walks the drift of seaweed at the tideline, snapping up the kelp flies and sand hoppers that swarm out of it. On a lawn it walks and picks up worms instead.',
+    },
     soar: {
       label: 'Soar',
       cue: 'Circles and glides on long, narrow, slightly bent wings. The wing shape separates it from an eagle at any distance.',
-    },
-    dropShellfish: {
-      label: 'Drop a clam on the rocks',
-      feeding: true,
-      needs: 'rocks',
-      cue: 'The same trick the crows use, learned independently: carry the clam up, drop it on something hard, follow it down.',
-    },
-    footPaddle: {
-      label: 'Foot-paddle',
-      feeding: true,
-      cue: 'Stands in the wet sand at the tideline and marches rapidly in place. The vibration brings worms and small clams to the surface; it steps back and picks them off.',
     },
   };
 
   *soar(): Script {
     yield* this.soarCircles(11, { x: 58, y: 28 }, 15);
-  }
-
-  dropShellfish(): Script {
-    return this.dropOnRocks('clam');
-  }
-
-  *footPaddle(): Script {
-    const water = this.world.habitat.water;
-    yield* this.travelTo({ x: water ? water.from - 2 : this.pos.x, y: 0 });
-    for (let bout = 0; bout < 3; bout++) {
-      for (let t = 0; t < 1.6; ) {
-        t += yield;
-        this.pose.stride = Math.sin(t * 28) * 0.5;
-        this.pose.crouch = 0.1 + 0.05 * Math.sin(t * 56);
-        this.pose.head = -0.4;
-      }
-      this.pose.stride = 0;
-      const x0 = this.pos.x;
-      yield* this.tween(0.25, (t) => (this.pos.x = x0 - this.pose.facing * this.size * 0.2 * t));
-      yield* this.peck(Math.ceil(rand(1, 3)));
-      this.pos.x = x0;
-    }
-    yield* this.relax();
   }
 }
 
@@ -482,11 +457,52 @@ export abstract class Larus extends Laridae {
   };
 
   static override behaviors: BehaviorTable<Larus> = {
+    dropShellfish: {
+      eats: 'clams',
+      label: 'Drop a clam on the rocks',
+      feeding: true,
+      needs: 'rocks',
+      cue: 'The same trick the crows use, learned independently: carry the clam up, drop it on something hard, follow it down.',
+    },
+    footPaddle: {
+      eats: { yard: 'worms', beach: 'sandCritters' },
+      label: 'Foot-paddle',
+      feeding: true,
+      cue: 'Stands on wet sand at the tideline, or a soaked lawn, and marches rapidly in place. The vibration brings worms, small crabs and sand hoppers to the surface; it steps back and picks them off.',
+    },
     longCall: {
       label: 'Long call',
       cue: 'Head goes down to the feet, then is thrown up and back as the bird trumpets a long series of notes. A territorial announcement, given standing.',
     },
   };
+
+  dropShellfish(): Script {
+    return this.dropOnRocks();
+  }
+
+  *footPaddle(): Script {
+    const water = this.world.habitat.water;
+    yield* this.travelTo(this.mealRange(true) ? this.foodSpot(4) : { x: water ? water.from - 2 : this.pos.x, y: 0 });
+    for (let bout = 0; bout < 3; bout++) {
+      // Marches in place, feet stamping hard enough to spatter the wet sand.
+      for (let t = 0, steps = 0; t < 1.6; ) {
+        t += yield;
+        this.pose.stride = Math.sin(t * 14);
+        this.pose.crouch = 0.15 + 0.1 * Math.abs(Math.sin(t * 14));
+        this.pose.head = -0.4;
+        if (Math.floor(t * 14 / Math.PI) > steps) {
+          steps++;
+          this.world.burst('dust', this.pos.x + (steps % 2 ? 0.4 : -0.4), 0.1, 2);
+        }
+      }
+      this.pose.stride = 0;
+      const x0 = this.pos.x;
+      yield* this.tween(0.25, (t) => (this.pos.x = x0 - this.pose.facing * this.size * 0.2 * t));
+      yield* this.peck(Math.ceil(rand(1, 3)));
+      this.pos.x = x0;
+    }
+    yield* this.relax();
+  }
 
   *longCall(): Script {
     yield* this.settle();

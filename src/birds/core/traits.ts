@@ -5,6 +5,7 @@
  * `look`, and `behaviors`. A class only lists what it changes; everything
  * else is inherited from the classes above it (see reflect.ts).
  */
+import type { FoodKind } from './food';
 
 /** A behavior is a generator: it yields once per frame and receives dt (seconds). */
 export type Script<R = void> = Generator<void, R, number>;
@@ -16,7 +17,25 @@ export interface Vec {
 
 export type HabitatId = 'yard' | 'beach';
 export type PerchKind = 'treetop' | 'branch' | 'twig' | 'shrub' | 'post' | 'rock' | 'log' | 'flower';
-export type Item = 'worm' | 'clam' | 'fish' | 'insect' | 'seed' | 'acorn';
+/** Something a bird holds in its bill or feet. */
+export type Item =
+  | 'worm'
+  | 'clam'
+  | 'mussel'
+  | 'crab'
+  | 'fish'
+  | 'insect'
+  | 'caterpillar'
+  | 'grasshopper'
+  | 'seed'
+  | 'acorn'
+  | 'berry'
+  | 'cone'
+  | 'grass'
+  | 'weed'
+  | 'vole'
+  /** A small bird, drawn only as a vague dark shape. */
+  | 'prey';
 
 /**
  * The parameters Bird.flyTo() and Bird.hoverFor() read. Two birds with the
@@ -93,6 +112,8 @@ export interface Look {
   headSize: number;
   /** Multiple of head diameter. */
   beakLength: number;
+  /** Color of a throat pouch under the bill, for a pelican. */
+  pouch?: string;
   beakShape: 'cone' | 'stout' | 'thin' | 'needle' | 'dagger' | 'hook' | 'chisel';
   tailShape: 'square' | 'fan' | 'pointed' | 'forked';
   /** Resting tail angle above horizontal, radians. */
@@ -140,6 +161,8 @@ export interface BehaviorSpec {
   weight?: number;
   /** Finding, catching, handling or eating food. Shown as a tag, since many labels don't say so. */
   feeding?: boolean;
+  /** The food it goes after, if it differs by scene then per scene. The scene shows that food while this bird is in it. */
+  eats?: FoodKind | Partial<Record<HabitatId, FoodKind>>;
 }
 
 /**

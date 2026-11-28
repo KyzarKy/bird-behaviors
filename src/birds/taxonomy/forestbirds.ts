@@ -83,8 +83,9 @@ export abstract class Aegithalidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Aegithalidae> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Stream through the bushes',
-      cue: 'One bird commits to the next bush and the others follow in a string, calling the whole way. At each stop they hang upside down and pick at the twig tips, then all leave within seconds.',
+      cue: 'Hangs upside down at the twig tips picking off aphids and tiny caterpillars, then moves on to the next bush within seconds, calling the whole way. Flocks travel this way, one bird after another in a string.',
     },
   };
 
@@ -94,12 +95,11 @@ export abstract class Aegithalidae extends Passeriformes {
 
   *streamFlock(): Script {
     this.say(this.ecology.call, 2.5);
+    const reach = { neck: 0.2, head: -0.8 };
     for (let stop = 0; stop < 3; stop++) {
-      const next = this.findPerch(['shrub', 'twig'], 'any');
-      if (!next) return;
-      yield* this.flyTo(next, { speed: 1.1 });
-      yield* this.poseTo({ rotation: Math.PI * this.pose.facing }, 0.15);
-      yield* this.peck(Math.ceil(rand(2, 4)), 0.6);
+      const leaf = this.pieceInReach(reach, true);
+      if (!leaf) break;
+      yield* this.reachFor(leaf, reach, { hang: true, bites: Math.ceil(rand(2, 4)), hold: 0.4 });
       yield* this.poseTo({ rotation: 0 }, 0.15);
     }
     yield* this.relax();
@@ -157,8 +157,9 @@ export abstract class Certhiidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Certhiidae> = {
     forage: {
+      eats: 'barkBugs',
       label: 'Spiral up the trunk',
-      cue: 'Starts at the foot of a tree and works up in short hitches, swinging round to the other side now and then. At the top it lets go and flutters down to the base of the next tree. A nuthatch goes down head first; a creeper never does.',
+      cue: 'Starts at the foot of a tree and works up in short hitches, picking tiny insects and spiders from the bark, swinging round to the other side now and then. At the top it lets go and flutters down to the base of the next tree. A nuthatch goes down head first; a creeper never does.',
     },
   };
 
@@ -175,7 +176,8 @@ export abstract class Certhiidae extends Passeriformes {
 
   *spiralUp(): Script {
     for (let tree = 0; tree < 2; tree++) {
-      const trunk = this.findTrunk();
+      // A creeper never climbs the same tree twice running: after the top it drops to the foot of another.
+      const trunk = this.findTrunk(tree > 0);
       if (!trunk?.climb) return;
       const [bottom, top] = trunk.climb;
       // The drop from the last tree is a flutter down, so the bird arrives at the base.
@@ -253,8 +255,9 @@ export abstract class Troglodytidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Troglodytidae> = {
     forage: {
+      eats: 'litterBugs',
       label: 'Creep through the litter',
-      cue: 'Body low and tail up, it threads between roots and fallen logs in short hops, poking into every crevice. It looks more like a mouse than a bird.',
+      cue: 'Body low and tail up, it threads between roots and fallen logs in short hops, poking into every crevice for spiders and beetles. It looks more like a mouse than a bird.',
     },
     sing: {
       label: 'Sing',
@@ -270,11 +273,10 @@ export abstract class Troglodytidae extends Passeriformes {
   }
 
   *creep(): Script {
-    const [from, to] = this.world.habitat.litter ?? [this.pos.x - 4, this.pos.x + 4];
-    yield* this.travelTo({ x: this.world.clampLand(rand(from, to)), y: 0 });
+    yield* this.travelTo(this.foodSpot(4));
     for (let i = 0; i < 5; i++) {
       yield* this.poseTo({ crouch: 0.35, pitch: 0.05 }, 0.1);
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-4, 4)), 1.5);
+      yield* this.moveOnGround(this.foodSpot(4).x, 1.5);
       yield* this.peck(Math.ceil(rand(1, 2)), 0.8);
       yield* this.wait(rand(0.05, 0.3));
     }
@@ -430,8 +432,9 @@ export abstract class Regulidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Regulidae> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Hover-glean at a twig tip',
-      cue: 'Flutters in place at the very end of a branch, picking from needles and buds it never lands on, then flits to the next. Chickadees hang from twigs; kinglets hover in front of them.',
+      cue: 'Flutters in place at the very end of a branch, picking tiny insects and caterpillars from needles and buds it never lands on, then flits to the next. Chickadees hang from twigs; kinglets hover in front of them.',
     },
     flickWings: {
       label: 'Flick the wings',
@@ -452,11 +455,25 @@ export abstract class Regulidae extends Passeriformes {
     for (let visit = 0; visit < 3; visit++) {
       const twig = this.findPerch(undefined, 'any');
       if (!twig) return;
-      yield* this.flyTo({ x: twig.x, y: twig.y + 0.5 }, { land: false, speed: 0.8 });
+      // Hovers just off a leaf where the caterpillars are, bill to the leaf, not sitting on it.
+      const leaf = this.preySpot({ x: twig.x, y: twig.y + 0.5 });
+      // From the side that keeps it inside the scene.
+      const dir = leaf.x + this.size * 1.1 > 98 ? 1 : leaf.x - this.size * 1.1 < 2 ? -1 : leaf.x >= this.pos.x ? 1 : -1;
+      yield* this.flyTo({ x: leaf.x - dir * this.size * 1.1, y: leaf.y - this.size * 0.25 }, { land: false, speed: 0.8 });
+      this.pose.facing = dir;
       yield* this.hoverFor(this.hoverSeconds, { aim: -0.6 });
-      yield* this.flyTo(twig);
-      yield* this.flickWings();
+      // Eases in until the bill is at the leaf.
+      const bill = this.billTip();
+      yield* this.hoverFor(0.25, { aim: -0.6, drift: { x: leaf.x - bill.x, y: leaf.y - bill.y } });
+      // Picks a caterpillar off the leaf tip in the hover.
+      this.takeOrHide(yield* this.glimpse(), 0.5);
+      // Flits on to the next tip without landing.
+      yield* this.hoverFor(0.3, { drift: { x: rand(-2, 2), y: 1 } });
     }
+    // Only now perches, flicking its wings.
+    const twig = this.findPerch(undefined, 'near');
+    if (twig) yield* this.flyTo(twig);
+    yield* this.flickWings();
   }
 
   *flickWings(): Script {
@@ -585,6 +602,7 @@ export abstract class Ixoreus extends Turdidae {
       cue: 'One long, eerie, slightly buzzy note held for two or three seconds, then silence, then another at a different pitch. It carries across the forest and is usually the first sign the bird is there.',
     },
     forage: {
+      eats: 'litterBugs',
       label: 'Toss the leaf litter',
       cue: 'Sweeps its bill sideways through the leaves, flinging them over its shoulder to uncover insects and seeds. A robin pulls worms from lawns; this one works under the shrubs.',
     },
@@ -595,10 +613,9 @@ export abstract class Ixoreus extends Turdidae {
   }
 
   *leafToss(): Script {
-    const [from, to] = this.world.habitat.litter ?? [this.pos.x - 4, this.pos.x + 4];
-    yield* this.travelTo({ x: this.world.clampLand(rand(from, to)), y: 0 });
+    yield* this.travelTo(this.foodSpot(4));
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-4, 4)), 0.8);
+      yield* this.moveOnGround(this.foodSpot(4).x, 0.8);
       const dir = this.pose.facing;
       yield* this.poseTo({ pitch: -0.3, neck: 0.2, head: -0.9 }, 0.1);
       this.world.burst('leaf', this.pos.x + dir * this.size * 0.5, 0.2, 5, dir);
@@ -669,6 +686,7 @@ export abstract class Catharus extends Turdidae {
 
   static override behaviors: BehaviorTable<Catharus> = {
     forage: {
+      eats: 'litterBugs',
       label: 'Hop and freeze',
       cue: 'Two or three quick hops under the shrubs, then it stands bolt upright and motionless, watching. Unlike a robin it does not cock its head or stab the lawn; it takes insects from the litter.',
     },
@@ -681,7 +699,7 @@ export abstract class Catharus extends Turdidae {
   *hopFreeze(): Script {
     yield* this.toGround(10);
     for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * rand(2.5, 5)), 0.8);
+      yield* this.moveOnGround(this.foodSpot(5).x, 0.8);
       yield* this.poseTo({ pitch: 0.55, neck: 1.2 }, 0.1);
       yield* this.wait(rand(0.8, 1.5));
       yield* this.relax(0.1);
@@ -804,13 +822,15 @@ export abstract class Bombycillidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Bombycillidae> = {
     forage: {
+      eats: 'berries',
       label: 'Pass a berry',
       cue: 'A bird picks a berry and, instead of eating it, sidles along the branch and hands it to a neighbor, who may hand it on. Berries are swallowed whole with a toss of the head.',
     },
     flycatch: {
-      label: 'Flycatch over the water',
+      eats: 'swarm',
+      label: 'Flycatch from a treetop',
       feeding: true,
-      cue: 'Sits on an exposed treetop, darts out after an insect, and returns, often with several birds taking turns. It sallies like a flycatcher but is stockier and keeps a crest.',
+      cue: 'Sits on an exposed treetop, darts out after an insect, and returns to the same lookout. It sallies like a flycatcher but is stockier and keeps a crest.',
     },
   };
 
@@ -823,25 +843,60 @@ export abstract class Bombycillidae extends Passeriformes {
     const onShrub = this.world.habitat.perches.some((q) => q.kind === 'shrub' && Math.hypot(q.x - this.pos.x, q.y - this.pos.y) <= 3);
     const shrub = onShrub ? null : this.findPerch(['shrub'], 'near');
     if (!onShrub && !shrub) return;
-    if (shrub) yield* this.flyTo(shrub);
+    // Beside a berry, with a neighbor on the same branch.
+    yield* this.flyTo(this.preySpot(shrub ?? { ...this.pos }));
+    const [mate] = this.company(1);
+    // Leaning in, neck out and bill forward: where the bill gets to, so the two bills meet.
+    const lean = { neck: 1.5, head: 0.35, pitch: this.restingPose().pitch - 0.25 };
+    const saved = { ...this.pose };
+    Object.assign(this.pose, lean);
+    const reach = Math.abs(this.billTip().x - this.pos.x);
+    Object.assign(this.pose, saved);
+    const SIDLE = 0.8;
+    // On whichever side keeps both in the shrub.
+    const [lo, hi] = [45.5, 55.5];
+    const dir: 1 | -1 = this.pos.x + 2 * reach + SIDLE <= hi ? 1 : this.pos.x - 2 * reach - SIDLE >= lo ? -1 : this.pose.facing;
+    // A berry's width between the bill tips, so the bills meet rather than cross.
+    mate.pos = { x: this.pos.x + dir * (2 * reach + SIDLE + 0.25), y: this.pos.y };
+    mate.pose.facing = dir === 1 ? -1 : 1;
+    // Picks a berry, then turns to the neighbor.
     yield* this.peck(1, 0.8);
-    this.pose.carry = 'seed';
+    this.hold(this.pose.carry);
+    this.pose.facing = dir;
     yield* this.poseTo({ neck: 1.2, head: 0.2, crest: 0.6 }, 0.2);
-    yield* this.wait(0.4);
-    // Sidle toward the neighbor and hand the berry over.
+    // Sidles along the branch in two little hops.
     const x0 = this.pos.x;
-    yield* this.tween(0.5, (t) => (this.pos.x = x0 + this.pose.facing * 2 * t));
-    yield* this.poseTo({ neck: 1.5, head: 0.4 }, 0.15);
-    this.pose.carry = null;
-    const berry = this.world.emit('seed', this.pos.x + this.pose.facing * this.size * 0.7, this.pos.y + 0.5, { life: 1.2 });
-    yield* this.wait(0.9);
-    berry.life = 0;
-    // Take another and swallow it whole.
-    yield* this.relax(0.15);
+    const y0 = this.pos.y;
+    yield* this.tween(0.45, (t) => {
+      this.pos.x = x0 + dir * SIDLE * t;
+      this.pos.y = y0 + 0.25 * Math.abs(Math.sin(t * Math.PI * 2));
+    });
+    this.pos.y = y0;
+    // Both lean in together, bill to bill, and the berry changes bills. The neighbor is the same species,
+    // so its resting pose is this bird's.
+    const rest = this.restingPose();
+    const from = { neck: this.pose.neck, head: this.pose.head, pitch: this.pose.pitch };
+    const bothLean = (t: number) => {
+      Object.assign(this.pose, { neck: from.neck + (lean.neck - from.neck) * t, head: from.head + (lean.head - from.head) * t, pitch: from.pitch + (lean.pitch - from.pitch) * t });
+      Object.assign(mate.pose, { neck: rest.neck + (lean.neck - rest.neck) * t, head: lean.head * t, pitch: rest.pitch + (lean.pitch - rest.pitch) * t });
+    };
+    yield* this.tween(0.3, bothLean);
+    yield* this.wait(0.25);
+    mate.pose.carry = this.pose.carry;
+    this.hold(null);
+    yield* this.wait(0.25);
+    yield* this.tween(0.3, (t) => bothLean(1 - t));
+    // The neighbor swallows it whole with a toss of the head.
+    yield* this.wait(0.3);
+    yield* this.tween(0.15, (t) => Object.assign(mate.pose, { head: 0.8 * t, neck: rest.neck + 0.3 * t, beakOpen: t }));
+    mate.pose.carry = null;
+    yield* this.tween(0.2, (t) => Object.assign(mate.pose, { head: 0.8 * (1 - t), neck: rest.neck + 0.3 * (1 - t), beakOpen: 1 - t }));
+    // Back to the berries for one of its own, swallowed the same way.
+    this.pose.facing = dir === 1 ? -1 : 1;
     yield* this.peck(1, 0.8);
-    this.pose.carry = 'seed';
+    this.hold(this.pose.carry);
     yield* this.poseTo({ head: 0.8, neck: 1.3, beakOpen: 1 }, 0.12);
-    this.pose.carry = null;
+    this.hold(null);
     yield* this.relax();
   }
 
@@ -850,10 +905,9 @@ export abstract class Bombycillidae extends Passeriformes {
     for (let i = 0; i < 3; i++) {
       const perch = { ...this.pos };
       const dir = perch.x > 60 ? -1 : 1;
-      const bug = this.world.emit('insect', clamp(perch.x + dir * rand(8, 18), 4, 96), clamp(perch.y + rand(-2, 5), 4, 50), { life: 6 });
+      const bug = this.preySpot({ x: clamp(perch.x + dir * rand(8, 18), 4, 96), y: clamp(perch.y + rand(-2, 5), 4, 50) });
       yield* this.lookAround(rand(0.8, 1.6));
-      yield* this.flyTo(bug, { land: false, speed: 1.2 });
-      bug.life = 0;
+      yield* this.strikeAt(bug, { speed: 1.2, hold: 0.5 });
       this.say('snap!', 0.5);
       yield* this.flyTo(perch);
       yield* this.relax(0.15);
@@ -917,6 +971,7 @@ export abstract class Vireonidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Vireonidae> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Peer and glean',
       cue: 'A slow hop, a pause with the head tilted one way and then the other, then a reach under a leaf for a caterpillar. Compare the near-constant motion of a kinglet.',
     },
@@ -940,9 +995,8 @@ export abstract class Vireonidae extends Passeriformes {
       yield* this.wait(this.pace / 2);
       // Reach under the leaf.
       yield* this.poseTo({ neck: 0.3, head: -1.1, pitch: -0.3 }, 0.25);
-      this.pose.carry = 'insect';
+      this.takeOrHide(yield* this.glimpse(), 0.4);
       yield* this.wait(0.3);
-      this.pose.carry = null;
       yield* this.relax(0.2);
     }
   }
@@ -1020,9 +1074,10 @@ export class WarblingVireo extends Vireo {
 
   static override behaviors: BehaviorTable<WarblingVireo> = {
     singWhileGleaning: {
+      eats: 'leafBugs',
       label: 'Sing while foraging',
       feeding: true,
-      cue: 'Warbles from inside the foliage and keeps working the leaves between phrases, often well above eye level. It sings from the nest too.',
+      cue: 'Warbles from inside the foliage and keeps picking caterpillars off the leaves between phrases, often well above eye level. It sings from the nest too.',
     },
   };
 

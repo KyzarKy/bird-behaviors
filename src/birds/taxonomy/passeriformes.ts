@@ -71,17 +71,23 @@ export abstract class Corvidae extends Passeriformes {
   static override look: Partial<Look> = { build: 0.55, beakShape: 'stout', beakLength: 0.65, legLength: 0.2 };
 
   static override behaviors: BehaviorTable<Corvidae> = {
+    forage: {
+      eats: { yard: 'grassBugs', beach: 'wrack' },
+      label: 'Walk and pick',
+      cue: 'Walks (a jay hops) with a confident swagger, picking up grasshoppers and beetles in the grass, or turning over the beach seaweed for kelp flies and sand hoppers. Corvids eat almost anything they find.',
+    },
     cache: {
+      eats: { yard: 'acorns', beach: 'clams' },
       label: 'Cache food',
       feeding: true,
-      cue: 'Carries food off, looks around to see who is watching, jabs it into the ground, then pulls a leaf over the spot.',
+      cue: 'Picks up an acorn (on the beach, a clam), carries it off, looks around to see who is watching, jabs it into the ground, then pulls a leaf over the spot.',
     },
   };
 
   override *forage(): Script {
     yield* this.toGround();
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-7, 7)));
+      yield* this.moveOnGround(this.foodSpot(7).x);
       yield* this.poseTo({ head: -0.5 }, 0.15);
       yield* this.wait(rand(0.3, 0.7));
       yield* this.peck(Math.ceil(rand(0, 2)));
@@ -91,14 +97,16 @@ export abstract class Corvidae extends Passeriformes {
 
   *cache(): Script {
     yield* this.toGround();
-    yield* this.peck(2);
-    this.pose.carry = 'acorn';
+    yield* this.moveOnGround(this.foodSpot(6).x);
+    yield* this.peck(1);
+    this.hold(this.pose.carry);
     yield* this.lookAround(1.2);
+    // Away from where it found it, out of sight of other jays.
     yield* this.moveOnGround(this.world.clampLand(this.pos.x + (this.pos.x > 50 ? -1 : 1) * rand(7, 12)));
     yield* this.lookAround(1);
-    yield* this.peck(1, 1.2);
-    this.pose.carry = null;
-    yield* this.peck(3, 1.2);
+    yield* this.peck(1, 1.2, false);
+    this.hold(null);
+    yield* this.peck(3, 1.2, false);
     // Cover it.
     for (let i = 0; i < 2; i++) {
       yield* this.poseTo({ neck: -0.3, head: -0.9, pitch: -0.35 }, 0.12);
@@ -220,6 +228,7 @@ export class AmericanCrow extends Corvus {
 
   static override behaviors: BehaviorTable<AmericanCrow> = {
     dropShellfish: {
+      eats: 'clams',
       label: 'Drop a clam on the rocks',
       feeding: true,
       needs: 'rocks',
@@ -228,7 +237,7 @@ export class AmericanCrow extends Corvus {
   };
 
   dropShellfish(): Script {
-    return this.dropOnRocks('clam');
+    return this.dropOnRocks();
   }
 }
 
@@ -298,6 +307,7 @@ export abstract class Tyrannidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Tyrannidae> = {
     forage: {
+      eats: 'swarm',
       label: 'Sally for insects',
       cue: 'Upright on an exposed perch, head swiveling. A sudden dart out, an audible bill snap, and a loop back to a perch. How far it goes and whether it returns to the same spot separates the species.',
     },
@@ -318,12 +328,11 @@ export abstract class Tyrannidae extends Passeriformes {
       const perch = { ...this.pos };
       yield* this.lookAround(rand(1, 2.2));
       const dir = perch.x > 75 ? -1 : perch.x < 25 ? 1 : Math.random() < 0.5 ? -1 : 1;
-      const bug = this.world.emit('insect', perch.x + dir * rand(5, this.sallyRange), Math.min(50, Math.max(3, perch.y + rand(-5, 5))), { life: 8 });
-      this.pose.facing = dir;
+      const bug = this.preySpot({ x: perch.x + dir * rand(5, this.sallyRange), y: Math.min(50, Math.max(3, perch.y + rand(-5, 5))) });
+      this.pose.facing = bug.x > perch.x ? 1 : -1;
       yield* this.poseTo({ head: bug.y > perch.y ? 0.4 : -0.4 }, 0.08);
       yield* this.wait(0.15);
-      yield* this.flyTo(bug, { land: false, speed: 1.3 });
-      bug.life = 0;
+      yield* this.strikeAt(bug, { hold: 0.5 });
       this.say('snap!', 0.6);
       this.pose.beakOpen = 1;
       yield* this.wait(0.06);
@@ -404,8 +413,9 @@ export abstract class Turdus extends Turdidae {
 
   static override behaviors: BehaviorTable<Turdus> = {
     forage: {
-      label: 'Hunt worms',
-      cue: 'Runs a few steps, stops dead and stands tall, cocks its head to one side, then stabs. The head tilt is the bird looking, not listening: its eyes are on the sides of its head.',
+      eats: { yard: 'worms', beach: 'grassBugs' },
+      label: 'Run, stop and stab',
+      cue: 'Runs a few steps, stops dead and stands tall, cocks its head to one side, then stabs at a worm in the lawn, or at an insect in the beach grass. The head tilt is the bird looking, not listening: its eyes are on the sides of its head.',
     },
   };
 
@@ -415,8 +425,11 @@ export abstract class Turdus extends Turdidae {
 
   *wormHunt(): Script {
     yield* this.toGround(10);
-    for (let i = 0; i < 3; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + (Math.random() < 0.7 ? this.pose.facing : -this.pose.facing) * rand(3.5, 7)));
+    // One worm, run up to in short dashes with a stop to look after each.
+    const x0 = this.pos.x;
+    const spot = this.foodSpot(7).x;
+    for (let i = 1; i <= 3; i++) {
+      yield* this.moveOnGround(x0 + ((spot - x0) * i) / 3);
       yield* this.poseTo({ pitch: 0.55, neck: 1.2 }, 0.08);
       yield* this.wait(rand(0.4, 0.8));
       yield* this.poseTo({ pitch: 0.15, neck: 0.5, head: -0.6 }, 0.15);
@@ -424,14 +437,14 @@ export abstract class Turdus extends Turdidae {
     }
     yield* this.peck(1, 1.1);
     yield* this.poseTo({ pitch: -0.4, neck: -0.6, head: -1.1 }, 0.08);
-    this.pose.carry = 'worm';
+    this.hold(this.pose.carry);
     // Tug of war.
     for (let i = 0; i < 3; i++) {
       yield* this.poseTo({ pitch: 0.1 + i * 0.15, neck: 0.3 + i * 0.3, head: -0.5 + i * 0.25 }, 0.25);
       yield* this.wait(0.15);
     }
     yield* this.poseTo({ head: 0.5 }, 0.12);
-    this.pose.carry = null;
+    this.hold(null);
     yield* this.relax();
   }
 }
@@ -477,10 +490,12 @@ export abstract class Paridae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Paridae> = {
     forage: {
+      eats: 'leafBugs',
       label: 'Glean upside down',
-      cue: 'Flits to the very tip of a twig and swings underneath it to pick at buds and cones. Few other birds this size feed hanging by their feet.',
+      cue: 'Flits to the very tip of a twig and swings underneath it to pick caterpillars and insect eggs from the buds. Few other birds this size feed hanging by their feet.',
     },
     seedHammer: {
+      eats: 'seedHeads',
       label: 'Hammer open a seed',
       feeding: true,
       cue: 'Takes one seed and leaves. On a branch it pins the seed under both feet and hammers it open with its bill; it never sits on a seed head cracking seeds like a finch.',
@@ -492,16 +507,13 @@ export abstract class Paridae extends Passeriformes {
   }
 
   *hangGlean(): Script {
+    // Under the twig tip, the head curled up to the leaf.
+    const reach = { neck: 0.2, head: -0.8 };
     for (let visit = 0; visit < 2; visit++) {
-      const twig = this.findPerch(['twig']);
-      if (!twig) return;
-      yield* this.flyTo(twig);
-      yield* this.wait(0.2);
-      yield* this.poseTo({ rotation: Math.PI * this.pose.facing }, 0.18);
-      for (let i = 0; i < 3; i++) {
-        yield* this.peck(Math.ceil(rand(1, 3)), 0.7);
-        yield* this.wait(rand(0.1, 0.4));
-      }
+      const leaf = this.pieceInReach(reach, true);
+      if (!leaf) break;
+      yield* this.reachFor(leaf, reach, { hang: true, bites: Math.ceil(rand(2, 4)), hold: 0.5 });
+      yield* this.wait(rand(0.3, 0.6));
       yield* this.poseTo({ rotation: 0 }, 0.18);
       yield* this.wait(0.2);
     }
@@ -510,12 +522,13 @@ export abstract class Paridae extends Passeriformes {
   }
 
   *seedHammer(): Script {
-    yield* this.travelTo(this.findPerch(['shrub']) ?? this.groundSpot(this.pos.x, 8));
+    // Onto a seed head, take one seed, and off to a branch to hammer it open.
+    yield* this.travelTo(this.preySpot(this.findPerch(['shrub']) ?? this.groundSpot(this.pos.x, 8)));
     yield* this.peck(1);
-    this.pose.carry = 'seed';
+    this.hold(this.pose.carry);
     yield* this.wait(0.2);
     yield* this.toPerch(['branch']);
-    this.pose.carry = null;
+    this.hold(null);
     for (let i = 0; i < 3; i++) {
       for (let hit = 0; hit < 5; hit++) {
         yield* this.poseTo({ pitch: -0.5, neck: -0.9, head: -1.4 }, 0.05);
@@ -575,8 +588,9 @@ export abstract class Sittidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Sittidae> = {
     forage: {
+      eats: 'barkBugs',
       label: 'Creep down the trunk',
-      cue: 'Head-first down the bark in short jerks, pausing to crane its head out and look around. A small bird pointing downward on a trunk is a nuthatch.',
+      cue: 'Head-first down the bark in short jerks, picking insects out of the cracks and pausing to crane its head out and look around. A small bird pointing downward on a trunk is a nuthatch.',
     },
   };
 
@@ -664,8 +678,9 @@ export abstract class Passerellidae extends Passeriformes {
 
   static override behaviors: BehaviorTable<Passerellidae> = {
     forage: {
+      eats: { yard: 'litterBugs', beach: 'wrack' },
       label: 'Double-scratch',
-      cue: 'A quick hop forward, then both feet kick backward together, throwing leaves behind it. You often hear the rustling in the litter before you see the bird. A chicken scratches one foot at a time.',
+      cue: 'A quick hop forward, then both feet kick backward together, throwing leaves behind it (or, on the beach, the seaweed of the wrack line) to uncover insects, sand fleas and seeds. You often hear the rustling in the litter before you see the bird. A chicken scratches one foot at a time.',
     },
   };
 
@@ -674,8 +689,7 @@ export abstract class Passerellidae extends Passeriformes {
   }
 
   *doubleScratch(): Script {
-    const [from, to] = this.world.habitat.litter ?? [this.pos.x - 4, this.pos.x + 4];
-    yield* this.travelTo({ x: this.world.clampLand(rand(from, to)), y: 0 });
+    yield* this.travelTo(this.foodSpot(4));
     const hop = this.size * 0.3;
     for (let i = 0; i < 6; i++) {
       const f = this.pose.facing;

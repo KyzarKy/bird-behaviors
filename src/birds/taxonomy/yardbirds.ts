@@ -88,9 +88,10 @@ export class DownyWoodpecker extends Dryobates {
 
   static override behaviors: BehaviorTable<DownyWoodpecker> = {
     stemProbe: {
+      eats: 'seedHeads',
       label: 'Probe weed stems',
       feeding: true,
-      cue: 'Small enough to work thin stalks and shrub twigs that would bend under a Hairy. Hangs on the stem, taps lightly and moves on. A Hairy is almost always on a trunk or a big limb.',
+      cue: 'Small enough to work thin stalks and shrub twigs that would bend under a Hairy. Hangs on a weed stem, taps lightly to get at the seed and the grubs inside, and moves on. A Hairy is almost always on a trunk or a big limb.',
     },
   };
 
@@ -98,8 +99,8 @@ export class DownyWoodpecker extends Dryobates {
   protected override drumSecs = 1.4;
 
   *stemProbe(): Script {
-    const stem = this.findPerch(['flower', 'twig', 'shrub'], 'any');
-    if (!stem) return;
+    // A seed-head stem, to dig out the grubs inside.
+    const stem = this.preySpot(this.findPerch(['flower', 'twig', 'shrub'], 'any') ?? { ...this.pos });
     yield* this.flyOver(stem);
     for (let i = 0; i < 4; i++) {
       yield* this.poseTo({ pitch: 0.7 }, 0.12);
@@ -142,8 +143,9 @@ export abstract class Dryocopus extends Picidae {
 
   static override behaviors: BehaviorTable<Dryocopus> = {
     forage: {
+      eats: 'barkBugs',
       label: 'Excavate a hole',
-      cue: 'Braces its tail, throws its whole body back, and hits the trunk with single heavy blows. Chips fly several feet. No other woodpecker here leaves holes this big or this squared off.',
+      cue: 'Braces its tail, throws its whole body back, and hits the trunk with single heavy blows to reach the carpenter ants inside. Chips fly several feet. No other woodpecker here leaves holes this big or this squared off.',
     },
     drum: {
       label: 'Drum',
@@ -165,6 +167,9 @@ export abstract class Dryocopus extends Picidae {
       for (let blow = 0; blow < 3; blow++) {
         yield* this.poseTo({ neck: -0.7, head: -1.2 }, 0.06);
         this.world.burst('chip', this.pos.x, this.pos.y + this.size * 0.5, 5, side);
+        // The last blow breaks into the carpenter ants' gallery.
+        if (round === 3 && blow === 1) yield* this.glimpse();
+        if (round === 3 && blow === 2) this.take(1.2);
         yield* this.poseTo({ neck: 1.1, head: 0.4 }, 0.12);
       }
       yield* this.wait(rand(0.3, 0.7));
@@ -246,6 +251,7 @@ export abstract class Sphyrapicus extends Picidae {
 
   static override behaviors: BehaviorTable<Sphyrapicus> = {
     forage: {
+      eats: 'sap',
       label: 'Tend sap wells',
       cue: 'Drills a column of small square holes up one trunk, flies off, and comes back to lick them in order. Other woodpeckers peck at random and do not return to the same spot.',
     },
@@ -262,25 +268,50 @@ export abstract class Sphyrapicus extends Picidae {
   *tapWells(): Script {
     const trunk = this.findTrunk();
     if (!trunk?.climb) return;
-    const rows = [0, 1, 2, 3].map((i) => trunk.climb![0] + 2.5 + i * 2.5);
-    const goTo = (y: number) => {
+    // The wells: where the sap is on this trunk, or a column up the bark. Each row is one height.
+    const sap = this.world.food.find((f) => f.kind === 'sap')?.units.filter((u) => Math.abs(u.x - trunk.x) < 2) ?? [];
+    const rows: Vec[] = [];
+    for (const u of [...sap].sort((a, b) => a.y - b.y)) if (!rows.some((r) => Math.abs(r.y - u.y) < 0.8)) rows.push({ ...u });
+    if (!rows.length) for (let i = 0; i < 4; i++) rows.push({ x: trunk.x, y: trunk.climb[0] + 2.5 + i * 2.5 });
+    const drill = { neck: -0.15, head: -0.9 };
+    // Feet low enough that the bill, struck against the bark, meets the well.
+    const footFor = (y: number) => y - (this.billWith(drill).y - this.pos.y);
+    // Up the bark in a hitch or two, tail braced, not a slide.
+    const hitchTo = (y: number) => {
       const y0 = this.pos.y;
-      return this.tween(0.25, (t) => (this.pos.y = y0 + (y - y0) * t));
+      return this.tween(0.15, (t) => {
+        this.pos.y = y0 + (y - y0) * t;
+        this.pose.crouch = 0.4 * Math.sin(Math.PI * t);
+      });
     };
-    const side = yield* this.flyToTrunk(trunk, rows[0], true);
-    for (const y of rows) {
-      yield* goTo(y);
-      yield* this.peck(3, 0.9);
-      this.world.burst('chip', this.pos.x, y, 2, side);
+    const side = yield* this.flyToTrunk(trunk, rows[0].y, true);
+    // The well in a row on the side of the trunk it is working.
+    const wellAt = (row: Vec) => sap.filter((u) => Math.abs(u.y - row.y) < 0.8).sort((a, b) => Math.abs(a.x - this.pos.x) - Math.abs(b.x - this.pos.x))[0] ?? row;
+    this.pose.tailAngle = -0.5;
+    for (const row of rows) {
+      yield* hitchTo(footFor(row.y));
+      const well = wellAt(row);
+      // Drilling only opens the well; the sap comes later.
+      for (let hit = 0; hit < 3; hit++) {
+        yield* this.poseTo(drill, 0.05);
+        if (hit === 0) this.world.burst('chip', well.x, well.y, 2, side);
+        yield* this.poseTo({ neck: 0.95, head: 0 }, 0.12);
+      }
+      yield* this.wait(0.15);
     }
-    // Leave for a while, then come back to the first well and lick up the column.
+    // Leave for a while, then come back to the bottom well on the same side and lick up the column in the same order.
     yield* this.toPerch(['branch'], 'near');
     yield* this.lookAround(1.5);
-    yield* this.flyToTrunk(trunk, rows[0], true);
-    for (const y of rows) {
-      yield* goTo(y);
-      yield* this.peck(1, 0.5);
+    yield* this.flyToTrunk(trunk, footFor(rows[0].y), true, side);
+    this.pose.tailAngle = -0.5;
+    for (const row of rows) {
+      yield* hitchTo(footFor(row.y));
+      yield* this.poseTo(drill, 0.12);
+      this.take(0.5, wellAt(row));
+      yield* this.wait(0.35);
+      yield* this.poseTo({ neck: 0.95, head: 0 }, 0.12);
     }
+    yield* this.relax();
   }
 
   override *drum(): Script {
@@ -376,6 +407,11 @@ export abstract class Columbidae extends Columbiformes {
   };
 
   static override behaviors: BehaviorTable<Columbidae> = {
+    forage: {
+      label: 'Walk and peck seeds',
+      cue: 'Walks with a steady head-nod, pecking up seeds from the ground as it goes. Compare the stop-and-stab of a robin.',
+      eats: 'fallenSeed',
+    },
     clapOff: {
       label: 'Burst into flight',
       cue: 'Crouches, then leaves the ground in one explosive takeoff with a noisy clap or whistle from the wings. Doves and pigeons all do it; the sound differs by species.',
@@ -391,11 +427,10 @@ export abstract class Columbidae extends Columbiformes {
   /** How high the display climb goes. */
   protected displayHeight = 30;
 
-  // They feed on the ground with a steady nod and rapid pecks, not the stop-and-stab of a robin.
   override *forage(): Script {
     yield* this.toGround();
     for (let i = 0; i < 4; i++) {
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + rand(-5, 5)));
+      yield* this.moveOnGround(this.foodSpot(5).x);
       for (let j = 0; j < 3; j++) yield* this.peck(1, 0.8);
     }
     yield* this.relax();
@@ -435,6 +470,7 @@ export abstract class Patagioenas extends Columbidae {
 
   static override behaviors: BehaviorTable<Patagioenas> = {
     canopyFeed: {
+      eats: 'berries',
       label: 'Reach for berries',
       feeding: true,
       cue: 'A pigeon in the treetop, neck stretched out far and body tilted up, flapping to stay balanced on a thin twig. A ground-feeding dove or town pigeon almost never does this.',
@@ -442,12 +478,21 @@ export abstract class Patagioenas extends Columbidae {
   };
 
   *canopyFeed(): Script {
-    yield* this.toPerch(['branch', 'treetop'], 'any');
-    for (let i = 0; i < 4; i++) {
-      yield* this.poseTo({ pitch: 0.7, neckExt: 1.7, head: 0.3 }, 0.2);
-      yield* this.wait(rand(0.3, 0.6));
-      yield* this.poseTo({ pitch: this.restingPose().pitch, neckExt: 1, head: 0 }, 0.2);
-      yield* this.lookAround(0.6);
+    // Clambers into the shrub and stretches up for a berry, flapping to keep its balance on the thin twigs.
+    const reach = { pitch: 0.7, neckExt: 1.7, head: 0.3 };
+    for (let i = 0; i < 3; i++) {
+      const berry = this.pieceInReach(reach);
+      if (!berry) break;
+      yield* this.alongside(this.reachFor(berry, reach, { hold: 0.5 }), () => {
+        if (this.airborne) return;
+        this.pose.wings = 'open';
+        this.pose.flap = Math.sin(this.world.time * 9) * 0.5;
+      });
+      yield* this.poseTo({ flap: -0.4 }, 0.12);
+      yield* this.poseTo({ flap: 0.4 }, 0.12);
+      this.pose.wings = 'folded';
+      yield* this.poseTo({ pitch: this.restingPose().pitch, neckExt: 1, head: 0, flap: 0 }, 0.2);
+      yield* this.wait(rand(0.2, 0.4));
     }
     yield* this.relax();
   }
@@ -721,6 +766,7 @@ export abstract class Apodidae extends Apodiformes {
 
   static override behaviors: BehaviorTable<Apodidae> = {
     forage: {
+      eats: 'swarm',
       label: 'Hawk insects',
       cue: 'Continuous flight at all heights, in long loops with sudden turns. The wings are bowed and stiff and seem to flicker alternately, not beat together. A swallow flaps and glides on a more relaxed rhythm.',
     },
@@ -778,7 +824,11 @@ export abstract class Apodidae extends Apodiformes {
   }
 
   *hawkInsects(): Script {
-    for (let i = 0; i < 6; i++) yield* this.flyTo(this.airSpot(), { land: false, speed: rand(0.9, 1.2) });
+    for (let i = 0; i < 6; i++) {
+      const at = this.preySpot(this.airSpot());
+      yield* this.flyTo(at, { land: false, speed: rand(0.9, 1.2) });
+      this.take(0.3, at);
+    }
   }
 
   *roostDrop(): Script {
@@ -870,6 +920,7 @@ export abstract class Caprimulgidae extends Caprimulgiformes {
 
   static override behaviors: BehaviorTable<Caprimulgidae> = {
     forage: {
+      eats: 'swarm',
       label: 'Hawk insects',
       cue: 'Erratic and high, in loose bounding turns on long, pointed, slightly bent wings. Wings are quicker and more irregular than a gull’s, and the bird twists to chase each insect.',
     },
@@ -885,8 +936,9 @@ export abstract class Caprimulgidae extends Caprimulgiformes {
 
   *hawkInsects(): Script {
     for (let i = 0; i < 7; i++) {
-      const to = { x: clamp(this.pos.x + rand(-22, 22), 8, 92), y: rand(22, 42) };
+      const to = this.preySpot({ x: clamp(this.pos.x + rand(-22, 22), 8, 92), y: rand(22, 42) });
       yield* this.flyTo(to, { land: false, speed: rand(0.9, 1.3) });
+      this.take(0.3, to);
     }
     yield* this.toPerch();
     yield* this.relax();

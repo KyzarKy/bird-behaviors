@@ -48,6 +48,7 @@ export abstract class Trochilidae extends Apodiformes {
 
   static override behaviors: BehaviorTable<Trochilidae> = {
     forage: {
+      eats: 'nectar',
       label: 'Feed at flowers',
       cue: 'Arrives fast and stops dead with no slowing. Hangs motionless, bill in the flower, then backs straight out in reverse before pivoting to the next one. Nothing else flies backward.',
     },
@@ -65,17 +66,23 @@ export abstract class Trochilidae extends Apodiformes {
   }
 
   *hoverFeed(): Script {
-    const flowers = this.world.habitat.perches.filter((q) => q.kind === 'flower');
+    const all = this.world.habitat.perches.filter((q) => q.kind === 'flower');
+    // The flowers in bloom, where the nectar is.
+    const m = this.mealRange();
+    const open = m ? all.filter((q) => q.x >= m[0] - 2 && q.x <= m[1] + 2) : all;
+    const flowers = open.length ? open : all;
     for (const flower of flowers) {
       const dir = flower.x >= this.pos.x ? 1 : -1;
-      // Where the feet must be for the bill tip to meet the flower.
-      const feed = { x: flower.x - dir * this.size * 0.92, y: flower.y - this.size * 0.42 };
-      yield* this.flyTo({ x: feed.x - dir * this.size, y: feed.y + 0.4 }, { land: false });
+      // Hang a short way off the flower, then ease in until the bill tip is in it.
+      yield* this.flyTo({ x: flower.x - dir * this.size * 1.5, y: flower.y - this.size * 0.3 }, { land: false });
       this.pose.facing = dir;
       yield* this.hoverFor(0.35);
-      yield* this.hoverFor(0.25, { drift: { x: feed.x - this.pos.x, y: feed.y - this.pos.y } });
+      const bill = this.billTip();
+      yield* this.hoverFor(0.25, { drift: { x: flower.x - bill.x, y: flower.y - bill.y } });
+      if (open.length) this.take(0.5);
       yield* this.hoverFor(rand(0.9, 1.5));
-      yield* this.hoverFor(0.3, { drift: { x: -dir * this.size * 1.2, y: 0.5 } });
+      // Straight back out, then on to the next.
+      yield* this.hoverFor(0.3, { drift: { x: -dir * this.size * 0.8, y: 0.3 } });
       yield* this.hoverFor(0.2);
     }
     yield* this.toPerch();
@@ -89,7 +96,7 @@ export abstract class Trochilidae extends Apodiformes {
     this.pose.facing = dir;
     yield* this.hoverFor(0.8);
     for (let i = 0; i < 2; i++) {
-      yield* this.flyTo({ x: audience.x - dir * 7, y: Math.min(49, audience.y + this.diveHeight) }, { land: false });
+      yield* this.flyTo({ x: audience.x - dir * 7, y: Math.min(this.sky, audience.y + this.diveHeight) }, { land: false });
       yield* this.flyTo({ x: audience.x - dir * 1.5, y: audience.y + 2 }, { land: false, speed: 2.2 });
       this.diveSound();
       yield* this.flyTo({ x: audience.x + dir * 7, y: audience.y + 7 }, { land: false, speed: 1.6 });

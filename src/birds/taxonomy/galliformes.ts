@@ -37,8 +37,9 @@ export abstract class Galliformes extends Bird {
 
   static override behaviors: BehaviorTable<Galliformes> = {
     forage: {
+      eats: 'fallenSeed',
       label: 'Scratch and peck',
-      cue: 'One foot at a time rakes backward, then the bird steps back and inspects what it uncovered. Compare the towhee, which kicks with both feet at once.',
+      cue: 'One foot at a time rakes backward, then the bird steps back and picks at what it uncovered: seeds, insects, a fallen berry. Compare the towhee, which kicks with both feet at once.',
     },
     dustBathe: {
       label: 'Dust bathe',
@@ -70,7 +71,7 @@ export abstract class Galliformes extends Bird {
         this.pose.stride = Math.sin(t * Math.PI * 2);
       });
       yield* this.peck(Math.ceil(rand(1, 4)));
-      yield* this.moveOnGround(this.world.clampLand(this.pos.x + this.pose.facing * this.size * rand(0.6, 1.4)));
+      yield* this.moveOnGround(this.foodSpot(this.size * 1.4).x);
     }
     yield* this.relax();
   }

@@ -32,6 +32,7 @@ export abstract class Pandionidae extends Accipitriformes {
 
   static override behaviors: BehaviorTable<Pandionidae> = {
     forage: {
+      eats: 'baitfish',
       label: 'Hover and plunge',
       needs: 'water',
       cue: 'Flies a slow search line 50 feet over the water, stops and hovers with the bill pointing down, then drops feet-first into a big splash and often goes in to the body. It climbs out, shakes like a dog in midair and carries the fish head-first. A Bald Eagle’s strike is a dry snatch from the surface.',
@@ -45,31 +46,19 @@ export abstract class Pandionidae extends Accipitriformes {
   *plungeDive(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x = water.from + rand(12, 26);
+    const x = clamp(this.preySpot({ x: water.from + rand(12, 26), y: 0 }).x, water.from + 6, 94);
     const dir = this.pos.x < x ? 1 : -1;
     yield* this.flyTo({ x: x - dir * 10, y: 15 }, { land: false });
     yield* this.flyTo({ x, y: 14 }, { land: false, speed: 0.5 });
     yield* this.hoverFor(2.5, { aim: -0.9 });
-    yield* this.flyTo({ x: x + dir * 2, y: -1 }, { land: false, speed: 1.7 });
-    this.world.burst('splash', this.pos.x, 0, 14);
-    yield* this.wait(0.4);
-    // Many plunges come up empty.
-    const caught = Math.random() < 0.6;
-    if (caught) {
-      this.pose.carry = 'fish';
-      this.pose.carryInFeet = true;
-    }
-    this.world.burst('splash', this.pos.x, 0, 8);
+    yield* this.plungeAt(x + dir * 2, { speed: 1.7, depth: 1 });
     yield* this.flyTo({ x: x + dir * 6, y: 9 }, { land: false });
-    if (caught) {
-      const p = this.pose;
-      yield* this.tween(0.6, (t) => (p.roll = 0.35 * Math.sin(t * Math.PI * 6)));
-      p.roll = 0;
-    }
+    // A shake in the air to throw off the water, with the fish held head-first.
+    const p = this.pose;
+    yield* this.tween(0.6, (t) => (p.roll = 0.35 * Math.sin(t * Math.PI * 6)));
+    p.roll = 0;
     yield* this.toPerch();
-    if (caught) for (let i = 0; i < 3; i++) yield* this.peck(1, 1.2);
-    this.pose.carry = null;
-    this.pose.carryInFeet = false;
+    for (let i = 0; i < 3; i++) yield* this.peck(1, 1.2);
     yield* this.relax();
   }
 }
@@ -133,13 +122,15 @@ export abstract class Buteo extends Accipitridae {
 
   static override behaviors: BehaviorTable<Buteo> = {
     kite: {
+      eats: 'voles',
       label: 'Kite on the wind',
       feeding: true,
-      cue: 'Hangs almost motionless over one spot on set wings with the tail fanned, riding the breeze, then slides sideways to a new spot. Gulls kite too, but a buteo’s wings are broad and rounded.',
+      cue: 'Hangs almost motionless over one spot on set wings with the tail fanned, riding the breeze and watching for voles, then slides sideways to a new spot. Gulls kite too, but a buteo’s wings are broad and rounded.',
     },
     forage: {
+      eats: 'voles',
       label: 'Hunt from a perch',
-      cue: 'Sits upright and still on a treetop or post for many minutes, head tipped down, then drops on a short glide to the ground and mantles with the wings spread over what it caught.',
+      cue: 'Sits upright and still on a treetop or post for many minutes, head tipped down, then drops on a short glide onto a vole in the grass and mantles over it with the wings spread.',
     },
   };
 
@@ -148,23 +139,34 @@ export abstract class Buteo extends Accipitridae {
   }
 
   *kite(): Script {
-    yield* this.flyTo({ x: this.pos.x < 50 ? 62 : 38, y: 26 }, { land: false });
+    const over = this.huntSpot(24);
+    yield* this.flyTo(over ?? { x: this.pos.x < 50 ? 62 : 38, y: 26 }, { land: false });
     const home = { ...this.pos };
     const p = this.pose;
     this.vel = { x: 0, y: 0 };
+    // The slide goes toward the middle of the voles' ground, so the drop stays over it.
+    const m = this.mealRange();
+    const slide = m && home.x > (m[0] + m[1]) / 2 ? -3 : 3;
     for (let t = 0; t < 7; ) {
       const dt = yield;
       t += dt;
       this.airTime += dt;
-      this.pos.x = home.x + 0.6 * Math.sin(t * 0.7);
+      // Hangs still on the wind, then slides over a few yards to a new spot and hangs again.
+      const k = Math.min(1, Math.max(0, (t - 3) / 1.5));
+      this.pos.x = home.x + slide * k * k * (3 - 2 * k) + 0.4 * Math.sin(t * 0.7);
       this.pos.y = home.y + 0.5 * Math.sin(t * 1.1);
       p.wings = 'open';
-      p.flap = 0.2 + 0.1 * Math.sin(t * 2);
+      // Constant small corrections of the wings and tail against the gusts.
+      // Wings held up and spread (seen from the side, flat wings would vanish), trimmed constantly against the gusts.
+      p.flap = 0.6 + 0.2 * Math.sin(t * 3.1) * Math.sin(t * 0.9);
       p.pitch = 0.15;
       p.neck = 0.25;
+      p.head = -0.6;
       p.tailFan = 1;
     }
     p.tailFan = 0;
+    // Hanging in the wind pays off: a steep drop onto a vole below.
+    yield* this.grab(this.groundSpot(this.pos.x, 2));
     yield* this.toPerch();
   }
 
@@ -174,14 +176,7 @@ export abstract class Buteo extends Accipitridae {
     yield* this.lookAround(2.5);
     yield* this.poseTo({ head: -0.7, neck: 0.6 }, 0.3);
     yield* this.wait(1.2);
-    const spot = this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * 10, 2);
-    yield* this.flyTo(spot, { glide: true });
-    this.world.burst('dust', spot.x, 0, 5);
-    this.pose.wings = 'open';
-    yield* this.poseTo({ crouch: 0.6, flap: -0.4 }, 0.15);
-    yield* this.wait(1);
-    yield* this.relax();
-    yield* this.peck(3, 1.1);
+    yield* this.grab(this.preySpot(this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * 10, 2)), 3);
     yield* this.toPerch();
   }
 }
@@ -239,8 +234,9 @@ export abstract class Accipiter extends Accipitridae {
 
   static override behaviors: BehaviorTable<Accipiter> = {
     forage: {
+      eats: 'flock',
       label: 'Ambush dash',
-      cue: 'Waits out of sight in the trees, then comes through the yard a few feet off the ground, hugging cover, and pops up onto a branch on the far side. Over in seconds. Compare its size and how twisty the line is with the other accipiter.',
+      cue: 'Waits out of sight in the trees, then comes through the yard a few feet off the ground, hugging cover, flushes the small birds from the bush and grabs one, and pops up onto a branch on the far side to eat it. Over in seconds. Compare its size and how twisty the line is with the other accipiter.',
     },
   };
 
@@ -259,15 +255,20 @@ export abstract class Accipiter extends Accipitridae {
   *ambushDash(): Script {
     yield* this.toPerch();
     const perch = { ...this.pos };
-    const dir = perch.x < 50 ? 1 : -1;
     yield* this.lookAround(2);
+    const mark = this.preySpot({ x: clamp(perch.x + (perch.x < 50 ? 1 : -1) * this.dashSpan, 6, 94), y: 3 });
+    const dir = mark.x > perch.x ? 1 : -1;
     yield* this.poseTo({ pitch: 0.25, neck: 0.5, crouch: 0.3 }, 0.2);
-    for (let i = 1; i <= this.dashLegs; i++) {
-      const x = clamp(perch.x + (dir * this.dashSpan * i) / this.dashLegs, 6, 94);
-      yield* this.flyTo({ x, y: 3 + (i % 2 ? -1 : 1) * this.dashJink }, { land: false, speed: this.dashSpeed });
+    // A fast, low, jinking run at the flock, which bursts out of cover as it comes.
+    this.startlePrey();
+    for (let i = 1; i < this.dashLegs; i++) {
+      const x = perch.x + ((mark.x - perch.x) * i) / this.dashLegs;
+      yield* this.flyTo({ x, y: Math.max(1, mark.y + (i % 2 ? -1 : 1) * this.dashJink) }, { land: false, speed: this.dashSpeed });
     }
+    yield* this.strikeAt(mark, { speed: this.dashSpeed, hold: Infinity });
     this.world.burst('leaf', this.pos.x, this.pos.y, 6, dir);
     yield* this.toPerch();
+    yield* this.eatCatch();
     yield* this.relax();
   }
 }
@@ -354,8 +355,9 @@ export abstract class Circus extends Accipitridae {
 
   static override behaviors: BehaviorTable<Circus> = {
     forage: {
+      eats: 'voles',
       label: 'Quarter low over the ground',
-      cue: 'Glides back and forth a few feet above the grass with wings held in a shallow V, rocking from side to side and tipping to look down. No other hawk flies this low and this slowly. It ends in a sudden drop onto prey.',
+      cue: 'Glides back and forth a few feet above the grass with wings held in a shallow V, rocking from side to side and tipping to look down for voles. No other hawk flies this low and this slowly. It ends in a sudden drop onto one.',
     },
   };
 
@@ -364,19 +366,10 @@ export abstract class Circus extends Accipitridae {
   }
 
   *quarter(): Script {
-    const x0 = this.pos.x;
-    const end = x0 < 30 ? 52 : 8;
-    for (let i = 1; i <= 6; i++) {
-      yield* this.flyTo({ x: x0 + ((end - x0) * i) / 6, y: i % 2 ? 1.6 : 3.2 }, { land: false, speed: 0.7 });
-    }
-    const spot = this.groundSpot(this.pos.x, 3);
-    yield* this.flyTo(spot);
-    this.world.burst('dust', spot.x, 0, 5);
-    this.pose.wings = 'open';
-    yield* this.poseTo({ crouch: 0.5, flap: 0.5 }, 0.15);
-    yield* this.wait(1);
-    yield* this.relax();
-    yield* this.peck(2, 1);
+    // Low back-and-forth over open ground, then a drop onto what it heard.
+    const [a, b] = this.mealRange(true) ?? (this.pos.x < 30 ? [this.pos.x, 52] : [8, this.pos.x]);
+    yield* this.quarterOver(a, b, 2.4, 2, 0.7);
+    yield* this.grab(this.preySpot(this.groundSpot(this.pos.x, 2)));
   }
 
   /** Low over the ground the wings are held up in a V and the bird rocks on them. */
@@ -452,6 +445,11 @@ export abstract class Cathartidae extends Cathartiformes {
   static override look: Partial<Look> = { build: 0.55, headSize: 0.45, tailLength: 0.4, wingSpan: 2.6, legLength: 0.2 };
 
   static override behaviors: BehaviorTable<Cathartidae> = {
+    forage: {
+      label: 'Find carrion',
+      cue: 'Low, slow passes back and forth, then it drops a short way off and walks the last few steps. It finds food by smell, which few birds can do.',
+      eats: 'carrion',
+    },
     teeterSoar: {
       label: 'Teeter-soar',
       cue: 'Circles low on wings held up in a V, rocking from side to side as if unsteady and almost never flapping. Two-toned underwings: dark wing linings, silvery flight feathers. An eagle holds its wings flat.',
@@ -484,11 +482,16 @@ export abstract class Cathartidae extends Cathartiformes {
   /** Search low and slowly, then come down and walk up to what it found. */
   *carrionSearch(): Script {
     const x0 = this.pos.x;
-    const dir = x0 < 50 ? 1 : -1;
-    for (let i = 1; i <= 3; i++) yield* this.flyTo({ x: clamp(x0 + dir * 12 * i, 8, 92), y: 9 - i }, { land: false, speed: 0.6 });
-    const spot = this.groundSpot(this.pos.x, 3);
+    const m = this.mealRange(true);
+    const at = m && (m[0] + m[1]) / 2;
+    if (at) yield* this.quarterOver(this.world.clampLand(at - 12), this.world.clampLand(at + 12), 7, 2, 0.6);
+    else yield* this.flyTo({ x: clamp(x0 + (x0 < 50 ? 24 : -24), 8, 92), y: 7 }, { land: false, speed: 0.6 });
+    // It comes down on its own side of the carrion, short of it.
+    const dir = (at ?? this.pos.x) >= this.pos.x ? 1 : -1;
+    // Down short of the carrion, then walk up to it.
+    const spot = at ? { x: this.world.clampLand(at - dir * 4), y: 0 } : this.groundSpot(this.pos.x, 3);
     yield* this.flyTo(spot);
-    yield* this.moveOnGround(this.world.clampLand(spot.x + dir * 4));
+    yield* this.moveOnGround(at ? this.foodSpot(8).x : this.world.clampLand(spot.x + dir * 4));
     yield* this.peck(3, 1.2);
     yield* this.relax();
   }
@@ -541,6 +544,10 @@ export class TurkeyVulture extends Cathartes {
 // ================================================================ Falcons
 
 export abstract class Falconiformes extends Bird {
+  protected override get takesInFeet() {
+    return true;
+  }
+
   static override taxon: Taxon = {
     rank: 'order',
     name: 'Falconiformes',
@@ -576,8 +583,9 @@ export abstract class Falconidae extends Falconiformes {
 
   static override behaviors: BehaviorTable<Falconidae> = {
     forage: {
+      eats: 'flock',
       label: 'Stoop',
-      cue: 'Climbs, then folds the wings and falls at the prey in a steep dive with a hard pull-out. How high it starts is the clue: a Peregrine from far above, a Merlin from a low rise, a kestrel from a hover only a few feet up.',
+      cue: 'Climbs, then folds the wings and falls at a small bird in a steep dive with a hard pull-out. How high it starts is the clue: a Peregrine from far above, a Merlin from a low rise, a kestrel from a hover only a few feet up.',
     },
   };
 
@@ -590,13 +598,18 @@ export abstract class Falconidae extends Falconiformes {
 
   *stoop(): Script {
     yield* this.toPerch();
-    const dir = this.pos.x < 50 ? 1 : -1;
-    const mark = { x: this.world.clampLand(this.pos.x + dir * 30), y: 1 };
-    yield* this.flyTo({ x: clamp(this.pos.x + dir * 10, 10, 90), y: this.stoopHeight }, { land: false });
-    yield* this.flyTo(mark, { land: false, speed: 2.8 });
-    this.world.burst('dust', mark.x, 1, 6);
+    const spot = this.preySpot({ x: this.world.clampLand(this.pos.x + (this.pos.x < 50 ? 30 : -30)), y: 1 });
+    const dir = spot.x > this.pos.x ? 1 : -1;
+    yield* this.flyTo({ x: clamp(spot.x - dir * 20, 10, 90), y: this.stoopHeight }, { land: false });
+    // The small birds flush as it tips over, and it strikes one in the air above the cover.
+    this.startlePrey();
+    yield* this.wait(0.3);
+    const mark = { x: spot.x, y: spot.y + 3 };
+    yield* this.strikeAt(mark, { speed: 2.8, hold: Infinity });
+    this.world.burst('leaf', mark.x, mark.y, 6, dir);
     yield* this.flyTo({ x: clamp(mark.x + dir * 8, 6, 94), y: this.stoopHeight / 2 }, { land: false });
     yield* this.toPerch();
+    yield* this.eatCatch();
     yield* this.relax();
   }
 }
@@ -681,6 +694,7 @@ export class Merlin extends Falco {
 
   static override behaviors: BehaviorTable<Merlin> = {
     lowChase: {
+      eats: 'flock',
       label: 'Low chase',
       feeding: true,
       cue: 'Streaks across open ground a few feet up on rapid, shallow wingbeats, following every jink of a small bird, with no ambush and no cover. A Sharp-shinned Hawk waits hidden and comes through trees; the Merlin runs the prey down in the open.',
@@ -690,14 +704,18 @@ export class Merlin extends Falco {
   *lowChase(): Script {
     yield* this.toPerch();
     yield* this.lookAround(1);
-    const dir = this.pos.x < 50 ? 1 : -1;
     const x0 = this.pos.x;
-    for (const [dx, y] of [[20, 2.5], [38, 1.5], [55, 3.5]]) {
-      yield* this.flyTo({ x: clamp(x0 + dir * dx, 6, 94), y }, { land: false, speed: 1.4 });
+    const mark = this.preySpot({ x: clamp(x0 + (x0 < 50 ? 55 : -55), 6, 94), y: 2 });
+    // Low and fast at the flock, which scatters; it stays on one bird through every turn.
+    this.startlePrey();
+    for (const [f, y] of [[0.35, 2.5], [0.7, 1.5]]) {
+      yield* this.flyTo({ x: x0 + (mark.x - x0) * f, y }, { land: false, speed: 1.4 });
     }
-    this.world.burst('dust', this.pos.x, 1, 4);
-    yield* this.flyTo({ x: clamp(this.pos.x + dir * 6, 6, 94), y: 18 }, { land: false });
+    yield* this.strikeAt({ x: mark.x, y: mark.y + 3 }, { speed: 1.6, hold: Infinity });
+    yield* this.flyTo({ x: clamp(this.pos.x + (mark.x > x0 ? 6 : -6), 6, 94), y: 18 }, { land: false });
+    // Plucks it on the perch and eats it.
     yield* this.toPerch();
+    yield* this.eatCatch();
     yield* this.relax();
   }
 }
@@ -740,9 +758,10 @@ export class AmericanKestrel extends Falco {
 
   static override behaviors: BehaviorTable<AmericanKestrel> = {
     hoverHunt: {
+      eats: 'voles',
       label: 'Hover-hunt',
       feeding: true,
-      cue: 'Hangs in one spot 30 feet up, head steady and tail fanned, wings beating fast, then slides down in steps and drops onto prey. Hovering over open ground is the field mark. A hawk soars or kites on set wings, and a kestrel flaps the whole time.',
+      cue: 'Hangs in one spot 30 feet up, head steady and tail fanned, wings beating fast, then slides down in steps and drops onto a vole or grasshopper. Hovering over open ground is the field mark. A hawk soars or kites on set wings, and a kestrel flaps the whole time.',
     },
     tailPump: {
       label: 'Pump the tail',
@@ -751,12 +770,10 @@ export class AmericanKestrel extends Falco {
   };
 
   *hoverHunt(): Script {
-    const x = clamp(this.pos.x + rand(-15, 15), 12, 88);
-    yield* this.flyTo({ x, y: 14 }, { land: false });
+    const over = this.huntSpot(14) ?? { x: clamp(this.pos.x + rand(-15, 15), 12, 88), y: 14 };
+    yield* this.flyTo(over, { land: false });
     for (let i = 0; i < 3; i++) yield* this.hoverFor(1.2, { aim: -1, drift: { x: 0, y: -3 } });
-    const spot = this.groundSpot(this.pos.x, 1);
-    yield* this.flyTo({ x: spot.x, y: 0.5 }, { land: false, speed: 1.5 });
-    this.world.burst('dust', spot.x, 0, 4);
+    yield* this.grab(this.groundSpot(this.pos.x, 1));
     yield* this.toPerch();
     yield* this.relax();
   }
@@ -775,6 +792,10 @@ export class AmericanKestrel extends Falco {
 // ================================================================== Owls
 
 export abstract class Strigiformes extends Bird {
+  protected override get takesInFeet() {
+    return true;
+  }
+
   static override taxon: Taxon = {
     rank: 'order',
     name: 'Strigiformes',
@@ -813,8 +834,9 @@ export abstract class Strigiformes extends Bird {
       cue: 'The body stays put while the head turns far around, up to 270 degrees, and tilts or bobs to line up a sound. Owls cannot move their eyes, so this is how they look.',
     },
     forage: {
+      eats: 'voles',
       label: 'Pounce from a perch',
-      cue: 'Sits motionless, stares down, then drops without a sound on spread wings with the feet thrust forward, and mantles over the prey. Normally a dusk and night hunt; shown here in daylight.',
+      cue: 'Sits motionless, stares down at a vole in the grass, then drops without a sound on spread wings with the feet thrust forward, and mantles over it. Normally a dusk and night hunt; shown here in daylight.',
     },
   };
 
@@ -841,21 +863,13 @@ export abstract class Strigiformes extends Bird {
     yield* this.lookAround(1.5);
     yield* this.poseTo({ neck: 0.3, head: -1, pitch: 0.3 }, 0.25);
     yield* this.wait(0.6);
-    yield* this.strike(this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * this.pounceRange, 2));
+    yield* this.grab(this.preySpot(this.groundSpot(perch.x + (perch.x < 50 ? 1 : -1) * this.pounceRange, 2)));
     yield* this.flyTo(perch);
     yield* this.relax();
   }
 
   /** Glide down on set wings, land on the prey and mantle over it. */
-  protected *strike(spot: { x: number; y: number }): Script {
-    yield* this.flyTo(spot, { glide: true, speed: 0.8 });
-    this.world.burst('dust', spot.x, 0, 4);
-    this.pose.wings = 'open';
-    yield* this.poseTo({ crouch: 0.5, flap: -0.5 }, 0.15);
-    yield* this.wait(0.8);
-    yield* this.relax();
-    yield* this.peck(2, 0.8);
-  }
+
 }
 
 export abstract class Strigidae extends Strigiformes {
@@ -1012,6 +1026,7 @@ export abstract class Glaucidium extends Strigidae {
       cue: 'The tail jerks up and down every few seconds while the owl sits still and stares. A hunting owl, usually in good light; a small owl with a long, cocked tail that is not flicking is probably something else.',
     },
     forage: {
+      eats: 'flock',
       label: 'Daytime dash',
       cue: 'Perched in the open at the top of a conifer, in full daylight, until it launches on a fast, undulating dash after a songbird. Chickadees and nuthatches scold it, which is often how it gets found.',
     },
@@ -1036,10 +1051,11 @@ export abstract class Glaucidium extends Strigidae {
     yield* this.toPerch();
     yield* this.lookAround(2);
     yield* this.poseTo({ tailAngle: 0.9 }, 0.1);
-    const dir = this.pos.x < 50 ? 1 : -1;
-    yield* this.flyTo({ x: clamp(this.pos.x + dir * 25, 8, 92), y: 8 }, { land: false, speed: 1.3 });
-    this.world.burst('leaf', this.pos.x, this.pos.y, 5, dir);
+    const mark = this.preySpot({ x: clamp(this.pos.x + (this.pos.x < 50 ? 25 : -25), 8, 92), y: 8 });
+    yield* this.strikeAt(mark, { hold: Infinity });
+    this.world.burst('leaf', this.pos.x, this.pos.y, 5, mark.x > this.pos.x ? 1 : -1);
     yield* this.toPerch();
+    yield* this.eatCatch();
     yield* this.relax();
   }
 }
@@ -1088,8 +1104,9 @@ export abstract class Tytonidae extends Strigiformes {
 
   static override behaviors: BehaviorTable<Tytonidae> = {
     forage: {
+      eats: 'voles',
       label: 'Quarter low, then drop',
-      cue: 'Pale and ghostlike, it floats slowly back and forth a few feet over open ground with the head tipped down, hangs for a moment, then drops. Wingbeats are silent and buoyant, unlike a hawk’s. Normally a dusk and night hunt; shown here in daylight.',
+      cue: 'Pale and ghostlike, it floats slowly back and forth a few feet over open ground with the head tipped down, listening for voles, hangs for a moment, then drops. Wingbeats are silent and buoyant, unlike a hawk’s. Normally a dusk and night hunt; shown here in daylight.',
     },
   };
 
@@ -1098,14 +1115,13 @@ export abstract class Tytonidae extends Strigiformes {
   }
 
   *quarterSearch(): Script {
-    yield* this.toPerch();
-    const dir = this.pos.x < 50 ? 1 : -1;
-    const x0 = this.pos.x;
-    for (let i = 1; i <= 4; i++) {
-      yield* this.flyTo({ x: clamp(x0 + dir * 12 * i, 8, 92), y: i % 2 ? 3.5 : 2.5 }, { land: false, speed: 0.55 });
-    }
+    const [a, b] = this.mealRange(true) ?? [20, 50];
+    yield* this.quarterOver(a, b, 3, 2, 0.55);
+    // Hears one, hangs over it a moment, and drops.
+    const mark = this.preySpot(this.groundSpot(this.pos.x, 2));
+    yield* this.flyTo({ x: mark.x, y: 3 }, { land: false, speed: 0.5 });
     yield* this.hoverFor(1.2, { aim: -1 });
-    yield* this.strike(this.groundSpot(this.pos.x, 2));
+    yield* this.grab(mark);
     yield* this.toPerch();
     yield* this.relax();
   }
