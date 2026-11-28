@@ -1,7 +1,7 @@
 import { Button, Card, Checkbox, Link, List, ListRow, Meter, SegmentedControl, Select, Tag } from '@kyzarky/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { behaviorsOf, lineage, traitSources, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
-import type { Ecology, FlightProfile, HabitatId } from '../birds/core/traits';
+import { behaviorsOf, lineage, traitSources, variantsOf, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
+import type { Ecology, FlightProfile, HabitatId, Variant } from '../birds/core/traits';
 import { HABITATS, World } from '../birds/core/World';
 import { classHref, fieldHref } from './route';
 import { inScene, levelIn, likeliestIn, MONTHS, PRESENCE, THIS_MONTH } from './season';
@@ -23,7 +23,14 @@ const SPEEDS = [
 ] as const;
 
 export function FieldView({ species, scene }: { species: SpeciesClass; scene: HabitatId }) {
-  const bird = useMemo(() => new species(new World(HABITATS[scene])), [species, scene]);
+  const [variant, setVariant] = useState<Variant>('adult');
+  const plumages = useMemo(() => {
+    const v = variantsOf(species);
+    // The default look is the male only when the species has a separate female.
+    const name = { adult: v.includes('female') ? 'Male' : 'Adult', female: 'Female', juvenile: 'Juvenile' };
+    return v.map((value) => ({ value, label: name[value] }));
+  }, [species]);
+  const bird = useMemo(() => new species(new World(HABITATS[scene]), true, variant), [species, scene, variant]);
   const behaviors = useMemo(() => behaviorsOf(species).reverse(), [species]);
   const flight = useMemo(() => new Map(traitSources(species, 'flight').map((s) => [s.field, s.from])), [species]);
   const [current, setCurrent] = useState<string | null>(null);
@@ -77,7 +84,7 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
         <Stage bird={bird} speed={Number(speed)} closeUp={closeUp} onBehaviorChange={setCurrent} />
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div className="w-full sm:w-auto sm:flex-1">
+          <div className="w-full sm:w-auto sm:min-w-max sm:flex-1">
             <Select aria-label="Scene" value={scene} onChange={(e) => changeScene(e.target.value as HabitatId)} className="w-full sm:w-auto">
               {Object.values(HABITATS).map((h) => (
                 <option key={h.id} value={h.id}>
@@ -86,10 +93,15 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
               ))}
             </Select>
           </div>
-          {/* On phones the scene, the speed and the two checkboxes each get a row. */}
+          {/* On phones the scene, the speed, the plumage and the two checkboxes each get a row. */}
           <div className="w-full sm:w-auto">
             <SegmentedControl label="Playback speed" value={speed} onChange={setSpeed} options={SPEEDS} />
           </div>
+          {plumages.length > 1 && (
+            <div className="w-full sm:w-auto">
+              <SegmentedControl label="Plumage" value={variant} onChange={setVariant} options={plumages} />
+            </div>
+          )}
           <div className="flex w-full gap-x-4 sm:w-auto">
             <Checkbox label="Close-up" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
             <Checkbox label="Auto" checked={auto} onChange={(e) => setAuto(e.target.checked)} />

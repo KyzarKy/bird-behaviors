@@ -3,7 +3,7 @@
  * New World vultures, falcons and owls. Each order is small here, so they share a file.
  */
 import { Bird, clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants } from '../core/traits';
 import { Accipitridae, Accipitriformes } from './waterside';
 
 // ============================================================== Osprey
@@ -752,6 +752,10 @@ export class AmericanKestrel extends Falco {
     tail: '#b5602e',
     beak: '#555555',
     legs: '#e8c040',
+  };
+  static override variants: Variants = {
+    // Rusty wings like the back, barred dark across back and tail, and brown streaks on a cream breast.
+    female: { wing: '#b26a40', tail: '#b0643a', belly: '#ecdcc4', spots: '#8a5a3a' },
   };
 
   protected override stoopHeight = 8;

@@ -1,5 +1,5 @@
 import { Bird, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Vec } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants, Vec } from '../core/traits';
 
 export abstract class Apodiformes extends Bird {
   static override taxon: Taxon = {
@@ -213,5 +213,10 @@ export class RufousHummingbird extends Selasphorus {
     head: '#c56a1e',
     throat: '#e8451e',
     tail: '#b5591a',
+  };
+  static override variants: Variants = {
+    // Green above, white below with rufous flanks, a white throat dotted with green and a small orange center spot,
+    // and a rufous-based tail with white tips.
+    female: { body: '#5c8a4a', head: '#5c8a4a', belly: '#e8c49a', throat: '#f2ece2', spots: '#c8501e' },
   };
 }

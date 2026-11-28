@@ -141,6 +141,16 @@ export interface Look {
   underwing?: string;
 }
 
+/**
+ * Plumages that differ from the species' `look`, which is the adult male (or the adult, where the sexes look alike).
+ * Each is merged over the resolved look. Set an optional color to `undefined` to remove that patch.
+ */
+export interface Variants {
+  female?: Partial<Look>;
+  juvenile?: Partial<Look>;
+}
+export type Variant = 'adult' | keyof Variants;
+
 export type Rank = 'class' | 'order' | 'family' | 'genus' | 'species';
 
 export interface Taxon {
@@ -180,4 +190,6 @@ export interface TaxonStatics {
   ecology: Partial<Ecology>;
   look: Partial<Look>;
   behaviors: object;
+  /** Read from the species itself only (see variantsOf), since plumage colors are species-specific. */
+  variants?: Variants;
 }

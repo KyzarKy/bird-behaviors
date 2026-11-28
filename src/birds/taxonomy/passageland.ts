@@ -9,7 +9,7 @@
  * zero for several months, and the winter visitors are zero all summer.
  */
 import { clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Vec } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants, Vec } from '../core/traits';
 import { Phasianidae } from './galliformes';
 import { AmericanCrow, Passerellidae, Passeriformes, Tyrannidae, Turdidae } from './passeriformes';
 import { Buteo, Strigidae } from './raptors';
@@ -1443,5 +1443,9 @@ export class RingNeckedPheasant extends Phasianus {
     tail: '#a8864a',
     beak: '#d8d0a8',
     legs: '#9a8a78',
+  };
+  static override variants: Variants = {
+    // Mottled buff and brown all over, with a shorter tail and no ring, wattle or green head.
+    female: { length: 0.55, tailLength: 0.75, body: '#a8885a', belly: '#c4a878', breast: undefined, head: '#a08058', neck: undefined, eyeRing: undefined, wing: '#8a7450', tail: '#9a7c4e', spots: '#5a4430' },
   };
 }

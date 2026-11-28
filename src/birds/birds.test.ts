@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { drawnFlapRate } from './core/Bird';
-import { behaviorsOf, buildTree, lineage, resolveTraits, traitSources, type BirdClass } from './core/reflect';
+import { behaviorsOf, buildTree, lineage, resolveTraits, traitSources, variantsOf, type BirdClass } from './core/reflect';
 import { DEEP, HABITATS, STAGE, World, peekSpot } from './core/World';
 import { EXTRAS, FOOD_SITES, FOODS, eatsIn, type FoodKind } from './core/food';
 import { drawFoodBack, PEEKS, PREY } from '../render/drawFood';
@@ -82,6 +82,32 @@ describe('hierarchy', () => {
     const root = buildTree(SPECIES);
     expect(root.cls.taxon.name).toBe('Aves');
     expect(root.children.length).toBe(18);
+  });
+});
+
+describe('plumage variants', () => {
+  it('merge over the adult look and change nothing else', () => {
+    const withVariants = SPECIES.filter((s) => variantsOf(s).length > 1);
+    expect(withVariants.length).toBeGreaterThan(0);
+    for (const cls of withVariants) {
+      const world = new World(HABITATS[make(cls).world.habitat.id]);
+      const adult = new cls(world, false);
+      for (const v of variantsOf(cls).slice(1)) {
+        const bird = new cls(world, false, v);
+        expect(bird.variant).toBe(v);
+        expect(bird.look).toEqual({ ...adult.look, ...cls.variants![v as 'female' | 'juvenile'] });
+        expect(bird.look).not.toEqual(adult.look);
+        expect(bird.flight).toEqual(adult.flight);
+      }
+    }
+  });
+
+  it('fall back to the adult for a plumage the species does not have, and are not inherited', () => {
+    expect(variantsOf(BaldEagle)).toEqual(['adult', 'juvenile']);
+    const eagle = new BaldEagle(new World(HABITATS.beach), false, 'female');
+    expect(eagle.variant).toBe('adult');
+    expect(eagle.look).toEqual(new BaldEagle(new World(HABITATS.beach), false).look);
+    expect(variantsOf(Chicken)).toEqual(['adult']);
   });
 });
 

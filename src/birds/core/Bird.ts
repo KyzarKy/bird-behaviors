@@ -1,6 +1,6 @@
 import { eatsIn, FOODS, type FoodKind, type FoodSite } from './food';
-import { behaviorsOf, resolveTraits, type BirdClass } from './reflect';
-import type { BehaviorTable, Ecology, FlightProfile, Item, Look, PerchKind, Script, Taxon, Vec } from './traits';
+import { behaviorsOf, resolveTraits, variantsOf, type BirdClass } from './reflect';
+import type { BehaviorTable, Ecology, FlightProfile, Item, Look, PerchKind, Script, Taxon, Variant, Variants, Vec } from './traits';
 import { DEEP, peekSpot, SHELVE, STAGE, type Trunk, type World } from './World';
 
 /** Stage units per second for each m/s of real airspeed. */
@@ -143,6 +143,8 @@ export abstract class Bird {
     eye: '#111111',
   };
 
+  static variants?: Variants;
+
   static behaviors: BehaviorTable<Bird> = {
     fly: {
       label: 'Fly to a new spot',
@@ -171,6 +173,8 @@ export abstract class Bird {
   readonly flight: FlightProfile;
   readonly ecology: Ecology;
   readonly look: Look;
+  /** The plumage shown (see Bird.variants). */
+  readonly variant: Variant;
   /** Drawn body length in stage units. */
   readonly size: number;
   readonly pose: Pose;
@@ -209,15 +213,20 @@ export abstract class Bird {
   /** Moves the other birds in the running behavior's story (world.others), every frame until it ends. */
   private others: ((dt: number) => void) | null = null;
 
-  /** `stock` false is a bird that only plays a part in another's behavior, such as the tern a jaeger robs: it leaves the scene's food alone. */
+  /**
+   * `stock` false is a bird that only plays a part in another's behavior, such as the tern a jaeger robs: it leaves the scene's food alone.
+   * `variant` picks a plumage from the species' `variants`; one it does not have falls back to the adult.
+   */
   constructor(
     readonly world: World,
     stock = true,
+    variant: Variant = 'adult',
   ) {
     const cls = this.constructor as BirdClass;
     this.flight = resolveTraits<FlightProfile>(cls, 'flight');
     this.ecology = resolveTraits<Ecology>(cls, 'ecology');
-    this.look = resolveTraits<Look>(cls, 'look');
+    this.variant = variantsOf(cls).includes(variant) ? variant : 'adult';
+    this.look = { ...resolveTraits<Look>(cls, 'look'), ...(this.variant !== 'adult' && cls.variants?.[this.variant]) };
     this.size = drawLength(this.look.length);
     this.pose = {
       facing: 1,
