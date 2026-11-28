@@ -371,7 +371,7 @@ describe('food in the scene', () => {
 
   // A bird feeds alone unless the behavior cannot happen without another bird: a waxwing hands its berry to a
   // neighbor, a robber chases the bird carrying the fish. Flock feeders feed alone until the scene has a flock setting.
-  const NEEDS_OTHERS = new Set(['Cedar Waxwing:forage', 'Parasitic Jaeger:forage', 'Heermann’s Gull:pirate']);
+  const NEEDS_OTHERS = new Set(['Cedar Waxwing:forage', 'Cedar Waxwing:feedTogether', 'Parasitic Jaeger:forage', 'Heermann’s Gull:pirate']);
 
   // Every feeding behavior ends with the bird eating: it takes its food at least once, always where that food is,
   // and holds the catch in its bill or feet unless there is nothing to show (nectar, sap, plankton, carrion).
