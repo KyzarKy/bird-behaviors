@@ -249,10 +249,16 @@ describe('flocks', () => {
             // The scene draws one hunted animal, so one bird at a time goes after one.
             expect(f.birds.filter(hidden).length, 'two birds hunt hidden animals at once').toBeLessThanOrEqual(1);
           }
-          // Moving off together: everyone goes, and everyone lands.
-          f.perform('flyTogether');
-          for (let frames = 0; frames < 30 * 40 && f.birds.some((b) => b.current === 'flyTogether'); frames++) f.update(1 / 30);
-          expect(f.birds.filter((b) => b.current === 'flyTogether').length, 'still flying together after 40 s').toBe(0);
+          // Each flock behavior: everyone takes part, stays on stage, and is done within a minute.
+          for (const { key } of behaviorsOf(cls).filter((x) => x.spec.flock && !f.lead.missing(x.key))) {
+            f.perform(key);
+            expect(f.birds.every((b) => b.current === key), `${key}: not everyone joins in`).toBe(true);
+            for (let frames = 0; frames < 30 * 60 && f.birds.some((b) => b.current === key); frames++) {
+              f.update(1 / 30);
+              for (const b of f.birds) expect(b.pos.x >= 0 && b.pos.x <= 100 && b.pos.y > -DEEP - 1 && b.pos.y < STAGE.top, `${key}: off stage`).toBe(true);
+            }
+            expect(f.birds.filter((b) => b.current === key).length, `${key}: still going after a minute`).toBe(0);
+          }
           // Back to one bird: the one nearest the middle stays, and the others leave nothing behind.
           const c = f.center();
           const d = (b: (typeof f.birds)[number]) => Math.hypot(b.pos.x - c.x, b.pos.y - c.y);
@@ -696,7 +702,8 @@ describe('food in the scene', () => {
   // The geese's Feed and Graze both ran grazeOnLand by different routes, which the alias check above can't see.
   for (const cls of SPECIES) {
     for (const scene of (Object.keys(HABITATS) as HabitatId[]).filter((h) => inScene(cls, h))) {
-      const feeding = behaviorsOf(cls).filter((b) => b.spec.feeding);
+      // One bird alone; a flock behavior only ever runs in a flock, where it is the flock's action.
+      const feeding = behaviorsOf(cls).filter((b) => b.spec.feeding && !b.spec.flock);
       if (feeding.length < 2) continue;
       it(`${cls.taxon.common} (${scene}) has no two feeding behaviors that are the same action`, () => {
         const trace = (key: string) =>

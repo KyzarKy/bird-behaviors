@@ -1,5 +1,5 @@
-import { Bird, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Vec } from '../core/traits';
+import { Bird, clamp, rand } from '../core/Bird';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants, Vec } from '../core/traits';
 
 export abstract class Galliformes extends Bird {
   static override taxon: Taxon = {
@@ -239,7 +239,8 @@ export abstract class Odontophoridae extends Galliformes {
     note: 'Small, round, sociable landfowl that live in coveys and would always rather run than fly.',
   };
 
-  static override ecology: Partial<Ecology> = { flockSize: 15, gait: 'run', groundSpeed: 11 };
+  // Fall and winter coveys are usually 25 to 60 birds, feeding and roosting together.
+  static override ecology: Partial<Ecology> = { flockSize: 30, flockSpacing: 1.2, gait: 'run', groundSpeed: 11 };
 }
 
 export abstract class Callipepla extends Odontophoridae {
@@ -258,7 +259,58 @@ export abstract class Callipepla extends Odontophoridae {
       label: 'Stand sentinel',
       cue: 'While the covey feeds, one male flutters to a fence post and stands tall, calling. Look up for the lone quail above the others.',
     },
+    coveyFeed: {
+      eats: 'fallenSeed',
+      label: 'Feed as a covey',
+      cue: 'The covey works the ground together, scratching and pecking for fallen seed a few feet apart, while one male stands watch from a post above. His sharp alarm note sends them all running for cover.',
+      feeding: true,
+      flock: true,
+    },
+    coveyFlush: {
+      label: 'Flush and regroup',
+      cue: 'The whole covey bursts up at once on whirring wings and scatters to cover in different directions. After a few quiet minutes the scattered birds call to each other and run back together.',
+      flock: true,
+    },
   };
+
+  /** One male stands sentinel on a post while the rest of the covey scratches for seed below. */
+  *coveyFeed(): Script {
+    const sentry = this.flock?.birds.find((b) => b.variant === 'adult');
+    if (sentry === this) yield* this.sentinel();
+    else yield* this.scratch();
+  }
+
+  /**
+   * Everyone bursts up within a moment of each other and scatters in all directions, sits tight in cover,
+   * then calls and runs back to meet the others where the flock regroups.
+   */
+  *coveyFlush(): Script {
+    yield* this.toGround();
+    yield* this.poseTo({ crouch: 0.6, neck: 1.3 }, 0.15);
+    yield* this.wait(0.4 + (this.flock?.delay(this) ?? 0) * 0.2);
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    const landing = this.world.clampLand(this.pos.x + dir * rand(15, 40));
+    this.world.burst('dust', this.pos.x, 0.3, 5);
+    if (yield* this.flyTo({ x: this.pos.x + dir * rand(5, 12), y: Math.min(this.flight.ceiling, rand(4, 8)) }, { land: false })) {
+      yield* this.flyTo({ x: landing, y: 0 }, { glide: true });
+    }
+    yield* this.moveOnGround(this.world.clampLand(this.pos.x + dir * 4), 1.6);
+    // Sitting tight where it landed.
+    yield* this.poseTo({ crouch: 0.7, neck: 0.8 }, 0.2);
+    yield* this.wait(rand(2, 5));
+    yield* this.relax();
+    this.say(this.ecology.call, 1.2);
+    yield* this.poseTo({ beakOpen: 1, head: 0.3 }, 0.1);
+    yield* this.poseTo({ beakOpen: 0, head: 0 }, 0.15);
+    // They gather closer than they spread out to feed: a tight knot around where the flock's line would be.
+    const f = this.flock;
+    const meet = f?.destination(this);
+    if (f && meet) {
+      const mid = f.birds.reduce((sum, b) => sum + (f.destination(b)?.x ?? b.pos.x), 0) / f.birds.length;
+      yield* this.moveOnGround(clamp(mid + (meet.x - mid) * 0.4, ...this.world.habitat.land), 1.4);
+    }
+    yield* this.relax();
+  }
 
   *sentinel(): Script {
     const post = this.findPerch(['post'], 'near');
@@ -281,10 +333,17 @@ export class CaliforniaQuail extends Callipepla {
     rank: 'species',
     name: 'Callipepla californica',
     common: 'California Quail',
-    note: 'Common in the brushy edges of the Sequim–Gardiner rain shadow. Plump, gray, scaly-bellied, with a black teardrop plume.',
+    note: 'Common in the brushy edges of the Sequim–Gardiner rain shadow. Plump, gray, scaly-bellied, with a black teardrop plume. From fall through winter they live in coveys, often 25 to 60 birds, that feed and roost together, and a male often stands watch from a post while the rest feed. A flushed covey scatters, then gathers again to the chi-CA-go assembly call.',
   };
 
   static override ecology: Partial<Ecology> = { call: 'chi-CA-go!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
+
+  static override variants: Variants = {
+    // Plain gray-brown head with a shorter plume: no black throat, white face lines or chestnut cap.
+    female: { head: '#6e655b', cap: undefined, throat: '#cbbd9f', eyeLine: undefined, breast: '#79808a' },
+    // Grayish brown and mottled all over, with a pale belly that lacks the adults' scaling and a short plume.
+    juvenile: { head: '#7a6f61', cap: undefined, throat: '#d4c8ae', eyeLine: undefined, breast: undefined, body: '#7a6f61', belly: '#d8ccb4', spots: '#4e4034', wing: '#6c5f4e', tail: '#7a6f61' },
+  };
 
   static override look: Partial<Look> = {
     length: 0.25,
