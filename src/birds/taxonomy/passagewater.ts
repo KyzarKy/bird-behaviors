@@ -585,6 +585,12 @@ export abstract class Rallidae extends Gruiformes {
       label: 'Dive and graze',
       cue: 'Leans forward and goes under with a small jump, bobbing up like a cork a few yards on with a strand of green in the bill. Unlike a duck it also upends and climbs out to graze on the shore.',
     },
+    bunchUp: {
+      label: 'Bunch up against an eagle',
+      needs: 'water',
+      cue: 'When a Bald Eagle passes low, the scattered flock swims together into a tight pack and birds beat the water into spray, making it hard for the eagle to single one out.',
+      flock: true,
+    },
   };
 
   override *fly(): Script {
@@ -612,6 +618,11 @@ export abstract class Rallidae extends Gruiformes {
       const dir = (m ? (m[0] + m[1]) / 2 > this.pos.x : this.pos.x <= 80) ? 1 : -1;
       yield* this.diveUnder(1.6, dir * rand(2, 4), 0.4);
     }
+  }
+
+  /** A tight raft, splashing as it closes up. */
+  *bunchUp(): Script {
+    yield* this.raftTogether(true);
   }
 }
 
@@ -658,7 +669,7 @@ export class AmericanCoot extends Fulica {
     rank: 'species',
     name: 'Fulica americana',
     common: 'American Coot',
-    note: 'Slate-black with a white bill, a reddish-brown spot near the tip, and white patches under the tail. Not a duck, though it swims like one. Gathers on the sheltered corners of Discovery Bay from fall to spring.',
+    note: 'Slate-black with a white bill, a reddish-brown spot near the tip, and white patches under the tail. Not a duck, though it swims like one. Gathers on the sheltered corners of Discovery Bay from fall to spring. Flocks bunch together tightly and splash when an eagle passes low.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -1171,6 +1182,12 @@ export abstract class Synthliboramphus extends Alcidae {
       label: 'Scurry and flush',
       cue: 'When a boat or an eagle approaches, runs across the water with the wings whirring and then skims off just above the waves. A Marbled Murrelet flushes with a similar run but climbs and flies off higher.',
     },
+    raftTogether: {
+      label: 'Raft together',
+      needs: 'water',
+      cue: 'Small flocks sit close together on the water, diving and resurfacing as a group.',
+      flock: true,
+    },
   };
 
   *scurry(): Script {
@@ -1204,7 +1221,7 @@ export class AncientMurrelet extends Synthliboramphus {
     note: 'Black head and throat, a white streak behind the eye, a gray back, a pale bill and white underparts. Small flocks come into the Strait of Juan de Fuca and Discovery Bay late in the fall and are rare after January.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 10,
     call: 'a thin, whistled chirp, often from a flock',
     presence: [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2],
   };
@@ -1238,13 +1255,19 @@ export abstract class Pelecanidae extends Pelecaniformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 12, power: 0.25, agility: 0.2, braking: 0.15, glide: 0.85, flapRate: 2.2, flapDuty: 0.5, cyclePeriod: 4, ceiling: 25 };
-  static override ecology: Partial<Ecology> = { flockSize: 8, perches: ['post', 'rock', 'log'], gait: 'walk', groundSpeed: 2, posture: 0.2 };
+  static override ecology: Partial<Ecology> = { flockSize: 8, flockJuveniles: 0.25, perches: ['post', 'rock', 'log'], gait: 'walk', groundSpeed: 2, posture: 0.2 };
   static override look: Partial<Look> = { build: 0.7, neckLength: 0.4, legLength: 0.1, tailLength: 0.18, wingSpan: 1.75, headSize: 0.45, beakShape: 'stout', beakLength: 2.4 };
 
   static override behaviors: BehaviorTable<Pelecanidae> = {
     skim: {
       label: 'Skim the swell',
       cue: 'Glides in a line just above the water with the wingtips close to the surface, flapping a few times and then gliding again. The air cushion under the wings saves energy. Cormorants flap continuously and fly lower.',
+    },
+    lineFlight: {
+      label: 'Fly in a line',
+      cue: 'Pelicans travel in long lines low over the waves, each bird copying the flaps and glides of the one ahead, so a ripple of wingbeats runs down the line.',
+      flock: true,
+      weight: 2,
     },
   };
 
@@ -1259,6 +1282,10 @@ export abstract class Pelecanidae extends Pelecaniformes {
     yield* this.flyTo({ x: water.from + rand(28, 34), y: 1.2 }, { land: false, glide: true });
     yield* this.flyTo(this.findPerch() ?? this.groundSpot(water.from - 8, 6));
     yield* this.relax();
+  }
+
+  *lineFlight(): Script {
+    yield* this.formationFlight('line', 4);
   }
 }
 
@@ -1276,10 +1303,10 @@ export class BrownPelican extends Pelecanus {
     rank: 'species',
     name: 'Pelecanus occidentalis',
     common: 'Brown Pelican',
-    note: 'Gray-brown and very large, with a pale yellow head and a long bill and pouch. Adults in breeding plumage have a chestnut hind neck. After breeding in California and Mexico, a few come north to the Salish Sea in late summer and fall, and one may turn up on a Gardiner piling or over the bay.',
+    note: 'Gray-brown and very large, with a pale yellow head and a long bill and pouch. Adults in breeding plumage have a chestnut hind neck. After breeding in California and Mexico, a few come north to the Salish Sea in late summer and fall, and one may turn up on a Gardiner piling or over the bay. Travels in long lines low over the water, the birds flapping and gliding in turn.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 10,
     habitat: 'beach',
     call: 'usually silent; the young give a hoarse croak',
     presence: [0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 0],
@@ -1298,6 +1325,10 @@ export class BrownPelican extends Pelecanus {
     pouch: '#5a5048',
     legs: '#2a2a2a',
     eye: '#2a2420',
+  };
+  static override variants: Variants = {
+    // Young birds: plain gray-brown, with a brown head and neck and a whitish belly.
+    juvenile: { head: '#8a7c6a', cap: undefined, neck: '#7a6c5a', belly: '#d8d0c0', body: '#7a7064' },
   };
 
   static override behaviors: BehaviorTable<BrownPelican> = {

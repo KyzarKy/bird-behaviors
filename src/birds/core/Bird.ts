@@ -448,6 +448,32 @@ export abstract class Bird {
   }
 
   /**
+   * A raft: the flock swims into a tight cluster on the water and rests, hunched. With `splash`, each bird beats
+   * the water as it bunches up. Listed by swimming birds.
+   */
+  *raftTogether(splash = false): Script {
+    const water = this.world.habitat.water;
+    if (!water || !this.ecology.swims) return yield* this.relax();
+    yield* this.toWater();
+    const birds = this.flock?.birds ?? [this];
+    const lo = water.from + 5;
+    const hi = 95;
+    const step = Math.min(this.size * 0.6, (hi - lo) / Math.max(1, birds.length - 1));
+    const half = (step * (birds.length - 1)) / 2;
+    const x0 = clamp(this.flock?.center().x ?? this.pos.x, lo + half, hi - half);
+    const i = [...birds].sort((p, q) => p.pos.x - q.pos.x).indexOf(this);
+    yield* this.moveOnGround(x0 + (i - (birds.length - 1) / 2) * step);
+    for (let k = 0; splash && k < 3; k++) {
+      this.world.burst('splash', this.pos.x, 0, 4, this.pose.facing);
+      yield* this.wait(rand(0.2, 0.5));
+    }
+    const rest = this.restingPose();
+    yield* this.poseTo({ crouch: 0.3, neck: rest.neck - 0.25, head: 0.1 }, 0.5);
+    yield* this.wait(rand(8, 12));
+    yield* this.relax();
+  }
+
+  /**
    * High-tide roost: the flock packs into a tight row on the upper beach, all facing the same way, hunched. Listed
    * by the shorebirds.
    */

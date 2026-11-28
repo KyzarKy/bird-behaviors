@@ -1165,6 +1165,19 @@ export abstract class Alcidae extends Charadriiformes {
       label: 'Fly to a new spot',
       cue: 'Fast, low and direct over the water, with wingbeats so quick they whir. It turns wide, lands on the water with a skid and never perches.',
     },
+    feedTogether: {
+      eats: 'baitfish',
+      label: 'Feed together',
+      cue: 'Small groups fish together on open water, diving within moments of each other and swimming after small fish with their wings.',
+      feeding: true,
+      flock: true,
+    },
+    raftTogether: {
+      label: 'Raft together',
+      needs: 'water',
+      cue: 'Flocks rest together in loose rafts on open water, preening and dozing, and dive together when disturbed.',
+      flock: true,
+    },
   };
 
   protected diveTime = 2.5;
@@ -1307,7 +1320,7 @@ export class RhinocerosAuklet extends Cerorhinca {
 
   static override flight: Partial<FlightProfile> = { flapRate: 8 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 10,
     call: 'a low, growling moan, mostly at the colony',
     presence: [1, 1, 1, 2, 3, 3, 3, 3, 2, 1, 1, 1],
   };
@@ -1370,7 +1383,7 @@ export class MarbledMurrelet extends Brachyramphus {
     note: 'A small, dumpy alcid, black above and white below in winter and mottled brown in summer, with a thin bill. Scarce but regular on Discovery Bay and the strait; look for singles and pairs off Gardiner Beach, especially in summer.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 2,
     call: 'keer! keer! (fast and gull-like, given in flight)',
     presence: [1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1],
   };
@@ -1436,7 +1449,7 @@ export class CommonMurre extends Uria {
 
   static override flight: Partial<FlightProfile> = { flapRate: 8 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 20,
     call: 'a low, growling arrr',
     posture: 0.5,
     presence: [2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2],

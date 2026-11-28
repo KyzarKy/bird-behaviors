@@ -4,7 +4,7 @@
  * Bird.diveUnder() and each family adds what happens around it.
  */
 import { Bird, clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants } from '../core/traits';
 
 /**
  * The run across the surface before a heavy swimmer lifts off. It only touches
@@ -96,6 +96,13 @@ export abstract class Gaviidae extends Gaviiformes {
       label: 'Peer and dive',
       cue: 'Rides low with the face laid flat in the water, looking for fish. Then it slides under, usually with no leap and hardly a ripple, and stays down far longer than a grebe or a duck, coming up a long way off. Compare how long each loon stays down.',
     },
+    feedTogether: {
+      eats: 'baitfish',
+      label: 'Feed together',
+      cue: 'Loose winter groups feed together, often peering underwater with the face in the water and diving within moments of each other after small fish.',
+      feeding: true,
+      flock: true,
+    },
   };
 
   protected diveTime = 3.5;
@@ -173,7 +180,7 @@ export class PacificLoon extends Gavia {
     note: 'Smaller and slimmer than a Common Loon, with a slender straight gray bill and a clean line between the dark gray nape and the white throat. Passes through the Strait in large flights in April and May, with a few singles through the winter.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 12,
     call: 'a croaking kwow; silent on migration',
     presence: [1, 1, 2, 3, 1, 0, 0, 0, 0, 1, 2, 1],
   };
@@ -215,7 +222,7 @@ export class RedThroatedLoon extends Gavia {
     note: 'The smallest loon: pale face and neck, a back finely speckled with white, and a thin bill that looks tilted up because the head is held that way. Winter visitor in the Strait, often in the tide lines off Protection Island and along the outer bay.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 4,
     call: 'a goose-like kak-kak-kak in flight; quiet in winter',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2],
   };
@@ -322,6 +329,12 @@ export abstract class Podicipedidae extends Podicipediformes {
       label: 'Sink low',
       cue: 'Squeezes the air out of its feathers and settles until the back is awash and only the neck and head show, then swims along that way. A grebe can ride high like a duck or low like a periscope.',
     },
+    raftTogether: {
+      label: 'Raft together',
+      needs: 'water',
+      cue: 'Between feeding bouts the flock gathers in a tight raft on open water and rests, necks drawn in and heads tucked, drifting together with the tide.',
+      flock: true,
+    },
   };
 
   protected diveTime = 2;
@@ -374,7 +387,7 @@ export class HornedGrebe extends Podiceps {
     note: 'Small and crisp in winter: black cap and back, clean white cheek and foreneck, flat-topped head and a short, straight, pale-tipped bill. Winter flocks of a few to a dozen in the shallows off Gardiner Beach from fall to spring. The gold “horns” are a summer feature.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 8,
     call: 'a rattling trill, krrrrr (mostly summer); silent in winter',
     presence: [3, 3, 2, 1, 0, 0, 0, 0, 1, 2, 3, 3],
   };
@@ -417,7 +430,7 @@ export class RedNeckedGrebe extends Podiceps {
     note: 'Larger and longer-necked than a Horned Grebe, with a dingy gray neck in winter, a dark cap and a heavy bill that is yellow at the base. One of the common winter grebes on Discovery Bay and the Strait, October to April, often a little offshore.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 3,
     call: 'a loud, braying series, ah-ah-ah-kerr (summer); mostly silent in winter',
     presence: [2, 2, 2, 2, 0, 0, 0, 0, 1, 2, 3, 2],
   };
@@ -499,10 +512,10 @@ export class WesternGrebe extends Aechmophorus {
     rank: 'species',
     name: 'Aechmophorus occidentalis',
     common: 'Western Grebe',
-    note: 'Long white neck and a black cap that runs down to the eye, with a greenish-yellow bill. Winter visitor to the bay and Strait, scattered flocks off Gardiner Beach from fall to spring, in smaller numbers than a few decades ago. Pairing displays start before spring.',
+    note: 'Long white neck and a black cap that runs down to the eye, with a greenish-yellow bill. Winter visitor to the bay and Strait, scattered flocks off Gardiner Beach from fall to spring, in smaller numbers than a few decades ago. Pairing displays start before spring. Winter flocks often rest together in tight rafts, heads tucked.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 30,
     call: 'a two-note, creaky krrreeet-kreet',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2],
   };
@@ -572,7 +585,7 @@ export class PiedBilledGrebe extends Podilymbus {
     note: 'Brown and plump, with a short, thick, chicken-like bill, a white patch under the tail and no neck to speak of. A bird of freshwater ponds that is scarce on the bay itself, where it sits in sheltered corners in winter.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 1,
     call: 'cuk-cuk-cuk-cow-cow-cow (a spring call from ponds); quiet in winter',
     presence: [1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1],
   };
@@ -675,6 +688,18 @@ export abstract class Phalacrocoracidae extends Suliformes {
       label: 'Dive for fish',
       cue: 'Swims low with the bill tilted up, gives a small forward surge and a hop, then goes under. Compare a loon, which slips under without the hop. After a dive it often swims to a perch to dry.',
     },
+    feedTogether: {
+      eats: 'baitfish',
+      label: 'Fish together',
+      cue: 'Flocks sometimes fish together, swimming in a long line and diving one after another as they drive a school of fish ahead of them.',
+      feeding: true,
+      flock: true,
+    },
+    dryTogether: {
+      label: 'Dry wings side by side',
+      cue: 'After fishing, the flock lines up on pilings or rocks a few birds to a perch, every one holding its wings spread out to dry.',
+      flock: true,
+    },
   };
 
   protected diveTime = 2.5;
@@ -705,6 +730,16 @@ export abstract class Phalacrocoracidae extends Suliformes {
 
   *dryWings(): Script {
     yield* this.toPerch();
+    yield* this.spreadWings();
+  }
+
+  /** Side by side on the pilings or rocks, a few to each, then wings out. */
+  *dryTogether(): Script {
+    if (!(yield* this.perchInRows(['post', 'rock', 'log', 'branch'], 4, 0.7))) return yield* this.dryWings();
+    yield* this.spreadWings();
+  }
+
+  private *spreadWings(): Script {
     const p = this.pose;
     yield* this.poseTo({ pitch: 0.75, neck: 1, head: 0.1 }, 0.3);
     p.wings = 'open';
@@ -756,10 +791,10 @@ export class DoubleCrestedCormorant extends Nannopterum {
     rank: 'species',
     name: 'Nannopterum auritum',
     common: 'Double-crested Cormorant',
-    note: 'Black with an orange-yellow patch of bare skin at the base of the bill and a kink in the neck in flight. The one that perches on pilings in the bay and flies in lines over the water. Present all year, most numerous in late summer and fall.',
+    note: 'Black with an orange-yellow patch of bare skin at the base of the bill and a kink in the neck in flight. The one that perches on pilings in the bay and flies in lines over the water. Present all year, most numerous in late summer and fall. Groups sometimes fish together, and they often dry their wings side by side on pilings.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 12,
     perches: ['post', 'log', 'rock'],
     call: 'a low, pig-like grunt, urrrrk (at the nest and roost); silent otherwise',
     presence: [2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2],
@@ -787,6 +822,10 @@ export class DoubleCrestedCormorant extends Nannopterum {
     beak: '#8c7a4a',
     legs: '#232220',
     eye: '#2f8a8a',
+  };
+  static override variants: Variants = {
+    // Young birds: brown, with a pale buff neck and breast.
+    juvenile: { body: '#4a4036', belly: '#c8b89a', head: '#5a4e42', wing: '#3e362e', tail: '#2e2822' },
   };
 }
 
@@ -826,7 +865,7 @@ export class PelagicCormorant extends Urile {
     note: 'The slimmest cormorant, with a thin neck, a thin dark bill and a small head. In summer a white patch shows on the flank. Nests on the cliffs of Protection Island and is present all year, often on rocks and pilings along the bay.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 6,
     perches: ['rock', 'post'],
     call: 'a soft, hissing croak at the nest; usually silent',
     presence: [2, 2, 2, 2, 2, 3, 3, 3, 2, 2, 2, 2],
@@ -865,7 +904,7 @@ export class BrandtsCormorant extends Urile {
     note: 'The stocky black cormorant of the open coast, with a buff band across the throat and short tail. Not resident at Discovery Bay; seen on the Strait from late summer through winter on rocks and over the water, often in long, low lines.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 15,
     perches: ['rock', 'post'],
     call: 'a low grunt; silent away from the colony',
     presence: [2, 2, 1, 1, 0, 0, 0, 1, 2, 2, 2, 2],
