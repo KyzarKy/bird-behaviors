@@ -432,6 +432,21 @@ export abstract class Bird {
     return true;
   }
 
+  /** Up onto perches of `kinds`, one bird to each, calling and singing in bursts. */
+  protected *chorusIn(kinds: PerchKind[]): Script {
+    yield* this.wait((this.flock?.delay(this) ?? 0) * 1.5);
+    const perch = this.findPerch(kinds, 'any');
+    if (perch) yield* this.flyTo(perch);
+    for (let i = 0; i < 4; i++) {
+      yield* this.wait(rand(1, 3));
+      this.say((Math.random() < 0.5 ? this.ecology.song : undefined) ?? this.ecology.call, 1.5);
+      yield* this.poseTo({ beakOpen: 0.6 }, 0.1);
+      yield* this.wait(0.4);
+      yield* this.poseTo({ beakOpen: 0 }, 0.1);
+    }
+    yield* this.relax();
+  }
+
   /**
    * High-tide roost: the flock packs into a tight row on the upper beach, all facing the same way, hunched. Listed
    * by the shorebirds.

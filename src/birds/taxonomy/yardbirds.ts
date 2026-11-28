@@ -421,6 +421,19 @@ export abstract class Columbidae extends Columbiformes {
       label: 'Display flight',
       cue: 'Rises in a steep, noisy climb, then spreads the wings and tail and glides down on stiff, motionless wings. A courting bird does this in sight of a mate.',
     },
+    feedTogether: {
+      eats: 'fallenSeed',
+      label: 'Feed as a flock',
+      cue: 'The flock walks and pecks together for fallen seed, heads bobbing, and claps up all at once when startled.',
+      feeding: true,
+      flock: true,
+      weight: 2,
+    },
+    wheelTogether: {
+      label: 'Wheel around together',
+      cue: 'The flock lifts off together and circles in tight, synchronized loops, flashing as it turns, before swinging back down to land in a group.',
+      flock: true,
+    },
   };
 
   /** What the wings do at takeoff and at the top of the display. */
@@ -457,6 +470,18 @@ export abstract class Columbidae extends Columbiformes {
     yield* this.toPerch();
     yield* this.relax();
   }
+
+  /** Loops over the scene on one shared path, then down together where it started. */
+  *wheelTogether(): Script {
+    const f = this.flock;
+    if (!f) return yield* this.fly();
+    const r = Math.sqrt(f.birds.length) * this.size * 0.6;
+    const home = f.course.from;
+    const loop = [{ x: 30, y: 14 }, { x: 55, y: 22 }, { x: 78, y: 16 }, { x: 60, y: 10 }, { x: 35, y: 18 }, { x: 60, y: 24 }, { x: 75, y: 14 }];
+    yield* this.flyAsOne(loop.length, (j) => loop[j], { x: r * 1.3, y: r * 0.5 }, 1.4);
+    yield* this.flyTo(this.groundSpot(home, f.reach / 2));
+    yield* this.relax();
+  }
 }
 
 // ------------------------------------------------------------ Patagioenas
@@ -475,6 +500,11 @@ export abstract class Patagioenas extends Columbidae {
       label: 'Reach for berries',
       feeding: true,
       cue: 'A pigeon in the treetop, neck stretched out far and body tilted up, flapping to stay balanced on a thin twig. A ground-feeding dove or town pigeon almost never does this.',
+    },
+    feedTogether: {
+      eats: 'berries',
+      label: 'Feed together in a fruiting tree',
+      cue: 'The flock settles into a fruiting tree together, clambering and flapping heavily among the branches to reach the berries.',
     },
   };
 
@@ -504,12 +534,12 @@ export class BandTailedPigeon extends Patagioenas {
     rank: 'species',
     name: 'Patagioenas fasciata',
     common: 'Band-tailed Pigeon',
-    note: 'Our native pigeon: purple-gray with a white crescent on the nape, a yellow bill with a dark tip, yellow feet and a pale band across the end of the tail. Scarce in winter; common from spring into fall in tall trees around the Miller Peninsula and Discovery Bay.',
+    note: 'Our native pigeon: purple-gray with a white crescent on the nape, a yellow bill with a dark tip, yellow feet and a pale band across the end of the tail. Scarce in winter; common from spring into fall in tall trees around the Miller Peninsula and Discovery Bay. Often in flocks, feeding together in fruiting trees.',
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 17, flapRate: 5.5 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 15,
     call: 'whoo-whoo… whoo (low, owl-like, two or three notes)',
     presence: [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1],
   };
@@ -571,12 +601,12 @@ export class RockPigeon extends Columba {
     rank: 'species',
     name: 'Columba livia',
     common: 'Rock Pigeon',
-    note: 'Slate-gray with a green and purple neck, two black bars on the wing and a white rump; feral birds are often spotted or white. Resident around farms and buildings near Gardiner and Sequim, less so in the woods of the Miller Peninsula.',
+    note: 'Slate-gray with a green and purple neck, two black bars on the wing and a white rump; feral birds are often spotted or white. Resident around farms and buildings near Gardiner and Sequim, less so in the woods of the Miller Peninsula. Flocks wheel together over buildings and fields before landing.',
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 6 };
 
-  static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
+  static override ecology: Partial<Ecology> = { flockSize: 20, scenes: { beach: 2 },
     call: "coo-roo-c'too-coo",
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
   };
@@ -640,7 +670,7 @@ export class EurasianCollaredDove extends Streptopelia {
 
   static override flight: Partial<FlightProfile> = { flapRate: 6.5 };
 
-  static override ecology: Partial<Ecology> = { scenes: { beach: 1 },
+  static override ecology: Partial<Ecology> = { flockSize: 6, scenes: { beach: 1 },
     call: 'koo-KOO-kook (three notes, middle one stressed); harsh hwaah in flight',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
   };
@@ -697,7 +727,7 @@ export class MourningDove extends Zenaida {
     rank: 'species',
     name: 'Zenaida macroura',
     common: 'Mourning Dove',
-    note: 'Slim and warm buff with black spots on the wing, a blue-gray crown, a small head and a long pointed tail edged in white. Scarce in winter; most numerous from April to September on the dry ground and open lots around Sequim and the Miller Peninsula.',
+    note: 'Slim and warm buff with black spots on the wing, a blue-gray crown, a small head and a long pointed tail edged in white. Scarce in winter; most numerous from April to September on the dry ground and open lots around Sequim and the Miller Peninsula. Outside the nesting season they often feed in small flocks on the ground.',
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 16, power: 0.8, agility: 0.5, flapRate: 7.5 };
