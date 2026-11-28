@@ -433,7 +433,7 @@ export abstract class Laridae extends Charadriiformes {
     cyclePeriod: 3,
   };
 
-  static override ecology: Partial<Ecology> = { flockSize: 15, habitat: 'beach', perches: ['post', 'rock', 'log'], gait: 'walk', groundSpeed: 4, posture: 0.1 };
+  static override ecology: Partial<Ecology> = { flockSize: 15, flockJuveniles: 0.25, habitat: 'beach', perches: ['post', 'rock', 'log'], gait: 'walk', groundSpeed: 4, posture: 0.1 };
   static override look: Partial<Look> = { build: 0.6, headSize: 0.75, legLength: 0.16, tailLength: 0.3, wingSpan: 2.1, beakShape: 'stout', beakLength: 0.7 };
 
   static override behaviors: BehaviorTable<Laridae> = {
@@ -446,10 +446,53 @@ export abstract class Laridae extends Charadriiformes {
       label: 'Soar',
       cue: 'Circles and glides on long, narrow, slightly bent wings. The wing shape separates it from an eagle at any distance.',
     },
+    roostTogether: {
+      label: 'Loaf together',
+      cue: 'Between tides and in rough weather the flock stands together on the beach or a spit, every bird facing into the wind, resting, preening and bickering over space.',
+      flock: true,
+    },
+    gatherOverFish: {
+      label: 'Gather over a school of fish',
+      needs: 'water',
+      cue: 'When a school of small fish is pushed up to the surface, gulls come from all sides and hang over the spot in a noisy, wheeling crowd, each dropping to snatch at the water and climbing again.',
+      flock: true,
+    },
   };
 
   *soar(): Script {
     yield* this.soarCircles(11, { x: 58, y: 28 }, 15);
+  }
+
+  /**
+   * The crowd over a school of fish: everyone heads for the same patch of water, then hovers, drops to the surface
+   * and climbs again a few times. The patch comes from the flock's plan, so every bird goes to the same one.
+   */
+  *gatherOverFish(): Script {
+    const water = this.world.habitat.water;
+    if (!water) return yield* this.soar();
+    const u = (((this.flock?.course.to ?? rand(0, 100)) * 7.31) % 1 + 1) % 1;
+    const x0 = water.from + 8 + u * Math.max(0, 88 - water.from - 8);
+    yield* this.wait((this.flock?.delay(this) ?? 0) * 1.5);
+    for (let i = 0; i < 4; i++) {
+      const x = clamp(x0 + rand(-6, 6), water.from + 2, 97);
+      yield* this.flyTo({ x, y: rand(4, 11) }, { land: false });
+      yield* this.flyTo({ x: x + rand(-1, 1), y: 0.5 }, { land: false, speed: 1.2 });
+      yield* this.flyTo({ x, y: rand(4, 9) }, { land: false });
+    }
+    yield* this.settle();
+    yield* this.relax();
+  }
+
+  /** A dread: the resting flock goes up at once, sweeps out low over the water on one path, and comes back. Listed by the terns. */
+  *dread(): Script {
+    const f = this.flock;
+    if (!f) return yield* this.fly();
+    const edge = this.world.habitat.water?.from ?? 55;
+    const r = Math.sqrt(f.birds.length) * this.size * 0.7;
+    const home = f.course.from;
+    yield* this.flyAsOne(4, (j) => [{ x: edge + 10, y: 3 }, { x: edge + 28, y: 2.5 }, { x: edge + 18, y: 5 }, { x: edge - 2, y: 4 }][j], { x: r * 1.4, y: r * 0.4 }, 1);
+    yield* this.flyTo(this.groundSpot(home, f.reach / 2));
+    yield* this.relax();
   }
 }
 
@@ -528,7 +571,7 @@ export class GlaucousWingedGull extends Larus {
     rank: 'species',
     name: 'Larus glaucescens',
     common: 'Glaucous-winged Gull',
-    note: 'The default big gull of the Salish Sea. Pale gray back with wingtips the same gray (no black), pink legs, and a red spot on the bill.',
+    note: 'The default big gull of the Salish Sea. Pale gray back with wingtips the same gray (no black), pink legs, and a red spot on the bill. Loafing flocks gather on beaches and spits, and young birds, plain gray-brown with a black bill through their first year, mix in with the adults.',
   };
 
   static override ecology: Partial<Ecology> = { scenes: { yard: 1 }, call: 'keow… keow… kyow-kyow-kyow-kyow!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
@@ -543,5 +586,9 @@ export class GlaucousWingedGull extends Larus {
     beak: '#e8c020',
     legs: '#e59aa0',
     eye: '#222222',
+  };
+  static override variants: Variants = {
+    // First year: plain gray-brown all over with a black bill.
+    juvenile: { body: '#a8a29a', belly: '#b4aea6', head: '#aaa49c', wing: '#8e8880', tail: '#7a746c', spots: '#8a8278', beak: '#2a2a2a', legs: '#d09098' },
   };
 }

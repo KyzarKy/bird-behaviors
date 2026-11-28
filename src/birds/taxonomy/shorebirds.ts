@@ -4,7 +4,7 @@
  * Larus are defined in waterside.ts and extended here.
  */
 import { clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants } from '../core/traits';
 import { Charadriiformes, Laridae, Larus } from './waterside';
 
 /** x where the water begins, or the end of the sand on a beach with no water. */
@@ -814,12 +814,12 @@ export class ShortBilledGull extends Larus {
     rank: 'species',
     name: 'Larus brachyrhynchus',
     common: 'Short-billed (Mew) Gull',
-    note: 'A small, round-headed gull with a short, unmarked greenish-yellow bill and a dark eye; the back is medium gray. The common winter gull at Gardiner and Discovery Bay, October to April, with a few through summer.',
+    note: 'A small, round-headed gull with a short, unmarked greenish-yellow bill and a dark eye; the back is medium gray. The common winter gull at Gardiner and Discovery Bay, October to April, with a few through summer. Winter flocks can be large, resting together on beaches and fields.',
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 10, flapRate: 3.6 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 20,
     call: 'keeow, mew-mew-mew (high and nasal)',
     presence: [3, 3, 3, 2, 1, 1, 1, 2, 2, 3, 3, 3],
   };
@@ -862,6 +862,10 @@ export class ShortBilledGull extends Larus {
     legs: '#d8cf6a',
     eye: '#2a2018',
   };
+  static override variants: Variants = {
+    // First year: brownish gray, mottled, with a dark-tipped pinkish bill.
+    juvenile: { body: '#b8b0a6', belly: '#c8c2b8', head: '#c4beb4', wing: '#9a9288', tail: '#6a645c', spots: '#8a8278', beak: '#a88a7a', legs: '#c8a8a0' },
+  };
 }
 
 export class CaliforniaGull extends Larus {
@@ -869,7 +873,7 @@ export class CaliforniaGull extends Larus {
     rank: 'species',
     name: 'Larus californicus',
     common: 'California Gull',
-    note: 'Medium-large, with a darker gray back than a Glaucous-winged Gull, black wingtips, a dark eye and greenish legs; the bill has both a red and a black spot. Mostly late summer through winter on Gardiner Beach and the Discovery Bay bluffs, with some moving through in spring.',
+    note: 'Medium-large, with a darker gray back than a Glaucous-winged Gull, black wingtips, a dark eye and greenish legs; the bill has both a red and a black spot. Mostly late summer through winter on Gardiner Beach and the Discovery Bay bluffs, with some moving through in spring. Young birds are mottled brown for their first year.',
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 3 };
@@ -920,6 +924,10 @@ export class CaliforniaGull extends Larus {
     eye: '#1a1410',
     eyeRing: '#d9402b',
   };
+  static override variants: Variants = {
+    // First year: mottled brown with a dark-tipped pink bill.
+    juvenile: { body: '#9a8c7c', belly: '#a89c8c', head: '#a8a090', wing: '#7e7062', tail: '#4e463e', spots: '#5e5246', eyeRing: undefined, beak: '#c49a98', legs: '#c8a0a0' },
+  };
 }
 
 export class HeermannsGull extends Larus {
@@ -927,12 +935,12 @@ export class HeermannsGull extends Larus {
     rank: 'species',
     name: 'Larus heermanni',
     common: 'Heermann’s Gull',
-    note: 'Slate-gray body, white head, bright red bill with a black tip, black legs and a black tail. A summer-to-fall visitor from Mexico: look for it from July to November off Gardiner Beach and along the Miller Peninsula shore.',
+    note: 'Slate-gray body, white head, bright red bill with a black tip, black legs and a black tail. A summer-to-fall visitor from Mexico: look for it from July to November off Gardiner Beach and along the Miller Peninsula shore. Young birds are all dark chocolate brown.',
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 3.4, glide: 0.8 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 12,
     call: 'whee-ow (whining), nasal ow-ow-ow',
     presence: [0, 0, 0, 0, 0, 1, 2, 3, 3, 2, 1, 0],
   };
@@ -968,6 +976,10 @@ export class HeermannsGull extends Larus {
     beak: '#d8402a',
     legs: '#1a1a1a',
     eye: '#1a1410',
+  };
+  static override variants: Variants = {
+    // First year: dark chocolate brown all over, the bill pinkish with a dark tip.
+    juvenile: { body: '#4e4640', belly: '#4a423c', head: '#4e4640', wing: '#3a3430', tail: '#2a2622', beak: '#c08a80' },
   };
 }
 
@@ -1014,10 +1026,10 @@ export class BonapartesGull extends Chroicocephalus {
     rank: 'species',
     name: 'Chroicocephalus philadelphia',
     common: 'Bonaparte’s Gull',
-    note: 'A small, pale gull with a thin black bill, orange-red legs, a dark ear spot in winter and a white wedge on the outer wing. Passes through Discovery Bay in flocks in April and May and from October to November, often over tide rips.',
+    note: 'A small, pale gull with a thin black bill, orange-red legs, a dark ear spot in winter and a white wedge on the outer wing. Passes through Discovery Bay in flocks in April and May and from October to November, often over tide rips. Flocks often gather over tide rips, dipping to the surface to pick up small prey.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 30,
     call: 'geeer (nasal, tern-like rasp)',
     presence: [1, 1, 1, 2, 2, 0, 0, 1, 2, 3, 3, 1],
   };
@@ -1035,6 +1047,10 @@ export class BonapartesGull extends Chroicocephalus {
     beak: '#1c1c1c',
     legs: '#e0604a',
     eye: '#1a1410',
+  };
+  static override variants: Variants = {
+    // First winter: like the adult, with a dark bar across the back of the wing and paler legs.
+    juvenile: { spots: '#4a4440', legs: '#e0a090' },
   };
 }
 
@@ -1054,6 +1070,11 @@ export abstract class Hydroprogne extends Laridae {
       eats: 'baitfish',
       label: 'Hover and plunge',
       cue: 'Patrols with the bill angled down, stops to hover for a moment over a fish, then folds and drops headfirst into the water. A gull never dives from the air like this.',
+    },
+    dread: {
+      label: 'Panic flight',
+      cue: 'Without warning the whole resting flock rises at once, oddly silent, sweeps out low over the water and swings back to settle again. Such dreads are often set off by a passing falcon or gull.',
+      flock: true,
     },
   };
 
@@ -1082,10 +1103,10 @@ export class CaspianTern extends Hydroprogne {
     rank: 'species',
     name: 'Hydroprogne caspia',
     common: 'Caspian Tern',
-    note: 'Gull-sized and white with a black cap, a thick coral-red bill with a dark tip, and dark undersides to the wingtips. Fishes over Discovery Bay and the Gardiner shallows from April to September.',
+    note: 'Gull-sized and white with a black cap, a thick coral-red bill with a dark tip, and dark undersides to the wingtips. Fishes over Discovery Bay and the Gardiner shallows from April to September. Often rests in small groups on beaches and spits.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 8,
     call: 'rrraah! (deep and raspy)',
     presence: [0, 0, 0, 1, 2, 2, 3, 3, 1, 0, 0, 0],
   };
@@ -1102,6 +1123,10 @@ export class CaspianTern extends Hydroprogne {
     beak: '#d8381f',
     legs: '#1a1a1a',
     eye: '#1a1410',
+  };
+  static override variants: Variants = {
+    // Juvenile: duskier cap, scaly back and a paler orange bill.
+    juvenile: { cap: '#3a3a3a', spots: '#8a7a6a', beak: '#e07a3a' },
   };
 }
 
