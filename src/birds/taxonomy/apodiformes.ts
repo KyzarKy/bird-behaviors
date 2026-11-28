@@ -155,6 +155,10 @@ export class AnnasHummingbird extends Calypte {
     throat: '#d6336c',
     tail: '#3f5a45',
   };
+  static override variants: Variants = {
+    // Female: green crown and a grayish throat, usually with a small rose spot in the middle.
+    female: { head: '#5f8f5a', throat: '#c4bfb4' },
+  };
 }
 
 // --------------------------------------------------------------- Selasphorus
