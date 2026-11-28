@@ -1001,6 +1001,11 @@ export abstract class Sterna extends Laridae {
       label: 'Hover and plunge',
       cue: 'Flies slowly with the head and bill pointed down, stops in a short hover over a small fish, then folds and drops. If it misses it climbs and tries again a short way on. Smaller than a Caspian Tern, with a thin bill and quicker, lighter wingbeats.',
     },
+    dread: {
+      label: 'Panic flight',
+      cue: 'Without warning the whole resting flock rises at once, oddly silent, sweeps out low over the water and swings back to settle again. Such dreads are often set off by a passing falcon or gull.',
+      flock: true,
+    },
   };
 
   /** Tries before it gives up and goes back to the post. */
@@ -1037,10 +1042,10 @@ export class CommonTern extends Sterna {
     rank: 'species',
     name: 'Sterna hirundo',
     common: 'Common Tern',
-    note: 'Pale gray above, white below, with a black cap, a red bill with a dark tip and a deeply forked tail. Small numbers pass through Discovery Bay in May and from July to September, usually over the tide rips.',
+    note: 'Pale gray above, white below, with a black cap, a red bill with a dark tip and a deeply forked tail. Small numbers pass through Discovery Bay in May and from July to September, usually over the tide rips. Migrant flocks rest on beaches and pilings, and the whole flock sometimes rises at once in a silent dread before settling again.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 20,
     call: 'kee-arr (drawn out and falling)',
     presence: [0, 0, 0, 0, 1, 0, 1, 2, 2, 1, 0, 0],
   };
@@ -1056,6 +1061,10 @@ export class CommonTern extends Sterna {
     beak: '#d94a2c',
     legs: '#d8402a',
     eye: '#1a1410',
+  };
+  static override variants: Variants = {
+    // Juvenile: brownish scaling on the back, a dusky cap and a dark bill.
+    juvenile: { cap: '#3a3a3a', spots: '#9a8a78', beak: '#5a3a2a', legs: '#e0907a' },
   };
 }
 
