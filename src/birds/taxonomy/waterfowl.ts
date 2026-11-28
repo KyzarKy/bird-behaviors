@@ -31,6 +31,7 @@ export abstract class Anatidae extends Anseriformes {
     common: 'Ducks, geese and swans',
     note: 'The only family of waterfowl in North America. The three ways of feeding sort it: dabblers tip up in the shallows, divers go under, geese and swans graze. Heavy bodies and short wings mean a run across the water before takeoff.',
   };
+  static override ecology: Partial<Ecology> = { flockSize: 12 };
 
   static override flight: Partial<FlightProfile> = {
     cruiseSpeed: 14,

@@ -104,7 +104,7 @@ for (const [name, scene, key] of todo) {
         drawBackdrop(ctx, bird.world);
         drawFoodBack(ctx, bird.world);
         drawBird(ctx, bird);
-        for (const o of bird.world.others) drawBird(ctx, o);
+        for (const o of bird.party) drawBird(ctx, o);
         drawFoodFront(ctx, bird.world);
         drawForeground(ctx, bird.world);
       };

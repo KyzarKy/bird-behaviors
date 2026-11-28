@@ -87,6 +87,13 @@ export interface Ecology {
   /** Floats on the water instead of wading on the bottom. */
   swims: boolean;
   /**
+   * How many are usually together where it is seen, itself included. The Flock setting draws this many, up to
+   * FLOCK_CAP. 1 is a bird usually seen alone, which has no Flock setting.
+   */
+  flockSize: number;
+  /** Gap between neighbors in a flock, in body lengths, when there is room for it. */
+  flockSpacing: number;
+  /**
    * How easy it is to find on the Miller Peninsula in each month, January first:
    * 0 absent, 1 scarce, 2 regular, 3 hard to miss.
    */
@@ -171,6 +178,8 @@ export interface BehaviorSpec {
   weight?: number;
   /** Finding, catching, handling or eating food. Shown as a tag, since many labels don't say so. */
   feeding?: boolean;
+  /** Done by the whole flock together. Listed only for species seen in flocks; picking it turns the Flock setting on. */
+  flock?: boolean;
   /** The food it goes after, if it differs by scene then per scene. The scene shows that food while this bird is in it. */
   eats?: FoodKind | Partial<Record<HabitatId, FoodKind>>;
 }

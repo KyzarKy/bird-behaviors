@@ -21,7 +21,7 @@ export abstract class Charadriidae extends Charadriiformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 14, power: 0.55, agility: 0.7, braking: 0.4, glide: 0.4, flapRate: 6 };
-  static override ecology: Partial<Ecology> = { habitat: 'beach', perches: [], gait: 'run', groundSpeed: 8, posture: 0.3 };
+  static override ecology: Partial<Ecology> = { flockSize: 8, habitat: 'beach', perches: [], gait: 'run', groundSpeed: 8, posture: 0.3 };
   static override look: Partial<Look> = { build: 0.5, neckLength: 0.1, legLength: 0.3, tailLength: 0.3, wingSpan: 1.9, headSize: 0.95, beakShape: 'stout', beakLength: 0.45 };
 
   static override behaviors: BehaviorTable<Charadriidae> = {
@@ -193,7 +193,7 @@ export abstract class Haematopodidae extends Charadriiformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 15, power: 0.5, agility: 0.5, braking: 0.3, glide: 0.4, flapRate: 5 };
-  static override ecology: Partial<Ecology> = { habitat: 'beach', perches: ['rock'], gait: 'walk', groundSpeed: 4, posture: 0.3 };
+  static override ecology: Partial<Ecology> = { flockSize: 4, habitat: 'beach', perches: ['rock'], gait: 'walk', groundSpeed: 4, posture: 0.3 };
   static override look: Partial<Look> = { build: 0.7, neckLength: 0.1, legLength: 0.3, tailLength: 0.25, wingSpan: 1.9, headSize: 0.85, beakShape: 'chisel', beakLength: 1.8 };
 
   static override behaviors: BehaviorTable<Haematopodidae> = {
@@ -298,7 +298,7 @@ export abstract class Scolopacidae extends Charadriiformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 14, power: 0.6, agility: 0.75, braking: 0.4, glide: 0.3, flapRate: 9 };
-  static override ecology: Partial<Ecology> = { habitat: 'beach', perches: [], gait: 'run', groundSpeed: 7, posture: 0.2 };
+  static override ecology: Partial<Ecology> = { flockSize: 20, habitat: 'beach', perches: [], gait: 'run', groundSpeed: 7, posture: 0.2 };
   static override look: Partial<Look> = { build: 0.45, neckLength: 0.1, legLength: 0.3, tailLength: 0.3, wingSpan: 2, headSize: 0.9, beakShape: 'thin', beakLength: 1.1 };
 
   static override behaviors: BehaviorTable<Scolopacidae> = {
@@ -1089,7 +1089,7 @@ export abstract class Alcidae extends Charadriiformes {
     ceiling: 6,
   };
 
-  static override ecology: Partial<Ecology> = { habitat: 'beach', perches: [], gait: 'walk', groundSpeed: 3, swims: true, posture: 0.35 };
+  static override ecology: Partial<Ecology> = { flockSize: 6, habitat: 'beach', perches: [], gait: 'walk', groundSpeed: 3, swims: true, posture: 0.35 };
   static override look: Partial<Look> = { build: 0.75, neckLength: 0.08, legLength: 0.06, tailLength: 0.12, wingSpan: 1.4, headSize: 0.8, beakShape: 'dagger', beakLength: 1.2, legsTrail: true };
 
   static override behaviors: BehaviorTable<Alcidae> = {

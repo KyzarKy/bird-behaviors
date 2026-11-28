@@ -2,6 +2,7 @@ import { Button, Card, Checkbox, Link, SegmentedControl, Select, Tag } from '@ky
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { behaviorsOf, lineage, variantsOf, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
 import type { Ecology, HabitatId, Variant } from '../birds/core/traits';
+import { Flock } from '../birds/core/Flock';
 import { HABITATS, World } from '../birds/core/World';
 import { classHref, fieldHref } from './route';
 import { inScene, levelIn, likeliestIn, MONTHS, PRESENCE, THIS_MONTH } from './season';
@@ -15,8 +16,18 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
     const name = { adult: v.includes('female') ? 'Male' : 'Adult', female: 'Female', juvenile: 'Juvenile' };
     return v.map((value) => ({ value, label: name[value] }));
   }, [species]);
-  const bird = useMemo(() => new species(new World(HABITATS[scene]), true, variant), [species, scene, variant]);
-  const behaviors = useMemo(() => behaviorsOf(species).reverse(), [species]);
+  // Flock on: the species' flock, every bird in auto mode. Picking a non-flock behavior goes back to one bird.
+  const [flockOn, setFlockOn] = useState(false);
+  const flock = useMemo(() => {
+    const f = new Flock(new species(new World(HABITATS[scene]), true, variant));
+    // A new plumage while the flock is on: the new bird leads a new flock.
+    if (flockOn) f.grow();
+    return f;
+  }, [species, scene, variant]);
+  const bird = flock.lead;
+  const flocks = Flock.sizeOf(bird) > 1;
+  // Flock behaviors only for a species seen in flocks.
+  const behaviors = useMemo(() => behaviorsOf(species).reverse().filter((b) => flocks || !b.spec.flock), [species, flocks]);
   const [current, setCurrent] = useState<string | null>(null);
   const [lastKey, setLastKey] = useState<string | null>(null);
   // On phones the controls fold into a drawer, so the behaviors list peeks above the fold.
@@ -24,7 +35,12 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
   // A phone's stage is small, so it starts zoomed in on the bird.
   const [closeUp, setCloseUp] = useState(() => window.matchMedia('(max-width: 640px)').matches);
   const [auto, setAuto] = useState(false);
-  bird.auto = auto;
+  for (const b of flock.birds) b.auto = auto || flockOn;
+  const setFlock = (on: boolean) => {
+    if (on) flock.grow();
+    else flock.solo();
+    setFlockOn(on);
+  };
   const stageRef = useRef<HTMLElement>(null);
   // A new bird or scene was picked, possibly from far down the list: bring the stage back into view.
   useEffect(() => {
@@ -41,7 +57,19 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
   const perform = (key: string) => {
     // On a narrow screen the buttons sit below the stage; bring it back into view.
     stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    bird.perform(key);
+    const together = !!behaviors.find((b) => b.key === key)?.spec.flock;
+    if (together) {
+      // A flock behavior brings the flock in to do it.
+      if (!flockOn) setFlock(true);
+      flock.perform(key);
+    } else {
+      // Anything else is one bird's: the one nearest the middle of the flock stays and does it, on its own.
+      if (flockOn) {
+        setFlock(false);
+        setAuto(false);
+      }
+      flock.lead.perform(key);
+    }
     setLastKey(key);
   };
 
@@ -63,7 +91,7 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
           </nav>
         </header>
 
-        <Stage bird={bird} closeUp={closeUp} onBehaviorChange={setCurrent} />
+        <Stage flock={flock} closeUp={closeUp} onBehaviorChange={setCurrent} />
 
         <button
           type="button"
@@ -91,8 +119,10 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
           </Select>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             {plumages.length > 1 && <SegmentedControl label="Plumage" value={variant} onChange={setVariant} options={plumages} />}
-            <Checkbox label="Close-up" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
-            <Checkbox label="Auto" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
+            {/* A flock is framed whole and runs in auto mode, so both are locked while it is on, keeping their settings. */}
+            <Checkbox label="Close-up" checked={closeUp && !flockOn} disabled={flockOn} title={flockOn ? 'The camera frames the whole flock' : undefined} onChange={(e) => setCloseUp(e.target.checked)} />
+            <Checkbox label="Auto" checked={auto || flockOn} disabled={flockOn} title={flockOn ? 'A flock always chooses for itself' : undefined} onChange={(e) => setAuto(e.target.checked)} />
+            {flocks && <Checkbox label="Flock" checked={flockOn} onChange={(e) => setFlock(e.target.checked)} />}
           </div>
         </div>
 

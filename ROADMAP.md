@@ -15,8 +15,8 @@ Ordered by effort, with anything that another item builds on placed first.
 A switch beside Auto and Close-up that fills the stage with a flock of the selected species, so you can see how it looks and acts in a group: a quail covey with a sentinel, bushtits streaming bush to bush, a tight starling flock wheeling, a goose V, scoters rafting offshore.
 - Mix plumages from the species' `variants` (Mallard hens with drakes, a juvenile among adult eagles).
 - `Stage` steps and draws a list of birds. Zoomed out, the camera follows the flock's center.
-- A per-class `flock: { size, spacing }` static merged down the lineage. Solitary species show a loose pair at most.
-- First version: each bird runs auto mode on its own, keeping its spacing and sharing a heading when the flock moves. That already gives a covey or a raft.
+- `ecology.flockSize` and `flockSpacing`, merged down the lineage like the rest of `ecology`. A species usually seen alone has a size of 1 and no Flock setting.
+- First version (built, see [docs/behaviors.md](docs/behaviors.md#flocks)): each bird runs auto mode on its own in one shared world, and the flock moves off together now and then. That already gives a covey or a raft. Flock sizes are a first pass per family.
 - Then flock-level behaviors for coordinated shapes: starling wheeling, the goose V, a covey sentinel.
 - Mixed flocks, such as chickadees with nuthatches or gulls mobbing an eagle, come after.
 

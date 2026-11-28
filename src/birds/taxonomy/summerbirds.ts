@@ -28,7 +28,7 @@ export abstract class Hirundinidae extends Passeriformes {
     restPose: 'spread',
   };
 
-  static override ecology: Partial<Ecology> = { perches: ['twig', 'post'], gait: 'hop', groundSpeed: 2, posture: 0.3 };
+  static override ecology: Partial<Ecology> = { flockSize: 12, perches: ['twig', 'post'], gait: 'hop', groundSpeed: 2, posture: 0.3 };
   static override look: Partial<Look> = { beakShape: 'thin', beakLength: 0.3, legLength: 0.05, wingSpan: 2, tailShape: 'forked', build: 0.4 };
 
   static override behaviors: BehaviorTable<Hirundinidae> = {

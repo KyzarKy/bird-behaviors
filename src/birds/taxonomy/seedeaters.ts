@@ -384,7 +384,7 @@ export abstract class Fringillidae extends Passeriformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 10, flapRate: 14, flapDuty: 0.45, cyclePeriod: 0.5 };
-  static override ecology: Partial<Ecology> = { perches: ['branch', 'shrub', 'twig'] };
+  static override ecology: Partial<Ecology> = { flockSize: 12, perches: ['branch', 'shrub', 'twig'] };
   static override look: Partial<Look> = { build: 0.65, beakLength: 0.45, tailShape: 'forked', tailLength: 0.5 };
 
   static override behaviors: BehaviorTable<Fringillidae> = {
@@ -665,7 +665,7 @@ export abstract class Loxia extends Fringillidae {
       if (!cone) break;
       yield* this.reachFor(cone, reach, { bites: 5, hold: 0.6 });
       // Scales and the seeds it didn't get drop from the cone.
-      for (let s = 0; s < 3; s++) this.world.emit('seed', cone.x, cone.y, { vx: rand(-2, 2), vy: rand(0, 2), gravity: 25, life: 3 });
+      for (let s = 0; s < 3; s++) this.world.emit('seed', cone.x, cone.y, { vx: rand(-2, 2), vy: rand(0, 2), gravity: 25, life: 3, by: this });
       yield* this.poseTo({ beakOpen: 0 }, 0.1);
       yield* this.wait(rand(0.3, 0.6));
     }
@@ -767,7 +767,7 @@ export abstract class Icteridae extends Passeriformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 11, flapRate: 8, flapDuty: 0.85, cyclePeriod: 0.6 };
-  static override ecology: Partial<Ecology> = { perches: ['post', 'branch', 'shrub'], gait: 'walk', groundSpeed: 6, posture: 0.3 };
+  static override ecology: Partial<Ecology> = { flockSize: 20, perches: ['post', 'branch', 'shrub'], gait: 'walk', groundSpeed: 6, posture: 0.3 };
   static override look: Partial<Look> = { build: 0.6, beakLength: 0.7, beakShape: 'cone' };
 
   static override behaviors: BehaviorTable<Icteridae> = {
@@ -967,7 +967,7 @@ export abstract class Passeridae extends Passeriformes {
     note: 'Not related to the New World sparrows, only similar in looks. Stocky, thick-billed, social birds that live around people.',
   };
 
-  static override ecology: Partial<Ecology> = { perches: ['post', 'branch', 'shrub'] };
+  static override ecology: Partial<Ecology> = { flockSize: 12, perches: ['post', 'branch', 'shrub'] };
   static override look: Partial<Look> = { build: 0.75, beakLength: 0.4 };
 
   static override behaviors: BehaviorTable<Passeridae> = {
@@ -1052,7 +1052,7 @@ export abstract class Sturnidae extends Passeriformes {
 
   // Steady, fast wingbeats on triangular wings, with brief glides.
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 15, power: 0.7, agility: 0.5, flapRate: 11, flapDuty: 0.85, cyclePeriod: 0.8, restPose: 'spread', glide: 0.5 };
-  static override ecology: Partial<Ecology> = { perches: ['branch', 'post', 'treetop'], gait: 'walk', groundSpeed: 7, posture: 0.25 };
+  static override ecology: Partial<Ecology> = { flockSize: 30, perches: ['branch', 'post', 'treetop'], gait: 'walk', groundSpeed: 7, posture: 0.25 };
   static override look: Partial<Look> = { build: 0.7, beakShape: 'dagger', beakLength: 0.9, wingSpan: 1.7, legLength: 0.2, tailLength: 0.3 };
 
   static override behaviors: BehaviorTable<Sturnidae> = {

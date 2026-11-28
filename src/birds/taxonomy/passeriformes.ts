@@ -56,6 +56,7 @@ export abstract class Corvidae extends Passeriformes {
     common: 'Crows and jays',
     note: 'Big, bold, clever generalists. They hide food for later and remember where, and they watch who is watching them do it.',
   };
+  static override ecology: Partial<Ecology> = { flockSize: 6 };
 
   // Unlike small songbirds, corvids row along with steady wingbeats.
   static override flight: Partial<FlightProfile> = {
@@ -485,7 +486,7 @@ export abstract class Paridae extends Passeriformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 7, agility: 0.85, flapRate: 25, flapDuty: 0.5, cyclePeriod: 0.34 };
-  static override ecology: Partial<Ecology> = { perches: ['branch', 'twig', 'shrub'] };
+  static override ecology: Partial<Ecology> = { flockSize: 6, perches: ['branch', 'twig', 'shrub'] };
   static override look: Partial<Look> = { build: 0.75, headSize: 1.15, beakLength: 0.3, tailLength: 0.55 };
 
   static override behaviors: BehaviorTable<Paridae> = {

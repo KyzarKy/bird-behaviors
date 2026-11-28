@@ -56,15 +56,19 @@ export interface Particle extends Vec {
   /** Height at which it stops falling. */
   floor: number;
   life: number;
+  /** The bird whose behavior put it down, so only that behavior's end clears it. */
+  by?: Bird;
 }
 
 /** A food on show. A piece a bird takes is gone until its behavior ends, then the food is as it was. */
 export interface FoodPatch {
   kind: FoodKind;
   site: FoodSite;
-  units: (Vec & { gone: boolean })[];
+  /** `by` is the bird that took a piece; it comes back when that bird's behavior ends. */
+  units: (Vec & { gone: boolean; by?: Bird })[];
   /** Set while a hunter is after the flock: it bursts out of cover, and settles back once the hunt is over. */
   flushed: boolean;
+  flushedBy?: Bird;
   /** 0 settled .. 1 gone from view, easing toward `flushed`. */
   away: number;
 }
@@ -110,6 +114,7 @@ export function peekSpot(p: Peek, habitat: Habitat): Vec {
 /** The one animal a hunting bird is going after, drawn where it is until the bird takes it. */
 export interface Prey extends Vec {
   kind: FoodKind;
+  by?: Bird;
 }
 
 /** How far from the bill a piece of food can be and still be taken. */
@@ -120,10 +125,11 @@ export class World {
   food: FoodPatch[] = [];
   peek: Peek | null = null;
   prey: Prey | null = null;
-  /** Other birds in the story of a behavior, such as the tern a jaeger robs. Drawn, and moved by the bird that brought them. */
-  others: Bird[] = [];
-  /** A bird is feeding: no peeks start until it is done, so none shows beside the animal it is after. */
-  feeding = false;
+  /** Birds feeding right now. While any is, no peeks start, so none shows beside the animal one is after. */
+  feeders = new Set<Bird>();
+  get feeding(): boolean {
+    return this.feeders.size > 0;
+  }
   /** Seconds since the scene was made. */
   time = 0;
   // The first peek comes within a few seconds of a bird arriving, then one every 10 to 15 seconds.
@@ -148,32 +154,41 @@ export class World {
   }
 
   /** A bird took some at `at`: the nearest piece within reach goes, and so does the animal it was after. */
-  eat(kind: FoodKind, at: Vec) {
+  eat(kind: FoodKind, at: Vec, by?: Bird) {
     this.prey = null;
     const patch = this.food.find((f) => f.kind === kind);
     if (!patch) return;
     const d = (u: Vec) => Math.hypot(u.x - at.x, u.y - at.y);
     const piece = patch.units.filter((u) => !u.gone && d(u) < REACH).sort((a, b) => d(a) - d(b))[0];
-    if (piece) piece.gone = true;
+    if (piece) {
+      piece.gone = true;
+      piece.by = by;
+    }
   }
 
-  /** A behavior is over: every food goes back to how it was, and any other bird in its story leaves. */
-  restore() {
+  /**
+   * `by`'s behavior is over: what it took goes back, and what it put down or flushed with it. With no bird
+   * given, everything does. In a flock each bird only undoes its own.
+   */
+  restore(by?: Bird) {
+    const mine = (o?: Bird) => !by || o === by;
     for (const f of this.food) {
-      f.flushed = false;
-      for (const u of f.units) u.gone = false;
+      if (mine(f.flushedBy)) f.flushed = false;
+      for (const u of f.units) if (mine(u.by)) u.gone = false;
     }
-    this.prey = null;
-    this.others = [];
+    if (mine(this.prey?.by)) this.prey = null;
     // A shell, fish or grasshopper the behavior put down goes with it; dust and splashes play out.
-    this.particles = this.particles.filter((p) => isDebris(p.kind));
-    if (this.peek?.held) this.peek = null;
+    this.particles = this.particles.filter((p) => isDebris(p.kind) || !mine(p.by));
+    if (this.peek?.held && !this.feeding) this.peek = null;
   }
 
   /** A hunter is coming in: the flock bursts out of cover until the hunt is over. */
-  startle(kind: FoodKind) {
+  startle(kind: FoodKind, by?: Bird) {
     const patch = this.food.find((f) => f.kind === kind);
-    if (patch) patch.flushed = true;
+    if (patch) {
+      patch.flushed = true;
+      patch.flushedBy = by;
+    }
   }
 
   step(dt: number) {

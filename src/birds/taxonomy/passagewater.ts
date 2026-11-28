@@ -495,7 +495,7 @@ export abstract class Rallidae extends Gruiformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 11, power: 0.3, agility: 0.35, braking: 0.2, glide: 0.2, flapRate: 6, ceiling: 10 };
-  static override ecology: Partial<Ecology> = { perches: [], gait: 'walk', groundSpeed: 3.5, headBob: true, swims: true, posture: 0.12 };
+  static override ecology: Partial<Ecology> = { flockSize: 20, perches: [], gait: 'walk', groundSpeed: 3.5, headBob: true, swims: true, posture: 0.12 };
   static override look: Partial<Look> = { build: 0.8, neckLength: 0.2, legLength: 0.2, tailLength: 0.1, wingSpan: 1.6, headSize: 0.6, beakShape: 'stout', beakLength: 0.6 };
 
   static override behaviors: BehaviorTable<Rallidae> = {
@@ -1153,7 +1153,7 @@ export abstract class Pelecanidae extends Pelecaniformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 12, power: 0.25, agility: 0.2, braking: 0.15, glide: 0.85, flapRate: 2.2, flapDuty: 0.5, cyclePeriod: 4, ceiling: 25 };
-  static override ecology: Partial<Ecology> = { perches: ['post', 'rock', 'log'], gait: 'walk', groundSpeed: 2, posture: 0.2 };
+  static override ecology: Partial<Ecology> = { flockSize: 8, perches: ['post', 'rock', 'log'], gait: 'walk', groundSpeed: 2, posture: 0.2 };
   static override look: Partial<Look> = { build: 0.7, neckLength: 0.4, legLength: 0.1, tailLength: 0.18, wingSpan: 1.75, headSize: 0.45, beakShape: 'stout', beakLength: 2.4 };
 
   static override behaviors: BehaviorTable<Pelecanidae> = {

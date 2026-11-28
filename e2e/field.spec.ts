@@ -68,3 +68,24 @@ test('a behavior the scene cannot support is disabled and does nothing', async (
   await expect(dive).toHaveAttribute('aria-pressed', 'false');
   await expect(cue).toHaveText(before!);
 });
+
+test('Flock fills the stage and locks Auto and Close-up; a one-bird behavior ends it, a flock behavior brings it back', async ({ page }) => {
+  await page.goto('/#/field/callipepla-californica');
+  await page.getByRole('button', { name: /Scene and settings/ }).click();
+  const flock = page.getByLabel('Flock', { exact: true });
+  const auto = page.getByLabel('Auto', { exact: true });
+  const closeUp = page.getByLabel('Close-up', { exact: true });
+  await flock.check();
+  await expect(auto).toBeChecked();
+  await expect(auto).toBeDisabled();
+  await expect(closeUp).toBeDisabled();
+  await expectNoAxeViolations(page);
+
+  await behaviorButtons(page).filter({ hasText: 'Preen and stretch' }).click();
+  await expect(flock).not.toBeChecked();
+  await expect(auto).not.toBeChecked();
+  await expect(auto).toBeEnabled();
+
+  await behaviorButtons(page).filter({ hasText: 'Fly off together' }).click();
+  await expect(flock).toBeChecked();
+});

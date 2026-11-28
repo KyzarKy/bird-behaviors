@@ -503,7 +503,7 @@ export abstract class Laniidae extends Passeriformes {
     }
     this.hold(null);
     // The grasshopper stays stuck there while it tears at it.
-    const stuck = item && this.world.emit(item, at.x, at.y, { gravity: 0, floor: at.y, life: 8 });
+    const stuck = item && this.world.emit(item, at.x, at.y, { gravity: 0, floor: at.y, life: 8, by: this });
     yield* this.wait(0.4);
     yield* this.peck(3, 1, false);
     yield* this.relax();
@@ -704,7 +704,7 @@ export abstract class Motacillidae extends Passeriformes {
     note: 'Slim, long-tailed ground birds that walk instead of hopping and keep the tail moving. They flush with a thin call and fly in a deep, bounding undulation.',
   };
 
-  static override ecology: Partial<Ecology> = { perches: ['post', 'shrub'], gait: 'walk', groundSpeed: 5, posture: 0.2 };
+  static override ecology: Partial<Ecology> = { flockSize: 10, perches: ['post', 'shrub'], gait: 'walk', groundSpeed: 5, posture: 0.2 };
   static override look: Partial<Look> = { build: 0.45, headSize: 0.9, legLength: 0.2, tailLength: 0.7, beakShape: 'thin', beakLength: 0.6 };
 
   static override behaviors: BehaviorTable<Motacillidae> = {

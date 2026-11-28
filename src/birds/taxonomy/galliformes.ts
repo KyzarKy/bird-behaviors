@@ -144,6 +144,7 @@ export abstract class Gallus extends Phasianidae {
     common: 'Junglefowl',
     note: 'Forest-floor birds of South and Southeast Asia. Even the wild ones fly mainly to reach a roost for the night.',
   };
+  static override ecology: Partial<Ecology> = { flockSize: 6 };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 9, endurance: 4, ceiling: 12 };
   static override look: Partial<Look> = { crest: 'comb', tailShape: 'fan', tailCock: 0.7, tailLength: 0.5 };
@@ -238,7 +239,7 @@ export abstract class Odontophoridae extends Galliformes {
     note: 'Small, round, sociable landfowl that live in coveys and would always rather run than fly.',
   };
 
-  static override ecology: Partial<Ecology> = { gait: 'run', groundSpeed: 11 };
+  static override ecology: Partial<Ecology> = { flockSize: 15, gait: 'run', groundSpeed: 11 };
 }
 
 export abstract class Callipepla extends Odontophoridae {

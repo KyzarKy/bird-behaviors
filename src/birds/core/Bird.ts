@@ -1,6 +1,7 @@
 import { eatsIn, FOODS, type FoodKind, type FoodSite } from './food';
 import { behaviorsOf, resolveTraits, variantsOf, type BirdClass } from './reflect';
 import type { BehaviorTable, Ecology, FlightProfile, Item, Look, PerchKind, Script, Taxon, Variant, Variants, Vec } from './traits';
+import type { Flock } from './Flock';
 import { DEEP, peekSpot, SHELVE, STAGE, type Trunk, type World } from './World';
 
 /** Stage units per second for each m/s of real airspeed. */
@@ -115,6 +116,8 @@ export abstract class Bird {
     groundSpeed: 5,
     headBob: false,
     swims: false,
+    flockSize: 1,
+    flockSpacing: 1.5,
     posture: 0.15,
     call: 'chip',
   };
@@ -146,6 +149,12 @@ export abstract class Bird {
   static variants?: Variants;
 
   static behaviors: BehaviorTable<Bird> = {
+    flyTogether: {
+      label: 'Fly off together',
+      cue: 'One bird lifts off and the rest follow within a second or two, keeping together in the air and landing again as a group.',
+      flock: true,
+      weight: 2,
+    },
     fly: {
       label: 'Fly to a new spot',
       cue: 'Watch the wingbeat rhythm and the line it draws through the air: steady rowing, flap-and-bound, flap-and-glide, or soaring. Flight style alone often names the family.',
@@ -210,8 +219,14 @@ export abstract class Bird {
   taken = 0;
   /** Seconds left before the bird lets go of what it holds. */
   private holdTimer = 0;
-  /** Moves the other birds in the running behavior's story (world.others), every frame until it ends. */
+  /** Moves the other birds in the running behavior's story (party), every frame until it ends. */
   private others: ((dt: number) => void) | null = null;
+  /** Other birds in the story of the running behavior, such as the tern a jaeger robs. Drawn, and moved by this bird. */
+  party: Bird[] = [];
+  /** The flock this bird is in when the Flock setting is on, else null. */
+  flock: Flock | null = null;
+  /** The perch this bird last picked, so flockmates pick others. */
+  private claim: Vec | null = null;
 
   /**
    * `stock` false is a bird that only plays a part in another's behavior, such as the tern a jaeger robs: it leaves the scene's food alone.
@@ -257,8 +272,10 @@ export abstract class Bird {
     const p = this.pose;
     p.kickNear = p.kickFar = p.stride = p.headThrust = p.roll = p.beakOpen = p.crest = 0;
     this.hold(null);
-    this.world.restore();
+    this.world.feeders.delete(this);
+    this.world.restore(this);
     this.others = null;
+    this.party = [];
     this.current = this.last = key;
     const spec = behaviorsOf(this.constructor as BirdClass).find((b) => b.key === key)?.spec;
     const kind = spec && eatsIn(spec, this.world.habitat.id);
@@ -268,7 +285,7 @@ export abstract class Bird {
     // was showing holds still where it is: if the bird goes for it, it is the prey (see aimAt).
     const peek = this.world.peek;
     this.lead = null;
-    this.world.feeding = !!this.meal;
+    if (this.meal) this.world.feeders.add(this);
     if (peek && this.meal) {
       if (peek.kind === this.meal.kind) peek.held = true;
       else this.world.peek = null;
@@ -285,16 +302,28 @@ export abstract class Bird {
     return null;
   }
 
-  /** What auto mode can pick from in this scene, with each behavior's relative odds. */
+  /** What auto mode can pick from in this scene, with each behavior's relative odds. Flock behaviors are the flock's to pick (see Flock). */
   autoOptions(): { key: string; weight: number }[] {
     return behaviorsOf(this.constructor as BirdClass)
-      .filter((b) => !this.missing(b.key))
+      .filter((b) => !b.spec.flock && !this.missing(b.key))
       .map((b) => ({ key: b.key, weight: b.spec.weight ?? 1 }));
   }
 
-  /** A behavior drawn by weight from everything this class can do, never the same one twice running. */
+  /** Whether `key` goes after a small animal that keeps out of sight, which the scene draws one of at a time. */
+  private huntsHidden(key: string): boolean {
+    const spec = behaviorsOf(this.constructor as BirdClass).find((b) => b.key === key)?.spec;
+    const kind = spec && eatsIn(spec, this.world.habitat.id);
+    return !!kind && !!FOODS[kind]?.hidden;
+  }
+
+  /**
+   * A behavior drawn by weight from everything this class can do, never the same one twice running. In a flock
+   * a bird does not fly off on its own (the flock moves together), and it waits its turn to hunt a hidden animal.
+   */
   private choose(): string {
-    const options = this.autoOptions().filter((b) => b.key !== this.last);
+    const mates = this.flock?.birds.filter((b) => b !== this) ?? [];
+    const hunting = mates.some((b) => b.current !== null && b.huntsHidden(b.current));
+    const options = this.autoOptions().filter((b) => b.key !== this.last && !(this.flock && (b.key === 'fly' || (hunting && this.huntsHidden(b.key)))));
     let roll = Math.random() * options.reduce((sum, b) => sum + b.weight, 0);
     return options.find((b) => (roll -= b.weight) < 0)!.key;
   }
@@ -311,13 +340,14 @@ export abstract class Bird {
     if (this.holdTimer > 0 && (this.holdTimer -= dt) <= 0) this.hold(null);
     this.others?.(dt);
     if (this.script.next(dt).done) {
+      this.world.feeders.delete(this);
       if (this.current) {
         this.hold(null);
-        this.world.restore();
+        this.world.restore(this);
         this.others = null;
+        this.party = [];
       }
       this.meal = this.lead = null;
-      this.world.feeding = false;
       this.script = null;
     }
   }
@@ -326,6 +356,16 @@ export abstract class Bird {
 
   *fly(): Script {
     const dest = this.findPerch(undefined, 'far') ?? this.groundSpot(this.pos.x > 50 ? 15 : 85, 8);
+    if (!(yield* this.flyOver(dest)) && dest.y <= 0.05) yield* this.moveOnGround(dest.x);
+    yield* this.relax();
+  }
+
+  /** The whole flock moves off: each bird takes off a moment after the one before and lands near the others. */
+  *flyTogether(): Script {
+    const f = this.flock;
+    if (!f) return yield* this.fly();
+    yield* this.wait(f.delay(this));
+    const dest = f.destination(this) ?? this.findPerch(undefined, 'far') ?? this.groundSpot(this.pos.x > 50 ? 15 : 85, 8);
     if (!(yield* this.flyOver(dest)) && dest.y <= 0.05) yield* this.moveOnGround(dest.x);
     yield* this.relax();
   }
@@ -373,6 +413,23 @@ export abstract class Bird {
   }
 
   // ------------------------------------------------------ overridable hooks
+
+  /**
+   * Place this new flock member `k` places out from `lead`, alternating sides, `gap` apart: afloat beside it,
+   * on the ground beside it, or on a free perch if it is perched.
+   */
+  joinNear(lead: Bird, k: number, gap: number) {
+    const dx = (k % 2 ? -1 : 1) * Math.ceil(k / 2) * gap;
+    const water = this.world.habitat.water;
+    if (lead.afloat && water) this.pos = { x: clamp(lead.pos.x + dx, water.from + 4, 96), y: 0 };
+    else {
+      this.pos = { ...lead.pos };
+      const perch = lead.pos.y > 0.05 || lead.airborne ? this.findPerch(undefined, 'near') : null;
+      this.pos = perch ? { x: perch.x, y: perch.y } : { x: this.world.clampLand(lead.pos.x + dx), y: 0 };
+    }
+    this.airborne = false;
+    this.pose.facing = Math.random() < 0.5 ? 1 : -1;
+  }
 
   /** Where a new bird appears. Runs at the end of the constructor. */
   protected spawn() {
@@ -642,7 +699,9 @@ export abstract class Bird {
   protected waterSpot(): Vec | null {
     const water = this.world.habitat.water;
     if (!this.ecology.swims || !water) return null;
-    const [lo, hi] = this.mealRange() ?? [0, 100];
+    // In a flock, near the others unless it is going to its food.
+    const c = this.flock && !this.meal ? this.flock.center().x : null;
+    const [lo, hi] = this.mealRange() ?? (c === null ? [0, 100] : [c - this.flock!.reach, c + this.flock!.reach]);
     return { x: rand(Math.max(water.from + 6, Math.min(lo, 90)), Math.max(water.from + 8, Math.min(hi, 94))), y: 0 };
   }
 
@@ -1081,7 +1140,7 @@ export abstract class Bird {
     for (let tries = Math.random() < 0.5 ? 2 : 1; tries > 0; tries--) {
       yield* this.flyTo({ x: at.x, y: rock.y + 17 }, { land: false });
       this.hold(null);
-      shell = this.world.emit(item, at.x, this.pos.y, { gravity: 30, floor: at.y, life: 30 });
+      shell = this.world.emit(item, at.x, this.pos.y, { gravity: 30, floor: at.y, life: 30, by: this });
       yield* this.flyTo({ x: rock.x, y: rock.y });
       this.pose.facing = 1;
       yield* this.wait(0.3);
@@ -1156,9 +1215,17 @@ export abstract class Bird {
   }
 
   protected findPerch(kinds: PerchKind[] = this.ecology.perches, pick: PerchPick = 'any'): Vec | null {
+    this.claim = this.pickPerch(kinds, pick);
+    return this.claim;
+  }
+
+  private pickPerch(kinds: PerchKind[], pick: PerchPick): Vec | null {
     const d = (q: Vec) => Math.hypot(q.x - this.pos.x, q.y - this.pos.y);
+    // In a flock, one bird to a perch: none that a flockmate sits on or is heading for.
+    const close = (a: Vec | null, q: Vec) => !!a && Math.hypot(a.x - q.x, a.y - q.y) < 1.5;
+    const held = (q: Vec) => !!this.flock?.birds.some((b) => b !== this && (close(b.claim, q) || close(b.pos, q)));
     const options = this.world.habitat.perches
-      .filter((q) => kinds.includes(q.kind) && q.y <= this.flight.ceiling && d(q) > 3)
+      .filter((q) => kinds.includes(q.kind) && q.y <= this.flight.ceiling && d(q) > 3 && !held(q))
       .sort((a, b) => d(a) - d(b));
     if (!options.length) return null;
     // Near the food if there is a perch there.
@@ -1187,7 +1254,7 @@ export abstract class Bird {
     if (!this.meal) return;
     this.lead = null;
     this.taken++;
-    this.world.eat(this.meal.kind, at);
+    this.world.eat(this.meal.kind, at, this);
     const item = FOODS[this.meal.kind].item;
     if (item) this.hold(item, hold);
   }
@@ -1492,7 +1559,7 @@ export abstract class Bird {
       b.pose.facing = Math.random() < 0.5 ? 1 : -1;
       flock.push(b);
     }
-    this.world.others = flock;
+    this.party = flock;
     return flock;
   }
 
@@ -1526,7 +1593,7 @@ export abstract class Bird {
     dropped = true;
     v.carry = null;
     const from = { ...victim.billTip() };
-    const fish = this.world.emit(item, from.x, from.y, { vx: dir * 2, gravity: 6, floor: 0, life: 4 });
+    const fish = this.world.emit(item, from.x, from.y, { vx: dir * 2, gravity: 6, floor: 0, life: 4, by: this });
     const at = { x: from.x + dir * 2.4, y: Math.max(1.2, from.y - 3) };
     this.startlePrey();
     yield* this.alongside(this.flyTo(at, { land: false, speed: 1.9 }), () => {
@@ -1550,7 +1617,7 @@ export abstract class Bird {
     other.airborne = true;
     other.pos = path(0);
     Object.assign(v, { wings: 'open', carryInFeet: false, neck: 0.25, head: 0, rotation: 0, facing: path(0.05).x >= path(0).x ? 1 : -1 });
-    this.world.others = [other];
+    this.party = [other];
     let clock = 0;
     this.others = (dt) => {
       clock += dt;
@@ -1598,7 +1665,7 @@ export abstract class Bird {
 
   /** Warn the prey: a hunter is coming in. */
   protected startlePrey() {
-    if (this.meal) this.world.startle(this.meal.kind);
+    if (this.meal) this.world.startle(this.meal.kind, this);
   }
 
   /** The animal this bird is going after is at `at`: it is drawn there until the bird takes it. Returns `at`. */
@@ -1616,7 +1683,7 @@ export abstract class Bird {
     // Picking where to go (`show` false) draws nothing yet, unless this is the animal it saw: a hidden animal shows
     // when the bill comes down, so it never has to move from where it was guessed to where the bill lands.
     const seen = this.lead && Math.hypot(at.x - this.lead.x, at.y - this.lead.y) < 0.01;
-    this.world.prey = show || seen ? { kind: this.meal.kind, x: at.x, y: at.y } : null;
+    this.world.prey = show || seen ? { kind: this.meal.kind, x: at.x, y: at.y, by: this } : null;
     return at;
   }
 

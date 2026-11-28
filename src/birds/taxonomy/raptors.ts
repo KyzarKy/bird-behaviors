@@ -441,7 +441,7 @@ export abstract class Cathartidae extends Cathartiformes {
     ceiling: 50,
   };
 
-  static override ecology: Partial<Ecology> = { perches: ['treetop', 'post'], gait: 'walk', groundSpeed: 2.5, posture: 0.5 };
+  static override ecology: Partial<Ecology> = { flockSize: 4, perches: ['treetop', 'post'], gait: 'walk', groundSpeed: 2.5, posture: 0.5 };
   static override look: Partial<Look> = { build: 0.55, headSize: 0.45, tailLength: 0.4, wingSpan: 2.6, legLength: 0.2 };
 
   static override behaviors: BehaviorTable<Cathartidae> = {
