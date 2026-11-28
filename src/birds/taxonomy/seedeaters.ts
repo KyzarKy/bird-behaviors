@@ -8,7 +8,8 @@
  * ones that feed another way override `forage()`: the Zonotrichia crowned
  * sparrows hop and peck, and the Savannah Sparrow runs.
  */
-import { rand } from '../core/Bird';
+import { clamp, rand } from '../core/Bird';
+import { STAGE } from '../core/World';
 import type { BehaviorTable, Ecology, FlightProfile, Look, PerchKind, Script, Taxon, Variants } from '../core/traits';
 import { Passerellidae, Passeriformes } from './passeriformes';
 
@@ -1061,6 +1062,19 @@ export abstract class Sturnidae extends Passeriformes {
       label: 'Probe by gaping',
       cue: 'Walks briskly, pushes the closed bill into the turf (or the beach wrack, after kelp flies), then opens it to widen the hole and look in. A robin pulls worms with a stab; a starling pries.',
     },
+    rollFeed: {
+      eats: { yard: 'worms', beach: 'wrack' },
+      label: 'Roll across the field',
+      cue: 'The flock probes its way across the grass for worms and grubs (or along the beach wrack), packed close and moving in one direction. Birds left at the back keep flying over the others to land at the front, so the whole flock rolls across the field.',
+      feeding: true,
+      flock: true,
+      weight: 2,
+    },
+    murmurate: {
+      label: 'Wheel before roosting',
+      cue: 'Toward dusk the flock flies in a tight, shifting cloud, every bird matching the turns of its nearest neighbors, so the whole cloud twists and swells as one. Then it pours down into a roost tree.',
+      flock: true,
+    },
   };
 
   override forage(): Script {
@@ -1071,15 +1085,72 @@ export abstract class Sturnidae extends Passeriformes {
     yield* this.toGround(10);
     for (let i = 0; i < 3; i++) {
       yield* this.moveOnGround(this.foodSpot(5).x);
-      yield* this.poseTo({ pitch: -0.35, neck: -0.2, head: -0.9 }, 0.1);
-      const shown = yield* this.glimpse();
-      yield* this.poseTo({ beakOpen: 1 }, 0.25);
-      // Prising the soil open with the bill, it finds a grub.
-      this.takeOrHide(shown);
-      yield* this.wait(0.2);
-      yield* this.poseTo({ beakOpen: 0 }, 0.1);
-      yield* this.relax(0.1);
+      yield* this.pry();
     }
+    yield* this.relax();
+  }
+
+  private *pry(): Script {
+    yield* this.poseTo({ pitch: -0.35, neck: -0.2, head: -0.9 }, 0.1);
+    const shown = yield* this.glimpse();
+    yield* this.poseTo({ beakOpen: 1 }, 0.25);
+    // Prising the soil open with the bill, it finds a grub.
+    this.takeOrHide(shown);
+    yield* this.wait(0.2);
+    yield* this.poseTo({ beakOpen: 0 }, 0.1);
+    yield* this.relax(0.1);
+  }
+
+  /** Feeding flock: probe a step or two forward, and a bird left at the back flies over the rest to the front. */
+  *rollFeed(): Script {
+    const f = this.flock;
+    if (!f) return yield* this.gapeProbe();
+    yield* this.wait(f.delay(this) * 2);
+    yield* this.travelTo(this.groundSpot(f.center().x, f.reach / 2));
+    const [lo, hi] = this.world.habitat.land;
+    const dir = f.heading;
+    for (let i = 0; i < 8; i++) {
+      yield* this.pry();
+      const down = f.birds.filter((b) => b.onGround).map((b) => b.pos.x * dir);
+      if (!down.length) break;
+      const front = Math.max(...down);
+      const x = this.pos.x * dir <= Math.min(...down) + f.gap ? (front + rand(1, 2) * f.gap) * dir : this.pos.x + dir * rand(0.3, 0.8) * f.gap;
+      // The far edge of the field ends the roll.
+      if (x < lo + 2 || x > hi - 2) break;
+      if (Math.abs(x - this.pos.x) > f.gap * 1.5) {
+        if (!(yield* this.flyTo({ x, y: 0 }))) yield* this.moveOnGround(x);
+      } else yield* this.moveOnGround(x);
+    }
+    yield* this.relax();
+  }
+
+  /**
+   * Murmuration: every bird flies the same loops through the sky at the same moments, each at its own place in
+   * the cloud, which swells and squeezes as it turns. Then each goes to a perch of its own, or down to the ground.
+   */
+  *murmurate(): Script {
+    const f = this.flock;
+    if (!f) return yield* this.fly();
+    const phase = f.course.to;
+    const n = f.birds.length;
+    const r = Math.sqrt(n) * this.size * 0.9;
+    const a = rand(0, Math.PI * 2);
+    const d = Math.sqrt(Math.random());
+    const top = Math.min(this.flight.ceiling, STAGE.top - 6);
+    const start = this.world.time + 3;
+    yield* this.wait(f.delay(this));
+    for (let j = 0; j < 10; j++) {
+      const s = 0.55 + 0.45 * Math.sin(j * 1.9 + phase);
+      const x = 50 + 30 * Math.sin(j * 1.1 + phase) + Math.cos(a + j * 0.4) * d * r * s * 1.6;
+      const y = clamp(top * 0.65 + top * 0.2 * Math.sin(j * 1.7 + phase * 2) + Math.sin(a + j * 0.4) * d * r * s * 0.7, 8, top);
+      const to = { x: clamp(x, 3, 97), y };
+      // Paced to reach each turn when the rest of the cloud does, so the cloud stays together.
+      const left = Math.max(0.4, start + (j + 1) * 1.8 - this.world.time);
+      const speed = clamp(Math.hypot(to.x - this.pos.x, to.y - this.pos.y) / (this.flight.cruiseSpeed * left), 0.6, 1.8);
+      yield* this.flyTo(to, { land: false, speed });
+    }
+    const dest = this.findPerch(undefined, 'far') ?? this.groundSpot(f.center().x, f.reach);
+    if (!(yield* this.flyTo(dest)) && dest.y <= 0.05) yield* this.moveOnGround(dest.x);
     yield* this.relax();
   }
 }
@@ -1098,10 +1169,11 @@ export class EuropeanStarling extends Sturnus {
     rank: 'species',
     name: 'Sturnus vulgaris',
     common: 'European Starling',
-    note: 'Black with a green and purple gloss, a short square tail and a long pointed bill that is yellow in spring and dark in fall; winter birds are speckled white. Common at Gardiner and the Miller Peninsula all year, on lawns and in nest holes in dead trees.',
+    note: 'Black with a green and purple gloss, a short square tail and a long pointed bill that is yellow in spring and dark in fall; winter birds are speckled white. Common at Gardiner and the Miller Peninsula all year, on lawns and in nest holes in dead trees. Outside the nesting season they feed and roost in flocks. A feeding flock rolls across a field as birds at the back fly over to the front, and toward dusk flocks wheel together in tight, shifting clouds (murmurations) before dropping into a roost. Juveniles, common in summer flocks, are plain gray-brown with a dark bill.',
   };
 
   static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
+    flockJuveniles: 0.25,
     call: 'a drawn-out, descending sleeee',
     song: 'whistles, clicks and rattles mixed with mimicry of other birds',
     presence: [2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2],
@@ -1116,5 +1188,10 @@ export class EuropeanStarling extends Sturnus {
     tail: '#1d2321',
     beak: '#e5c933',
     legs: '#c56a5a',
+  };
+
+  // Plain mousy gray-brown, unstreaked, with a dark bill.
+  static override variants: Variants = {
+    juvenile: { body: '#7b7266', belly: '#8d8476', head: '#776e63', wing: '#665e55', tail: '#665e55', beak: '#2e2925', legs: '#8a6a5e' },
   };
 }
