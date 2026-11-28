@@ -154,6 +154,13 @@ export abstract class Gallus extends Phasianidae {
       label: 'Fly up to roost',
       cue: 'Walks to the base of a perch, crouches and stares up at it, then goes up in one labored, flapping jump.',
     },
+    feedTogether: {
+      eats: { yard: 'litterBugs', beach: 'wrack' },
+      label: 'Scratch together',
+      cue: 'The flock spreads out and works the ground together, each bird scratching backward with one foot and then the other and stepping back to look for insects and seeds, clucking softly to keep in touch.',
+      feeding: true,
+      flock: true,
+    },
   };
 
   *roost(): Script {
@@ -196,6 +203,10 @@ export class Chicken extends Gallus {
     tail: '#2d2a26',
     beak: '#d9b45a',
     legs: '#d9b45a',
+  };
+  static override variants: Variants = {
+    // Hen: smaller and browner, with a shorter tail.
+    female: { body: '#a8764a', belly: '#b88a5a', head: '#9a6a40', wing: '#8a6038', tail: '#6a4a30', tailLength: 0.35 },
   };
 
   static override behaviors: BehaviorTable<Chicken> = {

@@ -804,6 +804,7 @@ export abstract class Apodidae extends Apodiformes {
     roostDrop: {
       label: 'Roost circle',
       cue: 'At dusk the birds gather in circling flocks above a hollow tree or chimney and drop into it one after another, wings held up. They roost clinging to the inside wall, never on a branch.',
+      flock: true,
     },
     fly: {
       label: 'Fly to a new spot',

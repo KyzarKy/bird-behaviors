@@ -108,7 +108,7 @@ describe('plumage variants', () => {
     const eagle = new BaldEagle(new World(HABITATS.beach), false, 'female');
     expect(eagle.variant).toBe('adult');
     expect(eagle.look).toEqual(new BaldEagle(new World(HABITATS.beach), false).look);
-    expect(variantsOf(Chicken)).toEqual(['adult']);
+    expect(variantsOf(SPECIES.find((s) => s.taxon.common === 'Common Raven')!)).toEqual(['adult']);
   });
 });
 

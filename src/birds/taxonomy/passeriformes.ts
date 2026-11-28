@@ -161,7 +161,7 @@ export class StellersJay extends Cyanocitta {
     note: 'The jay of the conifer forest. Charcoal head and shoulders fading to deep blue. Works its way up a tree by hopping branch to branch in a spiral, then glides out from the top.',
   };
 
-  static override ecology: Partial<Ecology> = { call: 'SHAACK! SHAACK! SHAACK!', song: 'quiet whisper-song of clicks and gurgles', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
+  static override ecology: Partial<Ecology> = { flockSize: 4, call: 'SHAACK! SHAACK! SHAACK!', song: 'quiet whisper-song of clicks and gurgles', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
 
   static override look: Partial<Look> = {
     length: 0.3,
@@ -221,10 +221,10 @@ export class AmericanCrow extends Corvus {
     rank: 'species',
     name: 'Corvus brachyrhynchos',
     common: 'American Crow',
-    note: 'The beach crows of Puget Sound were once split as “Northwestern Crow.” Square tail, steady rowing flight with no soaring, and a plain caw.',
+    note: 'The beach crows of Puget Sound were once split as “Northwestern Crow.” Square tail, steady rowing flight with no soaring, and a plain caw. Outside the nesting season they feed in loose flocks and gather at big shared roosts each night.',
   };
 
-  static override ecology: Partial<Ecology> = { scenes: { yard: 3 }, habitat: 'beach', call: 'caw! caw! caw!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
+  static override ecology: Partial<Ecology> = { flockSize: 20, scenes: { yard: 3 }, habitat: 'beach', call: 'caw! caw! caw!', presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
   static override look: Partial<Look> = { length: 0.45 };
 
   static override behaviors: BehaviorTable<AmericanCrow> = {
@@ -234,6 +234,17 @@ export class AmericanCrow extends Corvus {
       feeding: true,
       needs: 'rocks',
       cue: 'Digs a clam at the tideline, flies straight up over rock or pavement, lets go, and follows it down. If it does not break, it goes higher.',
+    },
+    feedTogether: {
+      eats: { yard: 'grassBugs', beach: 'wrack' },
+      label: 'Feed as a flock',
+      cue: 'A loose group walks across a field or beach together, picking up insects and turning over seaweed for sand hoppers, while one or two birds watch from a perch above.',
+      feeding: true,
+      flock: true,
+    },
+    flyTogether: {
+      label: 'Stream to the evening roost',
+      cue: 'Late in the day crows fly in loose, straggling streams toward a shared night roost, calling as they go, small groups joining from every direction.',
     },
   };
 
@@ -252,7 +263,7 @@ export class CommonRaven extends Corvus {
 
   // The quickest way to split it from a crow: ravens soar, crows do not.
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 12, glide: 0.85, flapRate: 3.5, flapDuty: 0.35, cyclePeriod: 3.2 };
-  static override ecology: Partial<Ecology> = { scenes: { beach: 2 }, call: 'kraaak… kraaak…', perches: ['treetop', 'branch'], presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
+  static override ecology: Partial<Ecology> = { flockSize: 2, scenes: { beach: 2 }, call: 'kraaak… kraaak…', perches: ['treetop', 'branch'], presence: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] };
   static override look: Partial<Look> = { length: 0.62, tailShape: 'pointed', tailLength: 0.6, beakLength: 0.85, wingSpan: 2 };
 
   static override behaviors: BehaviorTable<CommonRaven> = {
