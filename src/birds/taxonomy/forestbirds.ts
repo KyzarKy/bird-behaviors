@@ -720,6 +720,10 @@ export class VariedThrush extends Ixoreus {
     beak: '#222222',
     legs: '#a8825f',
   };
+  static override variants: Variants = {
+    // Female: brown above instead of slate, with a paler orange breast and a faint breast band.
+    female: { body: '#6a6252', head: '#6a6252', wing: '#5a5244', tail: '#5a5244', band: '#7a705e', breast: '#d8955a', belly: '#d8955a', eyeLine: '#d8955a' },
+  };
 }
 
 export abstract class Catharus extends Turdidae {

@@ -351,6 +351,10 @@ export class YellowRumpedWarbler extends Setophaga {
     beak: '#222222',
     legs: '#222222',
   };
+  static override variants: Variants = {
+    // Female: browner gray above with less black on the breast.
+    female: { body: '#7a7468', head: '#7a7468', cap: '#7a7468', breast: '#6a6660' },
+  };
 
   static override behaviors: BehaviorTable<YellowRumpedWarbler> = {
     forage: {
@@ -419,6 +423,10 @@ export class TownsendsWarbler extends Setophaga {
     beak: '#222222',
     legs: '#222222',
   };
+  static override variants: Variants = {
+    // Female: a yellow throat and an olive, not black, cheek patch and crown.
+    female: { throat: '#f2d83a', cap: '#4a5030', eyeLine: '#4a5030' },
+  };
 
   // Works the highest branches of the conifers, so the stops are far overhead.
   protected override gleanPerches: PerchKind[] = ['treetop', 'branch'];
@@ -451,6 +459,10 @@ export class BlackThroatedGrayWarbler extends Setophaga {
     tail: '#3f444b',
     beak: '#222222',
     legs: '#222222',
+  };
+  static override variants: Variants = {
+    // Female: a white throat and a grayer crown.
+    female: { throat: '#f0f0ec', cap: '#3a3a3a' },
   };
 
   protected override gleanPerches: PerchKind[] = ['branch', 'twig'];
@@ -510,6 +522,10 @@ export class WilsonsWarbler extends Cardellina {
     tail: '#6f8530',
     beak: '#7a6a4a',
     legs: '#b48a6a',
+  };
+  static override variants: Variants = {
+    // Female: the black cap is smaller and duller, sometimes mixed with olive.
+    female: { cap: '#4a4e2a' },
   };
 
   protected override gleanPerches: PerchKind[] = ['shrub', 'twig'];
@@ -585,6 +601,10 @@ export class CommonYellowthroat extends Geothlypis {
     tail: '#5f6430',
     beak: '#222222',
     legs: '#b48a6a',
+  };
+  static override variants: Variants = {
+    // Female: no black mask; a plain olive face and a duller yellow throat.
+    female: { eyeLine: undefined, throat: '#e8d860', breast: '#e8d860' },
   };
 }
 
@@ -695,6 +715,10 @@ export class WesternTanager extends Piranga {
     beak: '#d8c06a',
     legs: '#444444',
   };
+  static override variants: Variants = {
+    // Female: olive-yellow with gray-olive wings; no red or black.
+    female: { body: '#7a7a3a', head: '#c8c040', throat: '#d8d040', breast: '#d8d050', belly: '#e0d860', wing: '#4a4a3a', tail: '#4a4a3a' },
+  };
 }
 
 export abstract class Pheucticus extends Cardinalidae {
@@ -758,6 +782,10 @@ export class BlackHeadedGrosbeak extends Pheucticus {
     tail: '#1a1a1a',
     beak: '#a8a090',
     legs: '#6a6a6a',
+  };
+  static override variants: Variants = {
+    // Female: brown with a striped head and a buff breast.
+    female: { head: '#4a3a2a', cap: '#3a2a1e', eyeLine: '#f0e0c0', body: '#7a5a3a', belly: '#e8c890', wing: '#4a3a2a', tail: '#4a3a2a' },
   };
 }
 
