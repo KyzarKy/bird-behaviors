@@ -4,7 +4,7 @@ The app draws on the browser's 2D canvas with no graphics library.
 
 [drawBird.ts](../src/render/drawBird.ts) draws any bird from two inputs:
 
-- **`Look`**: proportions (body length, build, neck, legs, tail, wingspan, bill shape) and a few color regions. Declared as static tables in the hierarchy, like flight.
+- **`Look`**: proportions (body length, build, neck, legs, tail, wingspan, bill shape) and a few color regions. Declared as static tables in the hierarchy, like flight. A species can also declare `variants` (`female`, `juvenile`): partial looks merged over its own, picked under the stage. Variants are read from the species only, never inherited, and setting an optional color to `undefined` removes that patch (a Mallard hen has no white collar).
 - **`Pose`**: what the bird is doing this frame (body pitch, neck and head angles, wing position, leg stride, tail fan, what it is carrying).
 
 There is no drawing code per species. A heron and a chickadee go through the same function with different numbers.

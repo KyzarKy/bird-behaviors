@@ -9,7 +9,7 @@
  * sparrows hop and peck, and the Savannah Sparrow runs.
  */
 import { rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, PerchKind, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, PerchKind, Script, Taxon, Variants } from '../core/traits';
 import { Passerellidae, Passeriformes } from './passeriformes';
 
 // ============================================================ Passerellidae
@@ -466,6 +466,10 @@ export class HouseFinch extends Haemorhous {
     beak: '#a89a88',
     legs: '#6a5a4a',
   };
+  static override variants: Variants = {
+    // Plain gray-brown with blurry brown streaks below, and no red anywhere.
+    female: { head: '#8a7864', throat: undefined, breast: undefined, belly: '#e2d8ca', spots: '#7a6250' },
+  };
 }
 
 export class PurpleFinch extends Haemorhous {
@@ -847,6 +851,10 @@ export class RedWingedBlackbird extends Agelaius {
     tail: '#141416',
     beak: '#222222',
     legs: '#222222',
+  };
+  static override variants: Variants = {
+    // Brown and heavily streaked like a large sparrow, with a pale eyebrow and a buff-tinged throat. No red shoulder.
+    female: { body: '#5a4632', belly: '#ddd0bc', head: '#5a4632', throat: '#e6d2b4', eyeLine: '#d8c8ae', spots: '#3e2e20', wing: '#4a3a2a', wingBar: undefined, tail: '#3e3024', beak: '#3a3430', legs: '#3a3430' },
   };
 }
 

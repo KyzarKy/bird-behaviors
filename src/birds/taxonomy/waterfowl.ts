@@ -6,7 +6,7 @@
  */
 import { Bird, clamp, rand } from '../core/Bird';
 import { SHELVE } from '../core/World';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants } from '../core/traits';
 
 type Feeding = 'dabble' | 'dive' | 'graze';
 
@@ -261,6 +261,10 @@ export class Mallard extends Anas {
     tail: '#2a2a2a',
     beak: '#dcc02a',
     legs: '#e07a2a',
+  };
+  static override variants: Variants = {
+    // The hen: mottled brown with a dark line through the eye and an orange bill with a dark saddle. The blue speculum is the same.
+    female: { head: '#8a6a4a', neck: undefined, breast: undefined, body: '#8a6a48', belly: '#a68a68', wing: '#7a6650', tail: '#8a7258', eyeLine: '#3a2a1e', spots: '#4e3a28', beak: '#d0782a', tailCock: 0.15 },
   };
 }
 

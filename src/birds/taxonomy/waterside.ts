@@ -3,7 +3,7 @@
  * One file because each order contributes a single species.
  */
 import { Bird, clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants } from '../core/traits';
 
 // ========================================================= Accipitriformes
 
@@ -128,6 +128,11 @@ export class BaldEagle extends Haliaeetus {
     tail: '#f7f5ee',
     beak: '#e8b820',
     legs: '#e8b820',
+  };
+  static override variants: Variants = {
+    // First-year: dark brown all over with white blotching underneath and in the wing linings, a dark head and tail, and a dark bill.
+    // The white head and tail come in over four to five years.
+    juvenile: { head: '#3e2c1e', tail: '#4a3626', beak: '#3a3430', belly: '#5a4634', spots: '#d8ccb6', underwing: '#bfb4a2' },
   };
 }
 

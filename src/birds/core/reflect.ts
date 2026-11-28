@@ -7,13 +7,13 @@
  * method. The hierarchy explorer in the UI is drawn entirely from this file.
  */
 import type { Bird } from './Bird';
-import type { BehaviorSpec, TaxonStatics } from './traits';
+import type { BehaviorSpec, TaxonStatics, Variant, Variants } from './traits';
 import type { World } from './World';
 
 /** Any class in the hierarchy, abstract or concrete. */
 export type BirdClass = (abstract new (world: World) => Bird) & TaxonStatics;
 /** A leaf class that can be instantiated. */
-export type SpeciesClass = (new (world: World) => Bird) & TaxonStatics;
+export type SpeciesClass = (new (world: World, stock?: boolean, variant?: Variant) => Bird) & TaxonStatics;
 
 export type TraitKey = 'flight' | 'ecology' | 'look';
 
@@ -29,6 +29,12 @@ export function lineage(cls: BirdClass): BirdClass[] {
 /** The table a class declares itself, ignoring anything inherited. */
 export function own<K extends TraitKey | 'behaviors'>(cls: BirdClass, key: K): Partial<TaxonStatics[K]> {
   return Object.hasOwn(cls, key) ? cls[key] : {};
+}
+
+/** The plumages a species can be shown in, 'adult' first. Only the species' own `variants` count. */
+export function variantsOf(cls: BirdClass): Variant[] {
+  const v: Variants = Object.hasOwn(cls, 'variants') ? (cls.variants ?? {}) : {};
+  return ['adult', ...(Object.keys(v) as (keyof Variants)[]).filter((k) => v[k])];
 }
 
 /** Merge a trait table down the lineage; more specific classes win. */
