@@ -384,6 +384,7 @@ export abstract class Columbidae extends Columbiformes {
     common: 'Pigeons and doves',
     note: 'Big flight muscles make a fast takeoff, often with a loud wing clap. The head thrusts forward and holds while the body catches up, which is what makes the walk look nodding.',
   };
+  static override ecology: Partial<Ecology> = { flockSize: 10 };
 
   static override flight: Partial<FlightProfile> = {
     cruiseSpeed: 15,
@@ -752,7 +753,7 @@ export abstract class Apodidae extends Apodiformes {
     ceiling: 48,
   };
 
-  static override ecology: Partial<Ecology> = { perches: [] };
+  static override ecology: Partial<Ecology> = { flockSize: 15, perches: [] };
 
   static override look: Partial<Look> = {
     build: 0.4,

@@ -433,7 +433,7 @@ export abstract class Laridae extends Charadriiformes {
     cyclePeriod: 3,
   };
 
-  static override ecology: Partial<Ecology> = { habitat: 'beach', perches: ['post', 'rock', 'log'], gait: 'walk', groundSpeed: 4, posture: 0.1 };
+  static override ecology: Partial<Ecology> = { flockSize: 15, habitat: 'beach', perches: ['post', 'rock', 'log'], gait: 'walk', groundSpeed: 4, posture: 0.1 };
   static override look: Partial<Look> = { build: 0.6, headSize: 0.75, legLength: 0.16, tailLength: 0.3, wingSpan: 2.1, beakShape: 'stout', beakLength: 0.7 };
 
   static override behaviors: BehaviorTable<Laridae> = {

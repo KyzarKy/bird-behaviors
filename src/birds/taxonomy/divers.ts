@@ -88,6 +88,7 @@ export abstract class Gaviidae extends Gaviiformes {
     common: 'Loons',
     note: 'The only family of loons. Solid bones and a long chase underwater: a loon looks before it dives, goes under without a splash and stays down for a minute or more.',
   };
+  static override ecology: Partial<Ecology> = { flockSize: 3 };
 
   static override behaviors: BehaviorTable<Gaviidae> = {
     forage: {
@@ -309,6 +310,7 @@ export abstract class Podicipedidae extends Podicipediformes {
     common: 'Grebes',
     note: 'The only family of grebes. A grebe hunts in short dives from the surface and controls how high it floats by squeezing air out of its plumage.',
   };
+  static override ecology: Partial<Ecology> = { flockSize: 4 };
 
   static override behaviors: BehaviorTable<Podicipedidae> = {
     forage: {
@@ -661,6 +663,7 @@ export abstract class Phalacrocoracidae extends Suliformes {
     common: 'Cormorants',
     note: 'Unlike ducks and loons, cormorant feathers soak up water, which cuts buoyancy for diving. The price is that a cormorant has to stand with its wings spread to dry out after every fishing trip.',
   };
+  static override ecology: Partial<Ecology> = { flockSize: 8 };
 
   static override behaviors: BehaviorTable<Phalacrocoracidae> = {
     dryWings: {

@@ -78,7 +78,7 @@ export abstract class Aegithalidae extends Passeriformes {
 
   // Weak, fluttering flight: bushtits cross gaps in a string rather than as a group.
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 6, power: 0.5, agility: 0.8, flapRate: 22, flapDuty: 0.5, cyclePeriod: 0.4 };
-  static override ecology: Partial<Ecology> = { perches: ['shrub', 'twig', 'branch'], posture: 0.15 };
+  static override ecology: Partial<Ecology> = { flockSize: 15, perches: ['shrub', 'twig', 'branch'], posture: 0.15 };
   static override look: Partial<Look> = { build: 0.7, headSize: 1.05, beakShape: 'cone', beakLength: 0.25, tailLength: 0.85 };
 
   static override behaviors: BehaviorTable<Aegithalidae> = {
@@ -427,7 +427,7 @@ export abstract class Regulidae extends Passeriformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 6, power: 0.55, agility: 0.9, braking: 0.7, hover: 0.5, flapRate: 28, flapDuty: 0.6, cyclePeriod: 0.3 };
-  static override ecology: Partial<Ecology> = { perches: ['twig', 'branch'], posture: 0.2 };
+  static override ecology: Partial<Ecology> = { flockSize: 6, perches: ['twig', 'branch'], posture: 0.2 };
   static override look: Partial<Look> = { build: 0.8, headSize: 1.1, beakShape: 'thin', beakLength: 0.35, tailLength: 0.45 };
 
   static override behaviors: BehaviorTable<Regulidae> = {
@@ -817,7 +817,7 @@ export abstract class Bombycillidae extends Passeriformes {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 11, agility: 0.6, flapRate: 14, flapDuty: 0.9, cyclePeriod: 0.6 };
-  static override ecology: Partial<Ecology> = { perches: ['treetop', 'branch', 'shrub'], posture: 0.4 };
+  static override ecology: Partial<Ecology> = { flockSize: 15, perches: ['treetop', 'branch', 'shrub'], posture: 0.4 };
   static override look: Partial<Look> = { build: 0.65, headSize: 1.05, crest: 'pointed', beakShape: 'cone', beakLength: 0.4, tailLength: 0.45 };
 
   static override behaviors: BehaviorTable<Bombycillidae> = {

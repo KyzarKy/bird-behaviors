@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { drawnFlapRate } from './core/Bird';
 import { behaviorsOf, buildTree, lineage, resolveTraits, traitSources, variantsOf, type BirdClass } from './core/reflect';
 import { DEEP, HABITATS, STAGE, World, peekSpot } from './core/World';
+import { FLOCK_CAP, Flock } from './core/Flock';
 import { EXTRAS, FOOD_SITES, FOODS, eatsIn, type FoodKind } from './core/food';
 import { drawFoodBack, PEEKS, PREY } from '../render/drawFood';
 import type { Ecology, HabitatId } from './core/traits';
@@ -221,6 +222,51 @@ describe('auto mode', () => {
   }
 });
 
+describe('flocks', () => {
+  const flocking = SPECIES.filter((cls) => Flock.sizeOf(make(cls)) > 1);
+
+  it('come in the sizes the species sets, up to the cap', () => {
+    expect(flocking.length).toBeGreaterThan(0);
+    for (const cls of flocking) {
+      const f = new Flock(make(cls));
+      f.grow();
+      expect(f.birds.length, cls.taxon.common).toBe(Math.min(FLOCK_CAP, make(cls).ecology.flockSize));
+      expect(new Set(f.birds.map((b) => b.world)).size, 'one shared world').toBe(1);
+    }
+  });
+
+  for (const cls of flocking) {
+    for (const scene of (Object.keys(HABITATS) as HabitatId[]).filter((h) => inScene(cls, h))) {
+      it(`${cls.taxon.common} (${scene}) runs as a flock on stage, then goes back to one bird`, () =>
+        seeded(7, () => {
+          const f = new Flock(make(cls, scene));
+          f.grow();
+          const world = f.lead.world;
+          const hidden = (b: (typeof f.birds)[number]) => b.current !== null && behaviorsOf(cls).some((x) => x.key === b.current && FOODS[eatsIn(x.spec, scene)!]?.hidden);
+          for (let frames = 0; frames < 30 * 40; frames++) {
+            f.update(1 / 30);
+            for (const b of f.birds) expect(b.pos.x >= 0 && b.pos.x <= 100 && b.pos.y > -DEEP - 1 && b.pos.y < STAGE.top, `${b.current}: off stage`).toBe(true);
+            // The scene draws one hunted animal, so one bird at a time goes after one.
+            expect(f.birds.filter(hidden).length, 'two birds hunt hidden animals at once').toBeLessThanOrEqual(1);
+          }
+          // Moving off together: everyone goes, and everyone lands.
+          f.perform('flyTogether');
+          for (let frames = 0; frames < 30 * 40 && f.birds.some((b) => b.current === 'flyTogether'); frames++) f.update(1 / 30);
+          expect(f.birds.filter((b) => b.current === 'flyTogether').length, 'still flying together after 40 s').toBe(0);
+          // Back to one bird: the one nearest the middle stays, and the others leave nothing behind.
+          const c = f.center();
+          const d = (b: (typeof f.birds)[number]) => Math.hypot(b.pos.x - c.x, b.pos.y - c.y);
+          const nearest = Math.min(...f.birds.map(d));
+          const keep = f.solo();
+          expect(d(keep)).toBe(nearest);
+          expect(f.birds).toEqual([keep]);
+          expect(keep.flock).toBeNull();
+          expect([...world.feeders].every((b) => b === keep), 'a bird that left is still feeding').toBe(true);
+        }));
+    }
+  }
+});
+
 describe('drawn wingbeat rate', () => {
   it('is true to life up to 10/s, smooth above, and 20/s for a hummingbird', () => {
     for (const r of [1, 2.5, 7, 10]) expect(drawnFlapRate(r)).toBe(r);
@@ -365,7 +411,7 @@ describe('food in the scene', () => {
             for (let frames = 0; bird.current !== null && frames < 60 * 90; frames++) {
               bird.world.step(1 / 60);
               bird.update(1 / 60);
-              others = Math.max(others, bird.world.others.length);
+              others = Math.max(others, bird.party.length);
               held ||= bird.pose.carry === FOODS[kind].item;
               track.push(bird.billTip().x);
               // A diver swallows each catch before it goes under for the next.
@@ -375,7 +421,7 @@ describe('food in the scene', () => {
             expect(at.length, 'never takes any').toBeGreaterThan(0);
             const needs = NEEDS_OTHERS.has(`${cls.taxon.common}:${b.key}`);
             expect(others > 0, needs ? 'never shows the other bird it needs' : 'brings in other birds it could feed without').toBe(needs);
-            expect(bird.world.others, 'other birds stay after the behavior').toEqual([]);
+            expect(bird.party, 'other birds stay after the behavior').toEqual([]);
             // From the first bite to the last it stays at the food. Insects caught in the air are taken on
             // sallies from a perch, so a flycatcher goes back to its perch between catches.
             const margin = kind === 'swarm' ? Infinity : Math.max(8, bird.size);
