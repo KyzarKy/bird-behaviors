@@ -5,7 +5,7 @@
  * and families that none of those files has: coots, jaegers and pelicans.
  */
 import { Bird, clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants } from '../core/traits';
 import { Anatidae, Branta } from './waterfowl';
 import { Alcidae, Charadrius, Scolopacidae } from './shorebirds';
 import { Charadriiformes, Laridae, Pelecaniformes } from './waterside';
@@ -332,10 +332,11 @@ export class CacklingGoose extends Branta {
     rank: 'species',
     name: 'Branta hutchinsii',
     common: 'Cackling Goose',
-    note: 'Looks like a small Canada Goose, with a stubby bill, a rounder head and a short neck. Flocks drop in on the fields and shoreline near Gardiner and Sequim in fall, winter and spring.',
+    note: 'Looks like a small Canada Goose, with a stubby bill, a rounder head and a short neck. Flocks drop in on the fields and shoreline near Gardiner and Sequim in fall, winter and spring, families together, and travel in Vs and lines.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 25,
     call: 'a high, yelping bark: ik-ik-ik',
     presence: [1, 1, 1, 2, 1, 0, 0, 0, 1, 2, 2, 1],
   };
@@ -374,7 +375,8 @@ export abstract class Anser extends Anatidae {
   };
 
   static override flight: Partial<FlightProfile> = { power: 0.4, agility: 0.3, glide: 0.6, flapRate: 4 };
-  static override ecology: Partial<Ecology> = { groundSpeed: 3.5 };
+  // Winter flocks are families: about a third are birds of the year.
+  static override ecology: Partial<Ecology> = { groundSpeed: 3.5, flockSize: 25, flockJuveniles: 0.3 };
   static override look: Partial<Look> = { neckLength: 0.42, headSize: 0.6, beakLength: 0.7, tailLength: 0.15 };
 
   static override behaviors: BehaviorTable<Anser> = {
@@ -387,12 +389,29 @@ export abstract class Anser extends Anatidae {
       label: 'Fly over, calling',
       cue: 'Crosses the bay high up, calling the whole way, and swings round to drop onto the water. Migrating flocks pass over Discovery Bay in spring and fall without stopping, so the voice often comes first.',
     },
+    feedWithLookouts: {
+      eats: 'grass',
+      label: 'Graze with lookouts',
+      cue: 'The flock grazes shoulder to shoulder while a few birds stand tall on watch. When one gives the alarm, every head comes up, and the flock often lifts off together.',
+      feeding: true,
+      flock: true,
+    },
+    flyInFormation: {
+      label: 'Take off in a V, calling',
+      cue: 'Head-tossing spreads through the flock before it lifts off, and the whole flock calls as it climbs into lines and Vs.',
+      flock: true,
+      weight: 2,
+    },
   };
 
   protected override feeding: Feeding = 'graze';
   protected override runUp = 8;
   /** Cruising height of a migrating flock, in stage units. */
   protected altitude = 30;
+
+  protected override get formationHeight(): number {
+    return this.altitude;
+  }
 
   protected override restingPose() {
     return { ...super.restingPose(), neck: 1.15, neckExt: 1.1 };
@@ -413,10 +432,16 @@ export class SnowGoose extends Anser {
     rank: 'species',
     name: 'Anser caerulescens',
     common: 'Snow Goose',
-    note: 'White with black wingtips, a pink bill with a dark grin patch and pink legs. A passage migrant between the Fraser and Skagit deltas and Dungeness: mostly high flocks overhead in March and April and from October to December, seldom on the bay itself.',
+    note: 'White with black wingtips, a pink bill with a dark grin patch and pink legs. A passage migrant between the Fraser and Skagit deltas and Dungeness: mostly high flocks overhead in March and April and from October to December, seldom on the bay itself. Young birds are dusky gray through their first winter and travel with their parents.',
+  };
+
+  static override variants: Variants = {
+    // First winter: dusky gray-brown above and on the head and neck, with a dark bill and legs.
+    juvenile: { body: '#a6a199', head: '#9b968e', wing: '#8a857c', tail: '#9f9a92', belly: '#e4e2dc', beak: '#5e5a58', legs: '#6e6862' },
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 30,
     call: 'houk-houk-houk (nasal, from a whole flock)',
     presence: [1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 2, 1],
   };
@@ -447,10 +472,16 @@ export class GreaterWhiteFrontedGoose extends Anser {
     rank: 'species',
     name: 'Anser albifrons',
     common: 'Greater White-fronted Goose',
-    note: 'Gray-brown with a white patch around the base of the pink bill, black bars on the belly and orange legs. A migrant in small groups, mostly April and again from September to October, often calling overhead.',
+    note: 'Gray-brown with a white patch around the base of the pink bill, black bars on the belly and orange legs. A migrant in small groups, mostly April and again from September to October, often calling overhead. Young birds lack the white face and the belly bars.',
+  };
+
+  static override variants: Variants = {
+    // No white at the bill base and no black belly bars; the bill is duller.
+    juvenile: { throat: undefined, spots: undefined, beak: '#d4a56e' },
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 12,
     call: 'wik-wik-wik, lyo-lyok (high and laughing)',
     presence: [0, 0, 1, 2, 1, 0, 0, 0, 1, 2, 1, 0],
   };

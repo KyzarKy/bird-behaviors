@@ -93,6 +93,8 @@ export interface Ecology {
   flockSize: number;
   /** Gap between neighbors in a flock, in body lengths, when there is room for it. */
   flockSpacing: number;
+  /** Share of a flock in juvenile plumage, for a species with one: geese and swans winter in families. */
+  flockJuveniles?: number;
   /**
    * How easy it is to find on the Miller Peninsula in each month, January first:
    * 0 absent, 1 scarce, 2 regular, 3 hard to miss.

@@ -370,6 +370,29 @@ export abstract class Bird {
     yield* this.relax();
   }
 
+  /**
+   * Fly with the flock in formation to where it is going (see Flock): up to `height`, across, and down to this
+   * bird's own landing spot. Each bird flies the same course offset to its station, so the shape holds as they
+   * go: a V (the arms a step back and a little above or below the bird ahead, seen from the side) or one long,
+   * wavering line.
+   */
+  protected *formationFlight(shape: 'V' | 'line', height: number): Script {
+    const f = this.flock;
+    if (!f) return yield* this.fly();
+    const { rank, side } = f.station(this);
+    const dir = f.heading;
+    const step = Math.min(this.size * 1.1, (shape === 'V' ? 90 : 60) / f.birds.length);
+    const back = shape === 'V' ? rank * step : (2 * rank - (side > 0 ? 1 : 0)) * step;
+    const up = shape === 'V' ? side * rank * step * 0.45 : Math.sin(rank * 1.7) * step * 0.3;
+    const y = clamp(Math.min(height, this.flight.ceiling) + up, 5, STAGE.top - 4);
+    const dest = f.destination(this) ?? this.findPerch(undefined, 'far') ?? this.groundSpot(f.course.to, 6);
+    yield* this.wait(f.delay(this));
+    yield* this.flyTo({ x: clamp(f.course.from + dir * 10 - dir * back, 2, 98), y }, { land: false });
+    yield* this.flyTo({ x: clamp(f.course.to + dir * 6 - dir * back, 2, 98), y }, { land: false });
+    if (!(yield* this.flyTo(dest)) && dest.y <= 0.05) yield* this.moveOnGround(dest.x);
+    yield* this.relax();
+  }
+
   *forage(): Script {
     yield* this.toGround();
     for (let i = 0; i < 3; i++) {
@@ -429,6 +452,11 @@ export abstract class Bird {
     }
     this.airborne = false;
     this.pose.facing = Math.random() < 0.5 ? 1 : -1;
+  }
+
+  /** A swimmer that also comes ashore, so its flock may move between the water and the land. */
+  get crossesShore(): boolean {
+    return false;
   }
 
   /** Where a new bird appears. Runs at the end of the constructor. */

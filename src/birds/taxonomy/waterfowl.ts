@@ -66,6 +66,44 @@ export abstract class Anatidae extends Anseriformes {
     },
   };
 
+  /** The flock's shape in the air when it moves off in formation. */
+  protected formation: 'V' | 'line' = 'V';
+  /** How high it flies in formation, in stage units. */
+  protected get formationHeight(): number {
+    return 16;
+  }
+
+  /** Head-tossing first, then off in formation. Listed by the geese and swans, which fly in Vs and lines. */
+  *flyInFormation(): Script {
+    yield* this.settle();
+    const neck = this.restingPose().neck;
+    for (let i = 0, n = 2 + Math.floor(rand(0, 3)); i < n; i++) {
+      yield* this.poseTo({ head: 0.7, neck: neck + 0.15 }, 0.12);
+      yield* this.poseTo({ head: -0.15, neck }, 0.14);
+    }
+    yield* this.relax(0.1);
+    if (this.flock?.station(this).rank === 0) this.say(this.ecology.call, 2);
+    yield* this.formationFlight(this.formation, this.formationHeight);
+  }
+
+  /** Feed with the flock, every fourth bird or so standing heads-up on watch for a while first. Listed by the geese. */
+  *feedWithLookouts(): Script {
+    const st = this.flock?.station(this);
+    if (st && st.rank % 4 === 1) {
+      const rest = this.restingPose();
+      yield* this.settle();
+      yield* this.poseTo({ neck: rest.neck + 0.3, neckExt: rest.neckExt + 0.15, head: 0 }, 0.3);
+      yield* this.lookAround(rand(3, 6));
+      yield* this.relax();
+    }
+    yield* this.forage();
+  }
+
+  /** Dabblers and grazers loaf and feed ashore as well as on the water; divers keep to the water. */
+  override get crossesShore(): boolean {
+    return this.feeding !== 'dive';
+  }
+
   /** What forage() does. */
   protected feeding: Feeding = 'dabble';
   /** How far down it reaches when it upends: 0.5 is a teal, 2 is a swan. */
@@ -991,7 +1029,7 @@ export abstract class Branta extends Anatidae {
 
   static override flight: Partial<FlightProfile> = { power: 0.4, agility: 0.3, glide: 0.6, flapRate: 4 };
 
-  static override ecology: Partial<Ecology> = { groundSpeed: 3.5 };
+  static override ecology: Partial<Ecology> = { groundSpeed: 3.5, flockSize: 20 };
   static override look: Partial<Look> = { neckLength: 0.45, headSize: 0.6, beakLength: 0.7, tailLength: 0.15 };
 
   static override behaviors: BehaviorTable<Branta> = {
@@ -999,6 +1037,19 @@ export abstract class Branta extends Anatidae {
       eats: 'grass',
       label: 'Feed',
       cue: 'Mostly grazes ashore, walking and cropping grass with the head down. On the water it dips its head and neck under for water plants, and sometimes upends like a dabbling duck.',
+    },
+    feedWithLookouts: {
+      eats: 'grass',
+      label: 'Graze with lookouts',
+      cue: 'The flock grazes together, heads down, while a few birds stand with necks stretched up, watching. They take turns, and an alarm call puts every head up at once.',
+      feeding: true,
+      flock: true,
+    },
+    flyInFormation: {
+      label: 'Take off in a V',
+      cue: 'Before flying, family members toss their heads up and down, sometimes for many minutes, and the one that started usually leaves first. The low grunting turns to loud honking as they lift off, and in the air the flock falls into a V or a slanting line.',
+      flock: true,
+      weight: 2,
     },
   };
 
@@ -1016,10 +1067,11 @@ export class Brant extends Branta {
     rank: 'species',
     name: 'Branta bernicla',
     common: 'Brant',
-    note: 'A small, dark sea goose with a black head and neck and a partial white necklace. Winter and spring on Discovery Bay, a local specialty, feeding on eelgrass at low tide in the shallows off Gardiner Beach. Rarely seen away from salt water.',
+    note: 'A small, dark sea goose with a black head and neck and a partial white necklace. Winter and spring on Discovery Bay, a local specialty, feeding on eelgrass at low tide in the shallows off Gardiner Beach. Rarely seen away from salt water. Flocks fly low over the water in long, wavering lines rather than a V.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 25,
     call: 'cruk-cruk-cruk (a low, guttural chorus)',
     presence: [2, 2, 3, 3, 1, 0, 0, 0, 0, 0, 1, 2],
   };
@@ -1047,11 +1099,24 @@ export class Brant extends Branta {
       label: 'Feed on eelgrass',
       cue: 'Tips up like a dabbling duck in the shallows to pull eelgrass, with the tail in the air. Canada Geese graze on land; Brant stay on the water and the tideline.',
     },
+    feedWithLookouts: {
+      eats: 'eelgrass',
+      label: 'Feed with lookouts',
+      cue: 'The flock feeds together in the shallows, tipping up for eelgrass, while a few birds float with heads up, watching.',
+    },
+    flyInFormation: {
+      label: 'Fly off in a long, low line',
+      cue: 'Brant seldom form the neat V of Canada Geese. Flocks fly low over the water in long, wavering lines and loose bunches, calling a low cruk.',
+    },
   };
 
   protected override feeding: Feeding = 'dabble';
   protected override reach = 1;
   protected override runUp = 6;
+  protected override formation = 'line' as const;
+  protected override get formationHeight(): number {
+    return 7;
+  }
 }
 
 export class CanadaGoose extends Branta {
@@ -1059,7 +1124,7 @@ export class CanadaGoose extends Branta {
     rank: 'species',
     name: 'Branta canadensis',
     common: 'Canada Goose',
-    note: 'Black neck and head with a white chinstrap, brown body. Around Gardiner Beach and the Miller Peninsula shore all year, grazing the grass above the beach and loafing on the water.',
+    note: 'Black neck and head with a white chinstrap, brown body. Around Gardiner Beach and the Miller Peninsula shore all year, grazing the grass above the beach and loafing on the water. Winter flocks are made of families that stay together, and they fly in Vs and slanting lines.',
   };
 
   static override ecology: Partial<Ecology> = { scenes: { yard: 2 },
@@ -1101,7 +1166,8 @@ export abstract class Cygnus extends Anatidae {
 
   static override flight: Partial<FlightProfile> = { power: 0.25, agility: 0.15, glide: 0.7, flapRate: 2.5, cruiseSpeed: 12 };
 
-  static override ecology: Partial<Ecology> = { groundSpeed: 2.5, posture: 0.2 };
+  // Families of two adults and their cygnets, often with a few other families.
+  static override ecology: Partial<Ecology> = { groundSpeed: 2.5, posture: 0.2, flockSize: 6, flockSpacing: 1.2, flockJuveniles: 0.4 };
   static override look: Partial<Look> = { build: 0.7, neckLength: 0.85, legLength: 0.12, headSize: 0.4, beakLength: 2.4, wingSpan: 2.2 };
 
   static override behaviors: BehaviorTable<Cygnus> = {
@@ -1109,7 +1175,17 @@ export abstract class Cygnus extends Anatidae {
       label: 'Upend',
       cue: 'The neck goes straight down to the bottom, pulling roots and eelgrass. In the shallows the neck alone reaches; in deeper water the whole front of the body tips after it, tail high. It reaches farther than any duck and stays under longer.',
     },
+    flyInFormation: {
+      label: 'Take off together in a line',
+      cue: 'A family takes off together after a long run across the water, the gray cygnets with their white parents, and flies low in a line or a shallow V on slow, heavy wingbeats.',
+      flock: true,
+      weight: 2,
+    },
   };
+
+  protected override get formationHeight(): number {
+    return 12;
+  }
 
   protected override feeding: Feeding = 'dabble';
   protected override reach = 2;
@@ -1131,7 +1207,12 @@ export class TrumpeterSwan extends Cygnus {
     rank: 'species',
     name: 'Cygnus buccinator',
     common: 'Trumpeter Swan',
-    note: 'All white with a straight, black bill that meets the forehead without a notch, and no yellow at the bill base. Scarce in winter around Discovery Bay and the Sequim farmland; a few may rest on the bay.',
+    note: 'All white with a straight, black bill that meets the forehead without a notch, and no yellow at the bill base. Scarce in winter around Discovery Bay and the Sequim farmland; a few may rest on the bay. Families stay together through the winter, and the cygnets are gray until they are about a year old.',
+  };
+
+  static override variants: Variants = {
+    // A cygnet: gray-brown all over, darkest on the head and neck, with a pinkish bill and legs.
+    juvenile: { head: '#9a9288', neck: '#a39c92', body: '#b0aaa0', belly: '#c6c2ba', wing: '#a8a298', tail: '#aca69c', beak: '#a86a6a', legs: '#9a7f7a' },
   };
 
   static override ecology: Partial<Ecology> = {
