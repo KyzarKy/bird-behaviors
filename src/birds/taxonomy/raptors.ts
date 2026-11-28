@@ -207,6 +207,10 @@ export class RedTailedHawk extends Buteo {
     legs: '#e0c050',
     eye: '#4b3320',
   };
+  static override variants: Variants = {
+    // Juvenile: the tail is brown with narrow dark bands, not red; a pale eye.
+    juvenile: { tail: '#8a7058', eye: '#c8b080' },
+  };
 }
 
 export abstract class Accipiter extends Accipitridae {
@@ -300,6 +304,10 @@ export class CoopersHawk extends Accipiter {
     beak: '#4a4a45',
     legs: '#e8c040',
   };
+  static override variants: Variants = {
+    // Juvenile: brown above, white below with fine brown streaks; a yellow eye.
+    juvenile: { body: '#6a5240', head: '#6a5240', cap: '#5a4434', wing: '#5e4838', tail: '#6a5848', breast: undefined, spots: '#6a4a34', eye: '#d8c040' },
+  };
 
   protected override dashSpan = 55;
 }
@@ -333,6 +341,10 @@ export class SharpShinnedHawk extends Accipiter {
     tail: '#55616b',
     beak: '#4a4a45',
     legs: '#e8c040',
+  };
+  static override variants: Variants = {
+    // Juvenile: brown above, white below with thick brown streaks; a yellow eye.
+    juvenile: { body: '#6a5240', head: '#6a5240', wing: '#5e4838', tail: '#6a5848', breast: undefined, spots: '#7a4a2e', eye: '#d8c040' },
   };
 
   protected override dashLegs = 4;
@@ -405,6 +417,12 @@ export class NorthernHarrier extends Circus {
     tail: '#d3d5d6',
     beak: '#3a3a3a',
     legs: '#e8c040',
+  };
+  static override variants: Variants = {
+    // Female: brown above with a streaked buff belly; the white rump patch is the same.
+    female: { body: '#7a5a3e', head: '#7a5a3e', wing: '#6e5038', tail: '#9a7a58', belly: '#d8c0a0', spots: '#7a5a3e', eyeRing: '#c8b498' },
+    // Juvenile: dark brown above with plain, warm cinnamon underparts.
+    juvenile: { body: '#5e4430', head: '#5e4430', wing: '#54402e', tail: '#8a6a4a', belly: '#c88a5a', eyeRing: '#c8a47a' },
   };
 }
 
@@ -685,6 +703,10 @@ export class PeregrineFalcon extends Falco {
     beak: '#555555',
     legs: '#e8c040',
   };
+  static override variants: Variants = {
+    // Juvenile: brown above, buff below with heavy dark streaks.
+    juvenile: { body: '#5a4a3e', wing: '#4e4036', tail: '#4e4036', head: '#3e342c', cap: '#3e342c', breast: '#d8c4a8', belly: '#e0ccae', spots: '#5a4030' },
+  };
 
   protected override stoopHeight = 42;
 }
@@ -718,6 +740,10 @@ export class Merlin extends Falco {
     tail: '#4d4944',
     beak: '#555555',
     legs: '#e8c040',
+  };
+  static override variants: Variants = {
+    // Female: brown above instead of slate.
+    female: { body: '#6a5440', head: '#6a5440', wing: '#5e4a38', tail: '#6a5440' },
   };
 
   protected override stoopHeight = 14;

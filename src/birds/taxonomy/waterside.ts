@@ -284,6 +284,10 @@ export class BeltedKingfisher extends Megaceryle {
     beak: '#222222',
     legs: '#333333',
   };
+  static override variants: Variants = {
+    // Female: a rusty band across the belly below the blue one.
+    female: { breast: '#b5582e' },
+  };
 }
 
 // ========================================================== Pelecaniformes
