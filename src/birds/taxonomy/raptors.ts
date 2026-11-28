@@ -458,6 +458,16 @@ export abstract class Cathartidae extends Cathartiformes {
       label: 'Spread wings in the sun',
       cue: 'Perched with both wings held wide open and the back to the sun, motionless for many minutes, usually on a bright morning after rain or fog. No hawk or eagle does this.',
     },
+    kettle: {
+      label: 'Kettle on a thermal',
+      cue: 'A group circles together on rising warm air, birds at different heights all turning the same way, then they peel off one at a time and glide away.',
+      flock: true,
+    },
+    sunTogether: {
+      label: 'Spread wings at the roost',
+      cue: 'Several birds sit on the same snag or treetop in the morning, each with its wings held wide open to the sun, before any of them leaves to soar.',
+      flock: true,
+    },
   };
 
   override forage(): Script {
@@ -503,6 +513,22 @@ export abstract class Cathartidae extends Cathartiformes {
     if (p.flap === 0.12) p.flap = 0.55;
     p.roll = 0.3 * Math.sin(this.airTime * 1.7);
   }
+
+  /** Each bird circles the same thermal at its own height and radius, then glides off. */
+  *kettle(): Script {
+    const f = this.flock;
+    const rank = f ? f.station(this).rank : 0;
+    yield* this.wait((f?.delay(this) ?? 0) * 2);
+    yield* this.soarCircles(12, { x: 48, y: 18 + rank * 4 }, 10 + rand(0, 8));
+    yield* this.toPerch(undefined, 'far');
+    yield* this.relax();
+  }
+
+  /** A few to a perch, then wings out. */
+  *sunTogether(): Script {
+    if (!(yield* this.perchInRows(['treetop', 'post'], 3, 1))) return yield* this.sunWings();
+    yield* this.sunWings();
+  }
 }
 
 export abstract class Cathartes extends Cathartidae {
@@ -519,7 +545,7 @@ export class TurkeyVulture extends Cathartes {
     rank: 'species',
     name: 'Cathartes aura',
     common: 'Turkey Vulture',
-    note: 'Blackish with a small, bare red head and a long tail. A summer visitor over the Miller Peninsula, arriving in March and gone by October. Look for it over open ground on warm afternoons.',
+    note: 'Blackish with a small, bare red head and a long tail. A summer visitor over the Miller Peninsula, arriving in March and gone by October. Look for it over open ground on warm afternoons. Often in small groups that roost together and circle together on thermals.',
   };
 
   static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
@@ -538,6 +564,10 @@ export class TurkeyVulture extends Cathartes {
     beak: '#e8e2d0',
     legs: '#d9a89a',
     eye: '#2a2018',
+  };
+  static override variants: Variants = {
+    // Juvenile: a dark gray head instead of red.
+    juvenile: { head: '#4a4642' },
   };
 }
 
