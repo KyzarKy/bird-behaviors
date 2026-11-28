@@ -1,4 +1,4 @@
-// The field view end to end on a phone: scenes, birds, every behavior, Auto and Close-up,
+// The field view end to end on a phone: the settings drawer, scenes, birds, every behavior, Auto and Close-up,
 // with an accessibility check and no console errors allowed.
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
@@ -24,6 +24,11 @@ test('switch scene and bird, then run every behavior, Auto and Close-up', async 
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expectNoAxeViolations(page);
 
+  // On a phone the scene and settings sit in a drawer, closed at first.
+  const drawer = page.getByRole('button', { name: /Scene and settings/ });
+  await expect(page.getByLabel('Scene', { exact: true })).toBeHidden();
+  await drawer.click();
+  await expect(drawer).toHaveAttribute('aria-expanded', 'true');
   await page.getByLabel('Scene', { exact: true }).selectOption('beach');
   await page.getByRole('combobox', { name: 'Species' }).fill('Osprey');
   await page.getByRole('option', { name: 'Osprey' }).click();
@@ -40,6 +45,8 @@ test('switch scene and bird, then run every behavior, Auto and Close-up', async 
   }
   expect(ran).toBeGreaterThan(3);
 
+  // A new bird starts with the drawer closed again.
+  await drawer.click();
   const closeUp = page.getByLabel('Close-up', { exact: true });
   await closeUp.setChecked(!(await closeUp.isChecked()));
   await page.getByLabel('Auto', { exact: true }).check();

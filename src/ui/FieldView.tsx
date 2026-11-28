@@ -1,26 +1,11 @@
-import { Button, Card, Checkbox, Link, List, ListRow, Meter, SegmentedControl, Select, Tag } from '@kyzarky/ui';
+import { Button, Card, Checkbox, Link, SegmentedControl, Select, Tag } from '@kyzarky/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { behaviorsOf, lineage, traitSources, variantsOf, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
-import type { Ecology, FlightProfile, HabitatId, Variant } from '../birds/core/traits';
+import { behaviorsOf, lineage, variantsOf, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
+import type { Ecology, HabitatId, Variant } from '../birds/core/traits';
 import { HABITATS, World } from '../birds/core/World';
 import { classHref, fieldHref } from './route';
 import { inScene, levelIn, likeliestIn, MONTHS, PRESENCE, THIS_MONTH } from './season';
 import { Stage } from './Stage';
-
-const BARS: { field: keyof FlightProfile; label: string }[] = [
-  { field: 'power', label: 'Power' },
-  { field: 'agility', label: 'Agility' },
-  { field: 'braking', label: 'Braking' },
-  { field: 'hover', label: 'Hover' },
-  { field: 'glide', label: 'Glide' },
-];
-
-const SPEEDS = [
-  { value: '0', label: 'Pause' },
-  { value: '0.25', label: '¼×' },
-  { value: '0.5', label: '½×' },
-  { value: '1', label: '1×' },
-] as const;
 
 export function FieldView({ species, scene }: { species: SpeciesClass; scene: HabitatId }) {
   const [variant, setVariant] = useState<Variant>('adult');
@@ -32,10 +17,10 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
   }, [species]);
   const bird = useMemo(() => new species(new World(HABITATS[scene]), true, variant), [species, scene, variant]);
   const behaviors = useMemo(() => behaviorsOf(species).reverse(), [species]);
-  const flight = useMemo(() => new Map(traitSources(species, 'flight').map((s) => [s.field, s.from])), [species]);
   const [current, setCurrent] = useState<string | null>(null);
   const [lastKey, setLastKey] = useState<string | null>(null);
-  const [speed, setSpeed] = useState<(typeof SPEEDS)[number]['value']>('1');
+  // On phones the controls fold into a drawer, so the behaviors list peeks above the fold.
+  const [drawer, setDrawer] = useState(false);
   // A phone's stage is small, so it starts zoomed in on the bird.
   const [closeUp, setCloseUp] = useState(() => window.matchMedia('(max-width: 640px)').matches);
   const [auto, setAuto] = useState(false);
@@ -58,10 +43,7 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
     stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     bird.perform(key);
     setLastKey(key);
-    if (speed === '0') setSpeed('1');
   };
-  const f = bird.flight;
-  const from = (field: keyof FlightProfile) => <ClassLink cls={flight.get(field)!} />;
 
   return (
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
@@ -81,28 +63,34 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
           </nav>
         </header>
 
-        <Stage bird={bird} speed={Number(speed)} closeUp={closeUp} onBehaviorChange={setCurrent} />
+        <Stage bird={bird} closeUp={closeUp} onBehaviorChange={setCurrent} />
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div className="w-full sm:w-auto sm:min-w-max sm:flex-1">
-            <Select aria-label="Scene" value={scene} onChange={(e) => changeScene(e.target.value as HabitatId)} className="w-full sm:w-auto">
-              {Object.values(HABITATS).map((h) => (
-                <option key={h.id} value={h.id}>
-                  {h.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-          {/* On phones the scene, the speed, the plumage and the two checkboxes each get a row. */}
-          <div className="w-full sm:w-auto">
-            <SegmentedControl label="Playback speed" value={speed} onChange={setSpeed} options={SPEEDS} />
-          </div>
-          {plumages.length > 1 && (
-            <div className="w-full sm:w-auto">
-              <SegmentedControl label="Plumage" value={variant} onChange={setVariant} options={plumages} />
-            </div>
-          )}
-          <div className="flex w-full gap-x-4 sm:w-auto">
+        <button
+          type="button"
+          aria-expanded={drawer}
+          aria-controls="stage-controls"
+          onClick={() => setDrawer(!drawer)}
+          className="flex min-h-11 items-center justify-between rounded-xl border border-border bg-card px-4 text-sm sm:hidden"
+        >
+          <span className="truncate">
+            <span className="font-medium">Scene and settings</span>
+            {!drawer && <span className="text-muted-foreground"> · {HABITATS[scene].name}</span>}
+          </span>
+          <span aria-hidden="true" className={`ml-2 transition-transform ${drawer ? 'rotate-180' : ''}`}>
+            ▾
+          </span>
+        </button>
+        {/* A drawer on phones, always open from sm up. */}
+        <div id="stage-controls" className={`${drawer ? 'flex' : 'hidden'} flex-col items-start gap-3 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4`}>
+          <Select aria-label="Scene" value={scene} onChange={(e) => changeScene(e.target.value as HabitatId)} className="w-full sm:w-auto">
+            {Object.values(HABITATS).map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.name}
+              </option>
+            ))}
+          </Select>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+            {plumages.length > 1 && <SegmentedControl label="Plumage" value={variant} onChange={setVariant} options={plumages} />}
             <Checkbox label="Close-up" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
             <Checkbox label="Auto" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
           </div>
@@ -163,19 +151,6 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
           </ul>
         </Card>
 
-        <Card aria-labelledby="flight-heading">
-          <List heading={<h2 id="flight-heading">Flight profile</h2>} description="The numbers the shared flight routine reads, and the class that set each.">
-            {BARS.map(({ field, label }) => (
-              <ListRow key={field} label={label} detail={<>{(f[field] as number).toFixed(2)} · {from(field)}</>}>
-                <Meter value={f[field] as number} />
-              </ListRow>
-            ))}
-            <ListRow label="Cruise speed" detail={<>{f.cruiseSpeed} m/s · {from('cruiseSpeed')}</>} />
-            <ListRow label={`Wingbeat: ${describeRhythm(f)}`} detail={<>{f.flapRate}/s · {from('flapDuty')}</>} />
-            <ListRow label="Endurance" detail={<>{Number.isFinite(f.endurance) ? `${f.endurance} s` : 'sustained'} · {from('endurance')}</>} />
-          </List>
-        </Card>
-
         <Card aria-labelledby="notes-heading">
           <h2 id="notes-heading" className="font-semibold text-lg">
             Field notes
@@ -224,11 +199,6 @@ function Calendar({ levels }: { levels: readonly number[] }) {
       ))}
     </span>
   );
-}
-
-function describeRhythm(f: FlightProfile) {
-  if (f.flapDuty >= 0.95) return 'continuous';
-  return `flaps ${Math.round(f.flapDuty * 100)}%, then ${f.restPose === 'folded' ? 'bounds with wings shut' : 'glides'}`;
 }
 
 function describeGait(e: Ecology) {

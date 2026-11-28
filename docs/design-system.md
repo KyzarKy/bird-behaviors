@@ -4,10 +4,9 @@ The interface is built with [`@kyzarky/ui`](https://github.com/KyzarKy/design-sy
 
 | In the app | Component |
 | --- | --- |
-| Field and Class hierarchy switch, playback speed | `SegmentedControl` |
+| Field and Class hierarchy switch, plumage | `SegmentedControl` |
 | Behavior buttons | `Button` |
 | Panels | `Card` |
-| Flight profile | `List`, `ListRow`, `Meter` |
 | Trait tables | `Table` |
 | Species and class pickers on a phone | `Select` |
 | Every class name you can click | `Link` |
