@@ -64,7 +64,7 @@ export class ChippingSparrow extends Spizella {
     note: 'Bright rusty cap, white eyebrow, black eyeline and a clean gray breast. A summer visitor to the Miller Peninsula clearings and Gardiner yards, arriving in late April and gone by September.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 10,
     call: 'tsip (a thin, dry chip)',
     song: 'a dry, mechanical trill, chi-chi-chi-chi-chi-chi',
     presence: [0, 0, 0, 1, 2, 2, 2, 2, 1, 0, 0, 0],
@@ -717,6 +717,14 @@ export abstract class Motacillidae extends Passeriformes {
       label: 'Walk, bobbing the tail',
       cue: 'Walks in short, quick steps picking up grasshoppers and other insects, and every few steps pumps the tail up and down. A sparrow hops and does not bob. A spotted sandpiper bobs the rear half of the body, a pipit only the tail.',
     },
+    feedTogether: {
+      eats: 'grassBugs',
+      label: 'Feed as a flock',
+      cue: 'A loose flock walks across a field or beach together, bobbing their tails and picking up insects, then flushes all at once, calling, and circles before landing again.',
+      feeding: true,
+      flock: true,
+      weight: 2,
+    },
   };
 
   override forage(): Script {
@@ -769,10 +777,10 @@ export class AmericanPipit extends Anthus {
     rank: 'species',
     name: 'Anthus rubescens',
     common: 'American Pipit',
-    note: 'Slim, grayish-brown with a streaked buff breast, thin bill, dark legs and white outer tail feathers. A migrant on fields and the Discovery Bay shore in April and from September to November, and local in winter.',
+    note: 'Slim, grayish-brown with a streaked buff breast, thin bill, dark legs and white outer tail feathers. A migrant on fields and the Discovery Bay shore in April and from September to November, and local in winter. Migrant flocks walk across fields and beaches, bobbing their tails.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 15,
     call: 'pip-it (a thin, two-note call, often given in flight)',
     song: 'a rapid, repeated chwee-chwee-chwee on its breeding grounds',
     presence: [1, 1, 1, 2, 1, 0, 0, 0, 2, 2, 2, 1],

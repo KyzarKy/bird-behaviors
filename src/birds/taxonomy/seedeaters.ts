@@ -32,6 +32,14 @@ export abstract class Junco extends Passerellidae {
       label: 'Flick the tail, then flush',
       cue: 'Hops over the ground and keeps snapping the tail open and shut. The white outer feathers flash, and the same white edges show in a flash when it flies up to a low perch. Towhees and other sparrows have no white in the tail.',
     },
+    feedTogether: {
+      eats: { yard: 'litterBugs', beach: 'wrack' },
+      label: 'Feed as a flock, flashing tails',
+      cue: 'Winter flocks hop and scratch together on the ground for seeds and insects (or kelp flies along the wrack). When one flushes, the white outer tail feathers flash as the whole flock flies up to the nearest cover.',
+      feeding: true,
+      flock: true,
+      weight: 2,
+    },
   };
 
   /** The tail is fanned the whole time it is in the air, so the white edges show on takeoff. */
@@ -58,10 +66,10 @@ export class DarkEyedJunco extends Junco {
     rank: 'species',
     name: 'Junco hyemalis',
     common: 'Dark-eyed Junco',
-    note: 'The Oregon form here: dark slate hood, brown back, pinkish sides, pale pink bill. Present all year on the Miller Peninsula; the flocks on lawns and along the forest edge are largest from fall to spring.',
+    note: 'The Oregon form here: dark slate hood, brown back, pinkish sides, pale pink bill. Present all year on the Miller Peninsula; the flocks on lawns and along the forest edge are largest from fall to spring. Winter flocks flash white outer tail feathers as they flush together into cover.',
   };
 
-  static override ecology: Partial<Ecology> = { scenes: { beach: 1 },
+  static override ecology: Partial<Ecology> = { flockSize: 20, scenes: { beach: 1 },
     call: 'tsip, and a dry smacking tck',
     song: 'a flat, musical trill on one pitch',
     presence: [3, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3],
@@ -80,6 +88,12 @@ export class DarkEyedJunco extends Junco {
     tail: '#80858c',
     beak: '#e6c9b8',
     legs: '#c8a79a',
+  };
+  static override variants: Variants = {
+    // Female: paler, grayer hood and a duller brown back.
+    female: { head: '#5a5c60', throat: '#5a5c60', body: '#8a7262' },
+    // Juvenile: streaked gray-brown all over, with the same white outer tail feathers.
+    juvenile: { head: '#7a7268', throat: '#9a9288', body: '#7e6a58', belly: '#d8d0c4', spots: '#5a4a3e' },
   };
 }
 
@@ -164,6 +178,14 @@ export abstract class Zonotrichia extends Passerellidae {
       label: 'Hop, peck, look up',
       cue: 'Three short hops, a peck at the fallen seed, then it stands tall with head up and scans before the next hop. This is the usual feeding pattern, with little leaf-kicking, unlike a towhee or Fox Sparrow.',
     },
+    feedTogether: {
+      eats: 'fallenSeed',
+      label: 'Feed as a flock',
+      cue: 'Winter flocks feed together on the ground near brush, scratching for fallen seed with both feet, and dash back into cover together at any alarm.',
+      feeding: true,
+      flock: true,
+      weight: 2,
+    },
   };
 
   /** How upright it stands when it stops to scan. */
@@ -191,10 +213,10 @@ export class WhiteCrownedSparrow extends Zonotrichia {
     rank: 'species',
     name: 'Zonotrichia leucophrys',
     common: 'White-crowned Sparrow',
-    note: 'Crisp black and white head stripes, gray breast, pink-orange bill. The Puget Sound form nests in brushy clearings and the dune edge at Gardiner and along the Miller Peninsula from April to August; a few stay through winter.',
+    note: 'Crisp black and white head stripes, gray breast, pink-orange bill. The Puget Sound form nests in brushy clearings and the dune edge at Gardiner and along the Miller Peninsula from April to August; a few stay through winter. Winter birds feed in flocks, often with Golden-crowned Sparrows; first-winter birds have brown and tan head stripes.',
   };
 
-  static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
+  static override ecology: Partial<Ecology> = { flockSize: 12, scenes: { beach: 2 },
     call: 'pink! (a sharp, metallic chip)',
     song: 'I-whistle-then-buzz-chee-zee (a clear whistle, then buzzy trills)',
     presence: [1, 1, 2, 3, 3, 3, 3, 3, 2, 2, 1, 1],
@@ -218,6 +240,10 @@ export class WhiteCrownedSparrow extends Zonotrichia {
     beak: '#e6a852',
     legs: '#c9a98a',
   };
+  static override variants: Variants = {
+    // First winter: brown and tan head stripes instead of black and white.
+    juvenile: { cap: '#c0a07a', eyeLine: '#7a5a3a' },
+  };
 }
 
 export class GoldenCrownedSparrow extends Zonotrichia {
@@ -225,10 +251,10 @@ export class GoldenCrownedSparrow extends Zonotrichia {
     rank: 'species',
     name: 'Zonotrichia atricapilla',
     common: 'Golden-crowned Sparrow',
-    note: 'A yellow crown patch edged in black, on a dull gray-brown bird with a dark bill. A winter visitor from October to April under brush piles and in weedy edges around Gardiner; gone by May to nest in Alaska and northern British Columbia.',
+    note: 'A yellow crown patch edged in black, on a dull gray-brown bird with a dark bill. A winter visitor from October to April under brush piles and in weedy edges around Gardiner; gone by May to nest in Alaska and northern British Columbia. Winter flocks feed together at the brushy edges; first-winter birds have a duller crown.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 12,
     call: 'tseep (a thin, sliding note)',
     song: 'oh dear me (three whistles, each lower than the last)',
     presence: [3, 3, 2, 1, 0, 0, 0, 0, 0, 2, 3, 3],
@@ -252,6 +278,10 @@ export class GoldenCrownedSparrow extends Zonotrichia {
     tail: '#6a5a4a',
     beak: '#5a5048',
     legs: '#7a6a5a',
+  };
+  static override variants: Variants = {
+    // First winter: a duller, smaller gold crown and little or no black.
+    juvenile: { cap: '#b8a058', eyeLine: undefined },
   };
 }
 
@@ -326,6 +356,13 @@ export abstract class Passerculus extends Passerellidae {
       label: 'Run, freeze, flush and drop',
       cue: 'Runs through the grass like a mouse after grasshoppers and other insects, freezes with its head down, then flushes low and drops back into cover a few yards on. Compare a Song Sparrow, which dives into a thicket, and a towhee, which scratches.',
     },
+    feedTogether: {
+      eats: 'grassBugs',
+      label: 'Feed as a flock',
+      cue: 'Loose flocks walk and run through the short grass picking up insects, flushing ahead of a walker one or two at a time.',
+      feeding: true,
+      flock: true,
+    },
   };
 
   override forage(): Script {
@@ -351,7 +388,7 @@ export class SavannahSparrow extends Passerculus {
     note: 'Streaky and pale, with a yellow eyebrow, a short notched tail and pink legs. A summer bird of the beach-grass edge at Gardiner and the open grass on Protection Island and the Miller Peninsula, from April to September.',
   };
 
-  static override ecology: Partial<Ecology> = { scenes: { beach: 3 },
+  static override ecology: Partial<Ecology> = { flockSize: 8, scenes: { beach: 3 },
     call: 'tsip (thin)',
     song: 'tip-tip-tip, see-see-see, say-whee (thin and buzzy)',
     presence: [0, 0, 1, 2, 3, 3, 3, 2, 2, 1, 0, 0],
@@ -841,17 +878,7 @@ export abstract class Icteridae extends Passeriformes {
 
   /** Up into the treetops, a perch each, calling and singing in bursts. */
   *chorus(): Script {
-    yield* this.wait((this.flock?.delay(this) ?? 0) * 1.5);
-    const perch = this.findPerch(['treetop', 'branch'], 'any');
-    if (perch) yield* this.flyTo(perch);
-    for (let i = 0; i < 4; i++) {
-      yield* this.wait(rand(1, 3));
-      this.say((Math.random() < 0.5 ? this.ecology.song : undefined) ?? this.ecology.call, 1.5);
-      yield* this.poseTo({ beakOpen: 0.6 }, 0.1);
-      yield* this.wait(0.4);
-      yield* this.poseTo({ beakOpen: 0 }, 0.1);
-    }
-    yield* this.relax();
+    return yield* this.chorusIn(['treetop', 'branch']);
   }
 }
 
@@ -1051,6 +1078,19 @@ export abstract class Passeridae extends Passeriformes {
       label: 'Dust-bathe',
       cue: 'Squats on bare ground, flutters the wings and shuffles in a cloud of dust. It does this in groups, and the shallow dents it makes remain.',
     },
+    feedTogether: {
+      eats: 'fallenSeed',
+      label: 'Feed as a flock',
+      cue: 'The flock hops and pecks together for fallen seed, chirping constantly, and flies up into the nearest hedge all at once when startled.',
+      feeding: true,
+      flock: true,
+      weight: 2,
+    },
+    chorus: {
+      label: 'Chirp together in a hedge',
+      cue: 'The flock gathers inside a dense shrub and chirps together for minutes at a time, a loud social chorus that is heard long before the birds are seen.',
+      flock: true,
+    },
   };
 
   *dustBath(): Script {
@@ -1069,6 +1109,11 @@ export abstract class Passeridae extends Passeriformes {
     }
     yield* this.relax();
   }
+
+  /** Into the shrubs, a perch each, chirping. */
+  *chorus(): Script {
+    return yield* this.chorusIn(['shrub', 'branch', 'twig']);
+  }
 }
 
 export abstract class Passer extends Passeridae {
@@ -1085,7 +1130,7 @@ export class HouseSparrow extends Passer {
     rank: 'species',
     name: 'Passer domesticus',
     common: 'House Sparrow',
-    note: 'The male has a gray crown, black bib and chestnut nape; the female is plain buff with a pale eyebrow. Scarce on the Miller Peninsula and around Gardiner, regular near farms and buildings toward Sequim, in the weedy edges of yards and around grain spilled at farms.',
+    note: 'The male has a gray crown, black bib and chestnut nape; the female is plain buff with a pale eyebrow. Scarce on the Miller Peninsula and around Gardiner, regular near farms and buildings toward Sequim, in the weedy edges of yards and around grain spilled at farms. Flocks gather in dense shrubs and chirp together noisily.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -1108,6 +1153,10 @@ export class HouseSparrow extends Passer {
     tail: '#6a5a48',
     beak: '#2b2b2b',
     legs: '#b09a88',
+  };
+  static override variants: Variants = {
+    // Female: plain buff-brown with a pale eyebrow; no gray crown, black bib or chestnut.
+    female: { head: '#a89a88', cap: '#8a7a68', eyeLine: '#d8ccb8', throat: undefined, breast: '#d4ccbe' },
   };
 }
 

@@ -1,5 +1,5 @@
 import { Bird, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Variants } from '../core/traits';
 
 export abstract class Passeriformes extends Bird {
   static override taxon: Taxon = {
@@ -753,5 +753,9 @@ export class SpottedTowhee extends Pipilo {
     beak: '#111111',
     legs: '#b48a6a',
     eye: '#c0201a',
+  };
+  static override variants: Variants = {
+    // Female: the hood and back are dark brown instead of black.
+    female: { head: '#4a3a30', breast: '#4a3a30', body: '#4a3a30', wing: '#3e3028', tail: '#3e3028' },
   };
 }
