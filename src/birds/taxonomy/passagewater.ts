@@ -27,6 +27,13 @@ export abstract class Spatula extends Anatidae {
 
   static override flight: Partial<FlightProfile> = { power: 0.55, agility: 0.55 };
 
+  static override behaviors: BehaviorTable<Spatula> = {
+    flyTogether: {
+      label: 'Spring up together',
+      cue: 'When startled, the whole flock springs straight up off the water at once, with no run, and climbs away in a tight bunch.',
+    },
+  };
+
   protected override runUp = 2;
 }
 
@@ -35,10 +42,11 @@ export class NorthernShoveler extends Spatula {
     rank: 'species',
     name: 'Spatula clypeata',
     common: 'Northern Shoveler',
-    note: 'The bill is nearly as wide as the head is long. Drake: green head, white breast, chestnut flanks, yellow eye. Small numbers stop on Discovery Bay and the Gardiner creek mouth in spring and fall, a few in winter.',
+    note: 'The bill is nearly as wide as the head is long. Drake: green head, white breast, chestnut flanks, yellow eye. Small numbers stop on Discovery Bay and the Gardiner creek mouth in spring and fall, a few in winter. Small groups often feed together, swimming close in a circle with bills skimming the surface to stir up food.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 6,
     call: 'thunk-thunk (the drake, soft and hollow); the hen gives a weak quack',
     presence: [1, 1, 1, 2, 1, 0, 0, 0, 1, 2, 1, 1],
   };
@@ -61,6 +69,10 @@ export class NorthernShoveler extends Spatula {
     beak: '#2a2a2a',
     legs: '#e8802a',
     eye: '#e8c020',
+  };
+  static override variants: Variants = {
+    // The hen: mottled brown with the same huge bill, orange along its edges, and a dark eye.
+    female: { head: '#8a6e52', breast: undefined, body: '#8e7356', belly: '#a88c6c', spots: '#4e3a28', beak: '#b07a3a', eye: '#5a4030' },
   };
 
   static override behaviors: BehaviorTable<NorthernShoveler> = {
