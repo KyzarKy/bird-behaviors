@@ -225,7 +225,7 @@ export abstract class Sturnella extends Icteridae {
 
   // Stiff, shallow flutters between glides on set wings.
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 10, flapRate: 8, flapDuty: 0.55, cyclePeriod: 0.9, restPose: 'spread', glide: 0.55 };
-  static override ecology: Partial<Ecology> = { perches: ['post', 'shrub'], posture: 0.45 };
+  static override ecology: Partial<Ecology> = { flockSize: 8, perches: ['post', 'shrub'], posture: 0.45 };
   static override look: Partial<Look> = { build: 0.75, beakShape: 'dagger', beakLength: 0.9, tailLength: 0.4, tailShape: 'fan', band: '#161616' };
 
   static override behaviors: BehaviorTable<Sturnella> = {
@@ -260,7 +260,7 @@ export class WesternMeadowlark extends Sturnella {
     rank: 'species',
     name: 'Sturnella neglecta',
     common: 'Western Meadowlark',
-    note: 'Brown and streaked above, bright yellow below with a black V. Mostly a bird of winter fields and fence lines around Sequim and the Miller Peninsula clearings, with a few singing males in spring.',
+    note: 'Brown and streaked above, bright yellow below with a black V. Mostly a bird of winter fields and fence lines around Sequim and the Miller Peninsula clearings, with a few singing males in spring. Winter birds feed in small, loose flocks in the fields.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -295,7 +295,7 @@ export abstract class Icterus extends Icteridae {
     note: 'Slim-billed, orange and black icterids of leafy trees. Unlike the ground-walking blackbirds, they spend their time in the canopy, and they weave a hanging pouch nest.',
   };
 
-  static override ecology: Partial<Ecology> = { perches: ['twig', 'branch', 'treetop'], gait: 'hop', groundSpeed: 5, posture: 0.35 };
+  static override ecology: Partial<Ecology> = { flockSize: 1, perches: ['twig', 'branch', 'treetop'], gait: 'hop', groundSpeed: 5, posture: 0.35 };
   static override look: Partial<Look> = { beakShape: 'dagger', beakLength: 0.75, tailLength: 0.6 };
 
   static override behaviors: BehaviorTable<Icterus> = {
@@ -371,6 +371,10 @@ export class BullocksOriole extends Icterus {
     tail: '#d88a1e',
     beak: '#4a4a4a',
     legs: '#7a8aa0',
+  };
+  static override variants: Variants = {
+    // Grayish above, dull yellow-orange on the head, breast and tail, whitish belly and two white wing bars.
+    female: { body: '#8a8a84', belly: '#e8e2d0', breast: '#e8c060', head: '#e0b850', cap: undefined, eyeLine: undefined, throat: undefined, wing: '#5e5e5a', tail: '#c8a040' },
   };
 }
 

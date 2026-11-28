@@ -777,6 +777,19 @@ export abstract class Icteridae extends Passeriformes {
       label: 'Walk and peck',
       cue: 'Strides across the grass picking up insects, worms and seeds, or along the beach wrack snapping up kelp flies, walking without hopping. A sparrow of similar size hops.',
     },
+    rollFeed: {
+      eats: { yard: 'worms', beach: 'wrack' },
+      label: 'Roll across the field',
+      cue: 'A feeding flock walks across the grass picking up insects, worms and seeds (or along the beach wrack), and birds at the back keep flying over the rest to land in front, so the flock rolls along the ground.',
+      feeding: true,
+      flock: true,
+      weight: 2,
+    },
+    chorus: {
+      label: 'Gather and call before roosting',
+      cue: 'Late in the day the flock collects in the treetops and fills them with constant noisy chatter and song before dropping into the roost for the night.',
+      flock: true,
+    },
   };
 
   override forage(): Script {
@@ -788,6 +801,26 @@ export abstract class Icteridae extends Passeriformes {
     for (let i = 0; i < 4; i++) {
       yield* this.moveOnGround(this.foodSpot(6).x);
       yield* this.peck(Math.ceil(rand(1, 2)), 0.8);
+    }
+    yield* this.relax();
+  }
+
+  *rollFeed(): Script {
+    if (!this.flock) return yield* this.walkForage();
+    yield* this.rollAcross((find) => this.peck(Math.ceil(rand(1, 2)), 0.8, find));
+  }
+
+  /** Up into the treetops, a perch each, calling and singing in bursts. */
+  *chorus(): Script {
+    yield* this.wait((this.flock?.delay(this) ?? 0) * 1.5);
+    const perch = this.findPerch(['treetop', 'branch'], 'any');
+    if (perch) yield* this.flyTo(perch);
+    for (let i = 0; i < 4; i++) {
+      yield* this.wait(rand(1, 3));
+      this.say((Math.random() < 0.5 ? this.ecology.song : undefined) ?? this.ecology.call, 1.5);
+      yield* this.poseTo({ beakOpen: 0.6 }, 0.1);
+      yield* this.wait(0.4);
+      yield* this.poseTo({ beakOpen: 0 }, 0.1);
     }
     yield* this.relax();
   }
@@ -830,10 +863,10 @@ export class RedWingedBlackbird extends Agelaius {
     rank: 'species',
     name: 'Agelaius phoeniceus',
     common: 'Red-winged Blackbird',
-    note: 'The male is black with a red and yellow shoulder patch; the female is heavily streaked brown, like a large sparrow. Nests in the wet grass and cattails around Discovery Bay and visits yards in flocks; most visible from March to August.',
+    note: 'The male is black with a red and yellow shoulder patch; the female is heavily streaked brown, like a large sparrow. Nests in the wet grass and cattails around Discovery Bay and visits yards in flocks; most visible from March to August. In fall and winter they gather in large flocks, often with other blackbirds and starlings, that feed across fields and gather noisily in the treetops before roosting.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 30,
     call: 'chack (a hard, dry note)',
     song: 'conk-la-reeee',
     presence: [1, 1, 2, 3, 3, 3, 3, 3, 2, 2, 1, 1],
@@ -879,7 +912,7 @@ export class BrewersBlackbird extends Euphagus {
     rank: 'species',
     name: 'Euphagus cyanocephalus',
     common: 'Brewer’s Blackbird',
-    note: 'The male is glossy black with a purple head and a pale yellow eye; the female is gray-brown with a dark eye. Uncommon at Gardiner and the Miller Peninsula, in parking lots and farm fields, more often in flocks from spring to fall.',
+    note: 'The male is glossy black with a purple head and a pale yellow eye; the female is gray-brown with a dark eye. Uncommon at Gardiner and the Miller Peninsula, in parking lots and farm fields, more often in flocks from spring to fall. Flocks walk across lawns and lots together and gather noisily before roosting.',
   };
 
   static override ecology: Partial<Ecology> = { scenes: { beach: 2 },
@@ -898,6 +931,10 @@ export class BrewersBlackbird extends Euphagus {
     beak: '#111111',
     legs: '#111111',
     eye: '#f0e9a6',
+  };
+  static override variants: Variants = {
+    // Plain gray-brown, a little darker on the wings and tail, with a dark eye.
+    female: { body: '#5e554c', belly: '#6a6158', head: '#625950', wing: '#4e463e', tail: '#4a423a', eye: '#2a2420' },
   };
 }
 
@@ -937,10 +974,10 @@ export class BrownHeadedCowbird extends Molothrus {
     rank: 'species',
     name: 'Molothrus ater',
     common: 'Brown-headed Cowbird',
-    note: 'Short, thick bill; the male has a brown head on a glossy black body, the female is plain gray-brown. Uncommon around Gardiner and the Miller Peninsula, in yards and horse pastures from April to August.',
+    note: 'Short, thick bill; the male has a brown head on a glossy black body, the female is plain gray-brown. Uncommon around Gardiner and the Miller Peninsula, in yards and horse pastures from April to August. Outside the breeding season they feed in flocks on the ground, often around livestock.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 15,
     call: 'a dry chatter or rattle',
     song: 'glug-glug-gleee (a liquid gurgle, then a thin whistle)',
     presence: [0, 0, 1, 2, 2, 2, 2, 2, 1, 0, 0, 0],
@@ -955,6 +992,10 @@ export class BrownHeadedCowbird extends Molothrus {
     tail: '#17171a',
     beak: '#222222',
     legs: '#222222',
+  };
+  static override variants: Variants = {
+    // Plain gray-brown all over, paler on the throat.
+    female: { body: '#7a6e62', belly: '#8e8276', head: '#7e7266', throat: '#a89c8e', wing: '#6a5e52', tail: '#625648' },
   };
 }
 
@@ -1104,26 +1145,8 @@ export abstract class Sturnidae extends Passeriformes {
 
   /** Feeding flock: probe a step or two forward, and a bird left at the back flies over the rest to the front. */
   *rollFeed(): Script {
-    const f = this.flock;
-    if (!f) return yield* this.gapeProbe();
-    yield* this.wait(f.delay(this) * 2);
-    yield* this.travelTo(this.groundSpot(f.center().x, f.reach / 2));
-    const [lo, hi] = this.world.habitat.land;
-    const dir = f.heading;
-    const finds = f.station(this).rank === 0;
-    for (let i = 0; i < 8; i++) {
-      yield* this.pry(finds);
-      const down = f.birds.filter((b) => b.onGround).map((b) => b.pos.x * dir);
-      if (!down.length) break;
-      const front = Math.max(...down);
-      const x = this.pos.x * dir <= Math.min(...down) + f.gap ? (front + rand(1, 2) * f.gap) * dir : this.pos.x + dir * rand(0.3, 0.8) * f.gap;
-      // The far edge of the field ends the roll.
-      if (x < lo + 2 || x > hi - 2) break;
-      if (Math.abs(x - this.pos.x) > f.gap * 1.5) {
-        if (!(yield* this.flyTo({ x, y: 0 }))) yield* this.moveOnGround(x);
-      } else yield* this.moveOnGround(x);
-    }
-    yield* this.relax();
+    if (!this.flock) return yield* this.gapeProbe();
+    yield* this.rollAcross((find) => this.pry(find));
   }
 
   /**

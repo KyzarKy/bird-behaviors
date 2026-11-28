@@ -381,6 +381,33 @@ export abstract class Bird {
   }
 
   /**
+   * A rolling feeding flock: each bird feeds a step at a time with `step`, and a bird left at the back flies over
+   * the rest to land at the front, so the flock rolls across the ground. `step(true)` may take the one hidden
+   * animal the scene draws, so only the bird that leads gets true. Ends at the far edge of the land.
+   */
+  protected *rollAcross(step: (find: boolean) => Script): Script {
+    const f = this.flock;
+    if (!f) return;
+    yield* this.wait(f.delay(this) * 2);
+    yield* this.travelTo(this.groundSpot(f.center().x, f.reach / 2));
+    const [lo, hi] = this.world.habitat.land;
+    const dir = f.heading;
+    const finds = f.station(this).rank === 0;
+    for (let i = 0; i < 8; i++) {
+      yield* step(finds);
+      const down = f.birds.filter((b) => b.onGround).map((b) => b.pos.x * dir);
+      if (!down.length) break;
+      const front = Math.max(...down);
+      const x = this.pos.x * dir <= Math.min(...down) + f.gap ? (front + rand(1, 2) * f.gap) * dir : this.pos.x + dir * rand(0.3, 0.8) * f.gap;
+      if (x < lo + 2 || x > hi - 2) break;
+      if (Math.abs(x - this.pos.x) > f.gap * 1.5) {
+        if (!(yield* this.flyTo({ x, y: 0 }))) yield* this.moveOnGround(x);
+      } else yield* this.moveOnGround(x);
+    }
+    yield* this.relax();
+  }
+
+  /**
    * High-tide roost: the flock packs into a tight row on the upper beach, all facing the same way, hunched. Listed
    * by the shorebirds.
    */
