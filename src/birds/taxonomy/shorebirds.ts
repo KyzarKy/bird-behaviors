@@ -30,6 +30,11 @@ export abstract class Charadriidae extends Charadriiformes {
       label: 'Run, stop, peck',
       cue: 'A burst of fast running, a dead stop with the body drawn upright and the head cocked, then one stab at an insect in the grass or a small crab or worm on the sand. A sandpiper walks steadily and probes without stopping to look.',
     },
+    roostTogether: {
+      label: 'Roost together at high tide',
+      cue: 'When the tide covers the feeding flats, the flock packs close together on the upper beach, every bird facing the same way into the wind, many hunched with the bill tucked into the back feathers, until the water drops again.',
+      flock: true,
+    },
   };
 
   /** Metres-ish of stage between stops; the genus sets how far it runs each time. */
@@ -108,7 +113,7 @@ export class Killdeer extends Charadrius {
 
   static override flight: Partial<FlightProfile> = { flapRate: 5.5 };
 
-  static override ecology: Partial<Ecology> = { scenes: { yard: 1 },
+  static override ecology: Partial<Ecology> = { flockSize: 6, scenes: { yard: 1 },
     call: 'kill-DEE kill-DEE dee-dee-dee',
     presence: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
   };
@@ -156,7 +161,7 @@ export class BlackBelliedPlover extends Pluvialis {
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 15, flapRate: 5 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 10,
     posture: 0.4,
     call: 'plee-oo-ee (three plaintive notes)',
     presence: [1, 1, 1, 2, 2, 0, 1, 2, 2, 2, 1, 1],
@@ -201,6 +206,11 @@ export abstract class Haematopodidae extends Charadriiformes {
       eats: 'mussels',
       label: 'Open a mussel',
       cue: 'Stands at the foot of a rock and hammers with short, hard blows, then twists the bill in and levers the shell open. A gull drops the same shellfish from the air instead.',
+    },
+    roostTogether: {
+      label: 'Roost together at high tide',
+      cue: 'When the tide covers the feeding flats, the flock packs close together on the upper beach, every bird facing the same way into the wind, many hunched with the bill tucked into the back feathers, until the water drops again.',
+      flock: true,
     },
   };
 
@@ -265,10 +275,10 @@ export class BlackOystercatcher extends Haematopus {
     rank: 'species',
     name: 'Haematopus bachmani',
     common: 'Black Oystercatcher',
-    note: 'All black with a long orange-red bill, yellow eye and pink legs. Resident on rocky shore; look on the rocks and pilings around Gardiner and the bluffs of Protection Island rather than on open sand.',
+    note: 'All black with a long orange-red bill, yellow eye and pink legs. Resident on rocky shore; look on the rocks and pilings around Gardiner and the bluffs of Protection Island rather than on open sand. Outside the nesting season they gather in loose flocks on rocky shores, roosting together at high tide.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 10,
     call: 'wheep! wheep! wheep-wheep (piercing)',
     presence: [1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1],
   };
@@ -306,6 +316,11 @@ export abstract class Scolopacidae extends Charadriiformes {
       eats: 'sandCritters',
       label: 'Probe the sand',
       cue: 'Walks without stopping and pushes the bill in again and again, like a sewing machine, feeling for worms and tiny crabs. Compare where each species feeds: Western in the shallows, Dunlin at the edge, Least on the dry mud above.',
+    },
+    roostTogether: {
+      label: 'Roost together at high tide',
+      cue: 'When the tide covers the feeding flats, the flock packs close together on the upper beach, every bird facing the same way into the wind, many hunched with the bill tucked into the back feathers, until the water drops again.',
+      flock: true,
     },
   };
 
@@ -383,7 +398,7 @@ export class BlackTurnstone extends Arenaria {
 
   static override flight: Partial<FlightProfile> = { flapRate: 8 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 15,
     call: 'a rattling skirr-r-r-r-r',
     presence: [2, 2, 2, 2, 1, 0, 0, 1, 2, 2, 2, 2],
   };
@@ -417,6 +432,12 @@ export abstract class Calidris extends Scolopacidae {
       label: 'Flush and wheel',
       cue: 'Takes off calling, swings out over the water and back in a low, fast arc. In a flock the whole group turns at once and the flash alternates between dark backs and white bellies.',
     },
+    wheelTogether: {
+      label: 'Wheel as a flock',
+      cue: 'The whole flock lifts at once and flies low and fast over the water, every bird turning at the same instant, so the flock flashes dark backs, then white bellies, before it swings back in and lands together.',
+      flock: true,
+      weight: 2,
+    },
   };
 
   *wheel(): Script {
@@ -425,6 +446,23 @@ export abstract class Calidris extends Scolopacidae {
     yield* this.flyTo({ x: edge + 15, y: 5 }, { land: false, speed: 1.3 });
     yield* this.flyTo({ x: edge - 8, y: 3 }, { land: false, speed: 1.3 });
     yield* this.flyTo(this.groundSpot(edge - 12, 6));
+    yield* this.relax();
+  }
+
+  /** The flock's flight: out low over the water and back in a few tight turns, every bird keeping its place. */
+  *wheelTogether(): Script {
+    const f = this.flock;
+    if (!f) return yield* this.wheel();
+    const edge = edgeOf(this.world.habitat.water);
+    const r = Math.sqrt(f.birds.length) * this.size * 0.6;
+    if (f.station(this).rank === 0) this.say(this.ecology.call, 2);
+    yield* this.flyAsOne(
+      6,
+      (j) => [{ x: edge + 8, y: 4 }, { x: edge + 22, y: 7 }, { x: edge + 12, y: 3 }, { x: edge + 26, y: 5 }, { x: edge + 6, y: 4 }, { x: edge - 6, y: 3 }][j],
+      { x: r * 1.4, y: r * 0.5 },
+      1.1,
+    );
+    yield* this.flyTo(this.groundSpot(edge - 8, f.reach / 2));
     yield* this.relax();
   }
 }
@@ -489,12 +527,12 @@ export class Dunlin extends Calidris {
     rank: 'species',
     name: 'Calidris alpina',
     common: 'Dunlin',
-    note: 'A hunched, dull gray-brown sandpiper in winter, with a long bill that droops at the tip. The winter sandpiper flocks at Gardiner Beach and on the Discovery Bay flats, October to April.',
+    note: 'A hunched, dull gray-brown sandpiper in winter, with a long bill that droops at the tip. The winter sandpiper flocks at Gardiner Beach and on the Discovery Bay flats, October to April. Winter flocks can be large and tight, flashing dark and white as they wheel low over the water together.',
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 9 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 30,
     posture: 0.05,
     call: 'treeep (rough and reedy)',
     presence: [2, 2, 2, 1, 1, 0, 0, 0, 1, 2, 3, 3],
@@ -524,12 +562,12 @@ export class WesternSandpiper extends Calidris {
     rank: 'species',
     name: 'Calidris mauri',
     common: 'Western Sandpiper',
-    note: 'A small peep with a long, drooping bill and black legs; rusty scapulars show on fall juveniles. Migrates through Discovery Bay in late April and May and again from July to September.',
+    note: 'A small peep with a long, drooping bill and black legs; rusty scapulars show on fall juveniles. Migrates through Discovery Bay in late April and May and again from July to September. Migrant flocks can be huge, and the birds feed, flush and turn together.',
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 10 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 30,
     call: 'jeet, jeet (thin and sharp)',
     presence: [0, 0, 0, 2, 3, 1, 2, 3, 2, 0, 0, 0],
   };
@@ -600,7 +638,7 @@ export abstract class Tringa extends Scolopacidae {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 15, flapRate: 6 };
-  static override ecology: Partial<Ecology> = { groundSpeed: 6, posture: 0.3 };
+  static override ecology: Partial<Ecology> = { flockSize: 4, groundSpeed: 6, posture: 0.3 };
   static override look: Partial<Look> = { build: 0.35, neckLength: 0.22, legLength: 0.6, wingSpan: 2.2, headSize: 0.65, beakShape: 'dagger', beakLength: 2 };
 
   static override behaviors: BehaviorTable<Tringa> = {
@@ -697,7 +735,7 @@ export abstract class Actitis extends Scolopacidae {
 
   // Short glides on bowed wings between bursts of shallow, stiff beats, low over the water.
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 11, glide: 0.35, flapRate: 11, flapDuty: 0.7, cyclePeriod: 0.5, ceiling: 6 };
-  static override ecology: Partial<Ecology> = { perches: ['log', 'rock'], gait: 'walk', groundSpeed: 5, posture: 0.15 };
+  static override ecology: Partial<Ecology> = { flockSize: 1, perches: ['log', 'rock'], gait: 'walk', groundSpeed: 5, posture: 0.15 };
   static override look: Partial<Look> = { legLength: 0.22, tailLength: 0.35, wingSpan: 1.9, beakLength: 0.9 };
 
   static override behaviors: BehaviorTable<Actitis> = {

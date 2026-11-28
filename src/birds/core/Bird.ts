@@ -360,6 +360,50 @@ export abstract class Bird {
     yield* this.relax();
   }
 
+  /**
+   * Fly the flock's shared path: `at(j)` is the middle of the flock at turn j, and this bird keeps its own place in
+   * the group, up to `spread` from the middle and scaled by `squeeze(j)`. Each leg is paced to end `every` seconds
+   * after the last, so the birds reach every turn together and the flock holds its shape.
+   */
+  protected *flyAsOne(turns: number, at: (j: number) => Vec, spread: Vec, every: number, squeeze: (j: number) => number = () => 1): Script {
+    const a = rand(0, TAU);
+    const d = Math.sqrt(Math.random());
+    const top = Math.min(this.flight.ceiling, STAGE.top - 6);
+    const start = this.world.time;
+    for (let j = 0; j < turns; j++) {
+      const c = at(j);
+      const s = squeeze(j);
+      const to = { x: clamp(c.x + Math.cos(a + j * 0.4) * d * spread.x * s, 3, 97), y: clamp(c.y + Math.sin(a + j * 0.4) * d * spread.y * s, 1.5, top) };
+      const left = Math.max(0.4, start + (j + 1) * every - this.world.time);
+      const speed = clamp(Math.hypot(to.x - this.pos.x, to.y - this.pos.y) / (this.flight.cruiseSpeed * left), 0.6, 1.8);
+      yield* this.flyTo(to, { land: false, speed });
+    }
+  }
+
+  /**
+   * High-tide roost: the flock packs into a tight row on the upper beach, all facing the same way, hunched. Listed
+   * by the shorebirds.
+   */
+  *roostTogether(): Script {
+    const birds = this.flock?.birds ?? [this];
+    const { land, water } = this.world.habitat;
+    const lo = land[0] + 3;
+    const hi = (water ? water.from : land[1]) - 3;
+    // Shoulder to shoulder, closer still if that is what it takes to fit.
+    const step = Math.min(this.size * 0.6, (hi - lo) / Math.max(1, birds.length - 1));
+    const half = (step * (birds.length - 1)) / 2;
+    const x0 = clamp(this.flock?.center().x ?? this.pos.x, lo + half, hi - half);
+    const i = [...birds].sort((p, q) => p.pos.x - q.pos.x).indexOf(this);
+    yield* this.wait((this.flock?.delay(this) ?? 0) * 2);
+    yield* this.travelTo({ x: x0 + (i - (birds.length - 1) / 2) * step, y: 0 });
+    // Into the wind: the same way for everyone.
+    this.pose.facing = water && water.from > x0 ? 1 : -1;
+    const rest = this.restingPose();
+    yield* this.poseTo({ crouch: 0.4, neck: rest.neck - 0.25, head: 0.2 }, 0.5);
+    yield* this.wait(rand(8, 12));
+    yield* this.relax();
+  }
+
   /** The whole flock moves off: each bird takes off a moment after the one before and lands near the others. */
   *flyTogether(): Script {
     const f = this.flock;

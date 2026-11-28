@@ -8,7 +8,7 @@
  * ones that feed another way override `forage()`: the Zonotrichia crowned
  * sparrows hop and peck, and the Savannah Sparrow runs.
  */
-import { clamp, rand } from '../core/Bird';
+import { rand } from '../core/Bird';
 import { STAGE } from '../core/World';
 import type { BehaviorTable, Ecology, FlightProfile, Look, PerchKind, Script, Taxon, Variants } from '../core/traits';
 import { Passerellidae, Passeriformes } from './passeriformes';
@@ -1134,23 +1134,16 @@ export abstract class Sturnidae extends Passeriformes {
     const f = this.flock;
     if (!f) return yield* this.fly();
     const phase = f.course.to;
-    const n = f.birds.length;
-    const r = Math.sqrt(n) * this.size * 0.9;
-    const a = rand(0, Math.PI * 2);
-    const d = Math.sqrt(Math.random());
+    const r = Math.sqrt(f.birds.length) * this.size * 0.9;
     const top = Math.min(this.flight.ceiling, STAGE.top - 6);
-    const start = this.world.time + 3;
-    yield* this.wait(f.delay(this));
-    for (let j = 0; j < 10; j++) {
-      const s = 0.55 + 0.45 * Math.sin(j * 1.9 + phase);
-      const x = 50 + 30 * Math.sin(j * 1.1 + phase) + Math.cos(a + j * 0.4) * d * r * s * 1.6;
-      const y = clamp(top * 0.65 + top * 0.2 * Math.sin(j * 1.7 + phase * 2) + Math.sin(a + j * 0.4) * d * r * s * 0.7, 8, top);
-      const to = { x: clamp(x, 3, 97), y };
-      // Paced to reach each turn when the rest of the cloud does, so the cloud stays together.
-      const left = Math.max(0.4, start + (j + 1) * 1.8 - this.world.time);
-      const speed = clamp(Math.hypot(to.x - this.pos.x, to.y - this.pos.y) / (this.flight.cruiseSpeed * left), 0.6, 1.8);
-      yield* this.flyTo(to, { land: false, speed });
-    }
+    // No stagger: flyAsOne paces every bird from the same moment.
+    yield* this.flyAsOne(
+      10,
+      (j) => ({ x: 50 + 30 * Math.sin(j * 1.1 + phase), y: Math.max(8, top * 0.65 + top * 0.2 * Math.sin(j * 1.7 + phase * 2)) }),
+      { x: r * 1.6, y: r * 0.7 },
+      1.8,
+      (j) => 0.55 + 0.45 * Math.sin(j * 1.9 + phase),
+    );
     const dest = this.findPerch(undefined, 'far') ?? this.groundSpot(f.center().x, f.reach);
     if (!(yield* this.flyTo(dest)) && dest.y <= 0.05) yield* this.moveOnGround(dest.x);
     yield* this.relax();
