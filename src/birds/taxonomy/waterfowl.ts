@@ -99,6 +99,23 @@ export abstract class Anatidae extends Anseriformes {
     yield* this.forage();
   }
 
+  /**
+   * A wave of dives: the bird that goes first, then the rest in order of how far they are from it, and a bird at
+   * the edge of the flock may stay up. Only the first bird goes after the one hidden animal the scene draws; the
+   * rest dive for what is about. Listed by the diving ducks.
+   */
+  *diveTogether(): Script {
+    const f = this.flock;
+    const start = this.world.time + 2.5;
+    yield* this.toWater();
+    if (!f) return yield* this.diveBout();
+    const first = f.birds.find((b) => f.station(b).rank === 0) ?? f.lead;
+    yield* this.wait(Math.max(0, start - this.world.time) + Math.abs(this.pos.x - first.pos.x) * 0.06);
+    const xs = f.birds.map((b) => b.pos.x);
+    if ((this.pos.x === Math.min(...xs) || this.pos.x === Math.max(...xs)) && Math.random() < 0.5) return yield* this.lookAround(rand(3, 5));
+    yield* this.diveBout();
+  }
+
   /** Dabblers and grazers loaf and feed ashore as well as on the water; divers keep to the water. */
   override get crossesShore(): boolean {
     return this.feeding !== 'dive';
@@ -532,6 +549,18 @@ export abstract class Bucephala extends Anatidae {
       label: 'Head-throw display',
       cue: 'Winter and early spring. The head is flung back until the crown touches the rump, bill pointing at the sky, then snapped forward with a splash of the feet. The Goldeneye’s throw is wide and slow, the Bufflehead’s is a quick nod.',
     },
+    diveTogether: {
+      eats: 'shellfish',
+      label: 'Dive together',
+      cue: 'One bird dives for small mussels and crabs and those around it follow within moments, so a wave of dives runs through the flock. They come up again scattered, and a bird or two at the edge often stays up and never dives.',
+      feeding: true,
+      flock: true,
+    },
+    courtGroup: {
+      label: 'Court in a group',
+      cue: 'From midwinter, several drakes gather round a hen and throw their heads back one after another, while she watches and answers with quick nods.',
+      flock: true,
+    },
   };
 
   protected override feeding: Feeding = 'dive';
@@ -554,6 +583,23 @@ export abstract class Bucephala extends Anatidae {
       yield* this.wait(0.3);
     }
   }
+
+  /** Drakes give the head-throw in turns; hens and young nod. */
+  *courtGroup(): Script {
+    yield* this.toWater();
+    yield* this.wait((this.flock?.delay(this) ?? 0) * 2);
+    if (this.variant === 'adult') {
+      yield* this.wait(rand(0.5, 3));
+      return yield* this.headThrow();
+    }
+    const rest = this.restingPose();
+    for (let i = 0; i < 4; i++) {
+      yield* this.wait(rand(0.6, 2.2));
+      yield* this.poseTo({ neck: rest.neck + 0.15, head: -0.35 }, 0.15);
+      yield* this.poseTo({ neck: rest.neck, head: 0 }, 0.2);
+    }
+    yield* this.relax();
+  }
 }
 
 export class Bufflehead extends Bucephala {
@@ -562,10 +608,11 @@ export class Bufflehead extends Bucephala {
     rank: 'species',
     name: 'Bucephala albeola',
     common: 'Bufflehead',
-    note: 'Our smallest diving duck. The drake has a dark head with a large white patch behind the eye and a white body. Small flocks along the Discovery Bay shore from late fall into April.',
+    note: 'Our smallest diving duck. The drake has a dark head with a large white patch behind the eye and a white body. Small flocks along the Discovery Bay shore from late fall into April. Small groups often dive and come up almost together.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 8,
     call: 'a low squeaky growl; usually silent',
     presence: [3, 3, 3, 2, 1, 0, 0, 0, 0, 2, 3, 3],
   };
@@ -588,6 +635,10 @@ export class Bufflehead extends Bucephala {
     beak: '#6b7480',
     legs: '#e8a0b0',
   };
+  static override variants: Variants = {
+    // The hen: dark gray-brown with a paler belly. Her white cheek spot is not drawn.
+    female: { head: '#3a3a3e', cap: undefined, body: '#5a5856', belly: '#d8d6d0', wing: '#2e2e30', tail: '#4a4a4c', beak: '#3a3a3c', legs: '#8a8088' },
+  };
 
   // Short dives, many of them, and the runway is short for a diver.
   protected override diveTime = 1.2;
@@ -602,10 +653,11 @@ export class CommonGoldeneye extends Bucephala {
     rank: 'species',
     name: 'Bucephala clangula',
     common: 'Common Goldeneye',
-    note: 'Drake: glossy green head with a round white spot at the base of the bill, white body, black back. Yellow eye in both sexes. A few at a time off Gardiner Beach and in the bay from November to March. The wings whistle in flight.',
+    note: 'Drake: glossy green head with a round white spot at the base of the bill, white body, black back. Yellow eye in both sexes. A few at a time off Gardiner Beach and in the bay from November to March. The wings whistle in flight. From midwinter, groups of drakes court the hens together on the water, throwing their heads back one after another.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 10,
     call: 'speer-ick (the drake in display); the wings whistle in flight',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2],
   };
@@ -627,6 +679,10 @@ export class CommonGoldeneye extends Bucephala {
     beak: '#262626',
     eye: '#e8c020',
     legs: '#e8a020',
+  };
+  static override variants: Variants = {
+    // The hen: chocolate-brown head, white collar, gray body and a dark bill; the eye is the same gold.
+    female: { head: '#6a3e26', spots: undefined, neck: '#f2f2ee', body: '#8a8c90', belly: '#e8e8e4', wing: '#3a3a3c', beak: '#4a4436' },
   };
 
   protected override diveTime = 2.4;
@@ -652,6 +708,13 @@ export abstract class Melanitta extends Anatidae {
       label: 'Dive for mussels',
       cue: 'A quick flick of the wings, then under. Dives are long for the depth, with the bird hunting along the bottom for mussels. Coming up, a mussel may be swallowed whole at the surface with a few jerks of the neck.',
     },
+    diveTogether: {
+      eats: 'shellfish',
+      label: 'Dive in waves',
+      cue: 'One scoter dives for mussels, the birds beside it follow, and within seconds most of the raft is gone, to pop up again nearly together. Diving together may help them keep their catch from the gulls that wait to steal it.',
+      feeding: true,
+      flock: true,
+    },
   };
 
   protected override feeding: Feeding = 'dive';
@@ -676,10 +739,11 @@ export class SurfScoter extends Melanitta {
     rank: 'species',
     name: 'Melanitta perspicillata',
     common: 'Surf Scoter',
-    note: 'Drake: black with a white patch on the forehead and another on the nape, and a swollen, orange, white and black bill. The most numerous scoter on Discovery Bay, found just off Gardiner Beach most of the year. Dives with the wings closed.',
+    note: 'Drake: black with a white patch on the forehead and another on the nape, and a swollen, orange, white and black bill. The most numerous scoter on Discovery Bay, found just off Gardiner Beach most of the year. Dives with the wings closed. Rafts dive in waves, one bird starting and the rest following within moments, which may help them keep their catch from gulls.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 30,
     call: 'a low, liquid gurgle; mostly silent',
     presence: [3, 3, 3, 3, 2, 1, 1, 1, 2, 3, 3, 3],
   };
@@ -697,6 +761,10 @@ export class SurfScoter extends Melanitta {
     eye: '#f4f4f0',
     legs: '#e8a030',
   };
+  static override variants: Variants = {
+    // The hen: dark brown all over with a dark bill. Her pale face patches are not drawn.
+    female: { body: '#4a443e', belly: '#6a645c', head: '#3e3832', cap: undefined, spots: undefined, wing: '#3a3530', tail: '#3a3530', beak: '#2e2e2e', eye: '#5a4a3a', legs: '#a08060' },
+  };
 
   protected override diveLeap = 0.5;
 }
@@ -706,10 +774,11 @@ export class WhiteWingedScoter extends Melanitta {
     rank: 'species',
     name: 'Melanitta deglandi',
     common: 'White-winged Scoter',
-    note: 'The largest scoter. Black with a white wing patch that is hidden on the water and shows in flight, a white teardrop beside the eye, and an orange bill. Fewer than Surf Scoters on the bay, with groups farther out. It dives with the wings partly open.',
+    note: 'The largest scoter. Black with a white wing patch that is hidden on the water and shows in flight, a white teardrop beside the eye, and an orange bill. Fewer than Surf Scoters on the bay, with groups farther out. It dives with the wings partly open. Flocks dive in waves, the rest following the first bird down within moments.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 20,
     call: 'a hoarse, low croak; mostly silent',
     presence: [2, 2, 2, 2, 1, 1, 0, 1, 1, 2, 2, 2],
   };
@@ -728,6 +797,10 @@ export class WhiteWingedScoter extends Melanitta {
     beak: '#e8782a',
     eye: '#f4f4f0',
     legs: '#d8606a',
+  };
+  static override variants: Variants = {
+    // The hen: dark brown with the same white wing patch and a dark bill.
+    female: { body: '#4a443e', belly: '#6a645c', head: '#3e3832', eyeRing: undefined, wing: '#3a3530', tail: '#3a3530', beak: '#3a3a3a', eye: '#4a3a2a', legs: '#a07060' },
   };
 
   protected override diveWings = true;
@@ -755,6 +828,13 @@ export abstract class Histrionicus extends Anatidae {
       label: 'Haul out on a rock',
       cue: 'Climbs onto a wave-washed rock to rest, head tucked, often in a tight group. Few other ducks roost on rocks the way harlequins do.',
     },
+    diveTogether: {
+      eats: 'shellfish',
+      label: 'Dive together',
+      cue: 'One bird dives for crabs and snails and those around it follow within moments, so a wave of dives runs through the flock. They come up again scattered, and a bird or two at the edge often stays up and never dives.',
+      feeding: true,
+      flock: true,
+    },
   };
 
   protected override feeding: Feeding = 'dive';
@@ -778,10 +858,11 @@ export class HarlequinDuck extends Histrionicus {
     rank: 'species',
     name: 'Histrionicus histrionicus',
     common: 'Harlequin Duck',
-    note: 'Drake: slate blue with chestnut flanks and crisp white spots and bars on the head and body. Small groups on rocky shorelines around the Miller Peninsula and Protection Island from fall to spring; look at the rocks, not open water.',
+    note: 'Drake: slate blue with chestnut flanks and crisp white spots and bars on the head and body. Small groups on rocky shorelines around the Miller Peninsula and Protection Island from fall to spring; look at the rocks, not open water. Usually in small, tight groups that dive and surface together.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 6,
     call: 'ek-ek-ek (a squeaky, mouse-like squeal)',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 1, 1, 2, 2],
   };
@@ -803,6 +884,10 @@ export class HarlequinDuck extends Histrionicus {
     tail: '#26323f',
     beak: '#6b7480',
     legs: '#6b7480',
+  };
+  static override variants: Variants = {
+    // The hen: plain dusky brown. Her small white face spots are not drawn.
+    female: { head: '#4e4840', eyeLine: undefined, spots: undefined, band: undefined, body: '#5a544c', belly: '#8a847a', wing: '#4a443e', tail: '#3e3a34' },
   };
 }
 
@@ -826,6 +911,13 @@ export abstract class Clangula extends Anatidae {
     yodel: {
       label: 'Yodel',
       cue: 'The drake throws the head up and back, cocks the long tail and gives a rolling, musical call. Winter flocks are noisy, nothing like the silent scoters.',
+    },
+    diveTogether: {
+      eats: 'shellfish',
+      label: 'Dive together',
+      cue: 'One bird dives for clams and crabs and those around it follow within moments, so a wave of dives runs through the flock. They come up again scattered, and a bird or two at the edge often stays up and never dives.',
+      feeding: true,
+      flock: true,
     },
   };
 
@@ -853,10 +945,11 @@ export class LongTailedDuck extends Clangula {
     rank: 'species',
     name: 'Clangula hyemalis',
     common: 'Long-tailed Duck',
-    note: 'Winter drake: mostly white with a dark cheek patch, dark chest, a short pink-banded bill and two long central tail feathers. Scarce to regular in the bay and Strait from November to April.',
+    note: 'Winter drake: mostly white with a dark cheek patch, dark chest, a short pink-banded bill and two long central tail feathers. Scarce to regular in the bay and Strait from November to April. Winter flocks are noisy with yodeling calls and often dive together.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 20,
     call: 'ow-ow-owdle-ow (a yodeling, musical chorus)',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2],
   };
@@ -879,6 +972,10 @@ export class LongTailedDuck extends Clangula {
     tail: '#2a2a2a',
     beak: '#d98ca0',
     legs: '#7a7a80',
+  };
+  static override variants: Variants = {
+    // The hen in winter: pale face with a dark crown and cheek, brown back and breast, short tail.
+    female: { head: '#e8e4dc', cap: '#4a3e34', neck: undefined, spots: '#6a5a4a', breast: '#7a6a5a', body: '#8a7a68', wing: '#4a3e34', beak: '#3a3e44', tailLength: 0.25 },
   };
 }
 
@@ -908,6 +1005,13 @@ export abstract class Mergus extends Anatidae {
       feeding: true,
       cue: 'Cruises along with the head down and the bill underwater, scanning for fish before committing to a dive. No other duck does this for long.',
     },
+    driveFish: {
+      eats: 'baitfish',
+      label: 'Hunt fish as a team',
+      cue: 'A group swims along in a line with faces in the water, herding a school of small fish toward the shallows, then dives on it together.',
+      feeding: true,
+      flock: true,
+    },
   };
 
   protected override feeding: Feeding = 'dive';
@@ -929,6 +1033,20 @@ export abstract class Mergus extends Anatidae {
     yield* this.peck(1, 1);
     yield* this.relax();
   }
+
+  /** Faces in the water, the group swims as a row toward the shallows, then all dive at once. */
+  *driveFish(): Script {
+    const water = this.world.habitat.water;
+    if (!water) return;
+    const start = this.world.time + 5;
+    yield* this.toWater();
+    const birds = this.flock?.birds ?? [this];
+    const i = [...birds].sort((a, b) => a.pos.x - b.pos.x).indexOf(this);
+    yield* this.moveOnGround(clamp(water.from + 8 + i * (this.flock?.gap ?? 0) * 0.8, water.from + 4, 94));
+    yield* this.poseTo({ neck: 0.1, head: -1.3, pitch: -0.1 }, 0.25);
+    yield* this.wait(Math.max(0.5, start - this.world.time));
+    yield* this.diveBout();
+  }
 }
 
 export class RedBreastedMerganser extends Mergus {
@@ -936,7 +1054,7 @@ export class RedBreastedMerganser extends Mergus {
     rank: 'species',
     name: 'Mergus serrator',
     common: 'Red-breasted Merganser',
-    note: 'Drake: dark green head with a shaggy double crest, white collar, streaked rusty breast and a thin red bill. The common merganser on salt water: groups in the bay and off Gardiner Beach from fall to spring.',
+    note: 'Drake: dark green head with a shaggy double crest, white collar, streaked rusty breast and a thin red bill. The common merganser on salt water: groups in the bay and off Gardiner Beach from fall to spring. Groups sometimes hunt together, swimming in a line with faces in the water to drive small fish into the shallows.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -959,6 +1077,10 @@ export class RedBreastedMerganser extends Mergus {
     eye: '#c82820',
     legs: '#d8301e',
   };
+  static override variants: Variants = {
+    // The hen: rusty head with the same shaggy crest, gray body and breast.
+    female: { head: '#a85a32', neck: undefined, breast: '#b8b4ae', body: '#8a8a88', wing: '#4a4a4c', tail: '#7a7a7a', eye: '#7a3a2a' },
+  };
 }
 
 export class CommonMerganser extends Mergus {
@@ -967,10 +1089,11 @@ export class CommonMerganser extends Mergus {
     rank: 'species',
     name: 'Mergus merganser',
     common: 'Common Merganser',
-    note: 'Larger and heavier. Drake: smooth dark green head, no shaggy crest, a clean white body with a salmon wash, thick red bill. Mainly a river duck; a few turn up on Discovery Bay in winter, usually near stream mouths.',
+    note: 'Larger and heavier. Drake: smooth dark green head, no shaggy crest, a clean white body with a salmon wash, thick red bill. Mainly a river duck; a few turn up on Discovery Bay in winter, usually near stream mouths. Groups sometimes hunt together, driving small fish ahead of them before diving.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 10,
     call: 'a low, harsh karr; mostly silent',
     presence: [2, 2, 1, 1, 0, 0, 0, 0, 0, 1, 1, 2],
   };
@@ -993,6 +1116,10 @@ export class CommonMerganser extends Mergus {
     beak: '#d8281e',
     eye: '#4a2a1a',
     legs: '#e8402a',
+  };
+  static override variants: Variants = {
+    // The hen: rusty head sharply set off from a white chin and gray body.
+    female: { head: '#9a4a2a', breast: '#c8c8c4', body: '#9a9c9e', belly: '#e8e6e0', wing: '#4a4a4c' },
   };
 
   // The bigger bird dives longer and farther, and needs a longer run to take off.
@@ -1023,6 +1150,13 @@ export abstract class Lophodytes extends Anatidae {
     crestFan: {
       label: 'Fan the crest',
       cue: 'The drake raises the crest into a big round fan and lowers it again. Raised, the white patch shows from far off; lowered, the head is slim and dark.',
+    },
+    diveTogether: {
+      eats: 'minnows',
+      label: 'Dive together',
+      cue: 'One bird dives for small fish and those around it follow within moments, so a wave of dives runs through the flock. They come up again scattered, and a bird or two at the edge often stays up and never dives.',
+      feeding: true,
+      flock: true,
     },
   };
 
@@ -1072,6 +1206,10 @@ export class HoodedMerganser extends Lophodytes {
     beak: '#26262a',
     eye: '#e8c020',
     legs: '#c8a888',
+  };
+  static override variants: Variants = {
+    // The hen: gray-brown with a cinnamon crest and a dark bill with a yellowish base.
+    female: { head: '#5a4a3e', cap: '#a8703e', breast: '#6a5e52', band: undefined, body: '#6e5e50', belly: '#e8e4dc', wing: '#3a3430', eye: '#8a5a3a', beak: '#a08a50' },
   };
 }
 
