@@ -693,7 +693,7 @@ export class SemipalmatedPlover extends Charadrius {
 
   static override flight: Partial<FlightProfile> = { flapRate: 7 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 12,
     call: 'chu-WEE (a rising, two-note whistle)',
     presence: [0, 0, 0, 1, 2, 1, 1, 2, 2, 1, 0, 0],
   };
@@ -730,7 +730,7 @@ export abstract class Numenius extends Scolopacidae {
   };
 
   static override flight: Partial<FlightProfile> = { cruiseSpeed: 17, power: 0.5, glide: 0.5, flapRate: 4 };
-  static override ecology: Partial<Ecology> = { gait: 'walk', groundSpeed: 5, posture: 0.3 };
+  static override ecology: Partial<Ecology> = { flockSize: 6, gait: 'walk', groundSpeed: 5, posture: 0.3 };
   static override look: Partial<Look> = { build: 0.4, neckLength: 0.28, legLength: 0.5, wingSpan: 2.2, headSize: 0.6, beakLength: 3 };
 
   static override behaviors: BehaviorTable<Numenius> = {
@@ -924,7 +924,7 @@ export abstract class Gallinago extends Scolopacidae {
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 8, agility: 0.85 };
-  static override ecology: Partial<Ecology> = { gait: 'walk', groundSpeed: 3, posture: 0.25 };
+  static override ecology: Partial<Ecology> = { flockSize: 1, gait: 'walk', groundSpeed: 3, posture: 0.25 };
   static override look: Partial<Look> = { build: 0.55, neckLength: 0.08, legLength: 0.25, headSize: 0.7, beakLength: 2.4 };
 
   static override behaviors: BehaviorTable<Gallinago> = {
