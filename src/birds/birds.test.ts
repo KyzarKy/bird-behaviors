@@ -242,7 +242,8 @@ describe('flocks', () => {
           const f = new Flock(make(cls, scene));
           f.grow();
           const world = f.lead.world;
-          const hidden = (b: (typeof f.birds)[number]) => b.current !== null && behaviorsOf(cls).some((x) => x.key === b.current && FOODS[eatsIn(x.spec, scene)!]?.hidden);
+          // A flock behavior is done by everyone at once and leaves the one hidden animal to one bird itself.
+          const hidden = (b: (typeof f.birds)[number]) => b.current !== null && behaviorsOf(cls).some((x) => x.key === b.current && !x.spec.flock && FOODS[eatsIn(x.spec, scene)!]?.hidden);
           for (let frames = 0; frames < 30 * 40; frames++) {
             f.update(1 / 30);
             for (const b of f.birds) expect(b.pos.x >= 0 && b.pos.x <= 100 && b.pos.y > -DEEP - 1 && b.pos.y < STAGE.top, `${b.current}: off stage`).toBe(true);

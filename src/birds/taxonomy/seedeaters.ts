@@ -1090,12 +1090,13 @@ export abstract class Sturnidae extends Passeriformes {
     yield* this.relax();
   }
 
-  private *pry(): Script {
+  /** One probe. With `find` false it pries and comes up empty: in a flock only one bird at a time turns up the grub the scene draws. */
+  private *pry(find = true): Script {
     yield* this.poseTo({ pitch: -0.35, neck: -0.2, head: -0.9 }, 0.1);
-    const shown = yield* this.glimpse();
+    const shown = find && (yield* this.glimpse());
     yield* this.poseTo({ beakOpen: 1 }, 0.25);
     // Prising the soil open with the bill, it finds a grub.
-    this.takeOrHide(shown);
+    if (find) this.takeOrHide(shown);
     yield* this.wait(0.2);
     yield* this.poseTo({ beakOpen: 0 }, 0.1);
     yield* this.relax(0.1);
@@ -1109,8 +1110,9 @@ export abstract class Sturnidae extends Passeriformes {
     yield* this.travelTo(this.groundSpot(f.center().x, f.reach / 2));
     const [lo, hi] = this.world.habitat.land;
     const dir = f.heading;
+    const finds = f.station(this).rank === 0;
     for (let i = 0; i < 8; i++) {
-      yield* this.pry();
+      yield* this.pry(finds);
       const down = f.birds.filter((b) => b.onGround).map((b) => b.pos.x * dir);
       if (!down.length) break;
       const front = Math.max(...down);
