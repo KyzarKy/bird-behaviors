@@ -14,7 +14,10 @@ export class Flock {
   birds: Bird[];
   /** Seconds until the flock does something together. */
   private next = 0;
-  private plan = new Map<Bird, { delay: number; to: Vec | null }>();
+  private plan = new Map<Bird, { delay: number; to: Vec | null; rank: number; side: -1 | 0 | 1 }>();
+  /** Which way the flock is heading when it moves, and the middle of where it starts and where it is going. */
+  heading: 1 | -1 = 1;
+  course = { from: 50, to: 50 };
 
   constructor(bird: Bird) {
     this.birds = [bird];
@@ -53,15 +56,21 @@ export class Flock {
     };
   }
 
-  /** Fill out to the species' flock size around the bird on stage. Where the species has a female plumage, the sexes are mixed. */
+  /**
+   * Fill out to the species' flock size around the bird on stage. Where the species has a female plumage the
+   * sexes are mixed, and `flockJuveniles` of the flock are in juvenile plumage where it has one.
+   */
   grow() {
     const lead = this.lead;
     const Kind = lead.constructor as SpeciesClass;
+    const variants = variantsOf(Kind);
     const other: Variant = lead.variant === 'female' ? 'adult' : 'female';
-    const mixed = variantsOf(Kind).includes('female');
+    const young = variants.includes('juvenile') ? (lead.ecology.flockJuveniles ?? 0) : 0;
+    const every = young > 0 ? Math.max(2, Math.round(1 / young)) : Infinity;
     lead.flock = this;
     for (let k = 1; k < Flock.sizeOf(lead); k++) {
-      const b = new Kind(lead.world, false, mixed && k % 2 ? other : lead.variant);
+      const v: Variant = k % every === 0 ? 'juvenile' : variants.includes('female') && k % 2 ? other : lead.variant === 'juvenile' ? 'adult' : lead.variant;
+      const b = new Kind(lead.world, false, v);
       b.flock = this;
       this.birds.push(b);
       b.joinNear(lead, k, this.gap);
@@ -98,6 +107,15 @@ export class Flock {
     return this.plan.get(bird)?.delay ?? 0;
   }
 
+  /**
+   * `bird`'s station for the behavior under way: `rank` 0 is the bird that goes first, and the rest are ranked
+   * by how far back they are, alternating `side` (1 or -1) so there are two even arms.
+   */
+  station(bird: Bird): { rank: number; side: -1 | 0 | 1 } {
+    const p = this.plan.get(bird);
+    return p ? { rank: p.rank, side: p.side } : { rank: 0, side: 0 };
+  }
+
   /** Where `bird` goes when the flock moves, or null for a perch of its own. */
   destination(bird: Bird): Vec | null {
     return this.plan.get(bird)?.to ?? null;
@@ -117,27 +135,43 @@ export class Flock {
   }
 
   /**
-   * Where everyone goes if the flock moves off: to the far side of the land or water it is on, in the same
-   * order and spacing, taking off one after another. A perched flock picks perches, one bird to each.
+   * Where everyone goes if the flock moves off: to the far side of the land or water it is on, or, for a bird
+   * that `crossesShore`, to whichever of the land and the water is farther. Destinations keep the birds' order
+   * along x. Stations are separate: the bird that goes first, then the rest alternating sides behind it, so a
+   * V gets two even arms. A perched flock picks perches, one bird to each.
    */
   private planMove() {
     const lead = this.lead;
     const { land, water } = lead.world.habitat;
-    const afloat = lead.afloat && !!water;
+    const wet: [number, number] | null = water ? [water.from + 4, 96] : null;
+    const afloat = lead.afloat && !!wet;
     const perched = !afloat && (lead.airborne || lead.pos.y > 0.05);
-    const [lo, hi] = afloat ? [water!.from + 4, 96] : land;
-    const gap = this.gap;
-    const span = gap * (this.birds.length - 1);
     const c = this.center().x;
+    const options: [number, number][] = [afloat ? wet! : land];
+    if (wet && lead.crossesShore) options.push(afloat ? land : wet);
+    const far = (r: [number, number]) => Math.max(Math.abs(r[0] - c), Math.abs(r[1] - c));
+    const [lo, hi] = options.reduce((a, b) => (far(b) > far(a) ? b : a));
+    const n = this.birds.length;
+    const gap = Math.min(lead.ecology.flockSpacing * lead.size, (hi - lo) / Math.max(1, n));
+    const half = Math.min((gap * (n - 1)) / 2, (hi - lo) / 2);
     const mid = (lo + hi) / 2;
-    const half = Math.min(span / 2, (hi - lo) / 2);
-    const to = c > mid ? rand(lo + half, Math.max(lo + half, mid)) : rand(Math.min(hi - half, mid), hi - half);
-    const order = [...this.birds].sort((a, b) => a.pos.x - b.pos.x);
-    const first = Math.floor(Math.random() * order.length);
+    const between = (a: number, b: number) => rand(Math.min(a, b), Math.max(a, b));
+    // The half of the range away from where the flock is now.
+    const to = c > mid ? between(lo + half, mid) : between(mid, hi - half);
+    this.heading = to >= c ? 1 : -1;
+    this.course = { from: c, to };
     this.plan.clear();
-    order.forEach((b, i) => {
-      const x = clamp(to - half + i * gap, lo, hi);
-      this.plan.set(b, { delay: Math.abs(i - first) * rand(0.08, 0.3), to: perched ? null : { x, y: 0 } });
-    });
+    const stations = [...this.birds].sort(() => Math.random() - 0.5);
+    [...this.birds]
+      .sort((a, b) => a.pos.x - b.pos.x)
+      .forEach((b, i) => {
+        const k = stations.indexOf(b);
+        this.plan.set(b, {
+          delay: k * rand(0.08, 0.25),
+          to: perched ? null : { x: clamp(to - half + i * gap, lo, hi), y: 0 },
+          rank: Math.ceil(k / 2),
+          side: k === 0 ? 0 : k % 2 ? 1 : -1,
+        });
+      });
   }
 }
