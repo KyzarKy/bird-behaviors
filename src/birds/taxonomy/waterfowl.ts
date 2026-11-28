@@ -266,9 +266,48 @@ export abstract class Anas extends Anatidae {
       label: 'Dabble and tip up',
       cue: 'Stern in the air, head and neck under, feet paddling to hold position while it pulls up seeds, weed and small snails from the bottom. It reaches only as far as its neck allows, so the length of the upended stretch of body tells long-necked Pintails from short-necked Teal. A diving duck never does this.',
     },
+    flyTogether: {
+      label: 'Spring up together',
+      cue: 'When startled, the whole flock springs straight up off the water at once, with no run, and climbs away in a tight bunch.',
+    },
+    courtGroup: {
+      label: 'Court in a group',
+      cue: 'From fall into winter, several drakes gather round the hens and display together: a sudden rear-up that flicks a spray of water off the bill with a sharp whistle, and a pose with head and tail raised high. The hens answer with quick nods toward the drake they favor.',
+      flock: true,
+    },
   };
 
   protected override runUp = 2;
+
+  /** Drakes display, one after another and in bursts; hens and young nod. */
+  *courtGroup(): Script {
+    yield* this.toWater();
+    yield* this.wait((this.flock?.delay(this) ?? 0) * 2);
+    const rest = this.restingPose();
+    if (this.variant !== 'adult') {
+      for (let i = 0; i < 4; i++) {
+        yield* this.wait(rand(0.8, 2));
+        yield* this.poseTo({ neck: rest.neck + 0.15, head: -0.35 }, 0.15);
+        yield* this.poseTo({ neck: rest.neck, head: 0 }, 0.2);
+      }
+      return yield* this.relax();
+    }
+    for (let i = 0; i < 3; i++) {
+      yield* this.wait(rand(0.5, 2.5));
+      // The grunt-whistle: bill dipped, then a rear-up that flicks water forward off the bill.
+      yield* this.poseTo({ pitch: -0.15, neck: rest.neck - 0.3, head: -1 }, 0.15);
+      this.world.burst('splash', this.billTip().x, 0, 3, this.pose.facing);
+      yield* this.poseTo({ pitch: 0.45, neck: rest.neck + 0.35, head: 0.3 }, 0.2);
+      this.say('a sharp whistle', 1);
+      yield* this.relax(0.3);
+      yield* this.wait(rand(0.5, 1.5));
+      // Head-up-tail-up.
+      yield* this.poseTo({ pitch: 0.1, neck: rest.neck + 0.5, head: 0.4, tailAngle: 0.8 }, 0.25);
+      yield* this.wait(0.6);
+      yield* this.relax(0.3);
+    }
+    yield* this.relax();
+  }
 }
 
 export class Mallard extends Anas {
@@ -276,7 +315,7 @@ export class Mallard extends Anas {
     rank: 'species',
     name: 'Anas platyrhynchos',
     common: 'Mallard',
-    note: 'Drake: green head, white collar, chestnut breast, yellow bill, curled black tail feathers. Hen: mottled brown with an orange bill. Along the shore of Discovery Bay and the Gardiner Beach creek mouth all year, often tame.',
+    note: 'Drake: green head, white collar, chestnut breast, yellow bill, curled black tail feathers. Hen: mottled brown with an orange bill. Along the shore of Discovery Bay and the Gardiner Beach creek mouth all year, often tame. From fall through winter, groups of drakes court the hens together, and a startled flock springs straight up off the water.',
   };
 
   static override ecology: Partial<Ecology> = {
@@ -312,10 +351,11 @@ export class NorthernPintail extends Anas {
     rank: 'species',
     name: 'Anas acuta',
     common: 'Northern Pintail',
-    note: 'Slim and long-necked. The drake has a chocolate head, a white stripe up the neck and a needle-like central tail. Scarce winter visitor on Discovery Bay, more often seen in the fields and sloughs toward Dungeness.',
+    note: 'Slim and long-necked. The drake has a chocolate head, a white stripe up the neck and a needle-like central tail. Scarce winter visitor on Discovery Bay, more often seen in the fields and sloughs toward Dungeness. Winter flocks gather in the open fields and sloughs, where groups of drakes court the hens together.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 10,
     call: 'prrip, prrip (the drake’s soft double whistle); the hen gives a weak quack',
     presence: [2, 2, 1, 1, 0, 0, 0, 0, 1, 1, 2, 2],
   };
@@ -340,6 +380,10 @@ export class NorthernPintail extends Anas {
     beak: '#5a6a78',
     legs: '#6b7480',
   };
+  static override variants: Variants = {
+    // The hen: plain buffy-brown head, mottled brown body, gray bill and a shorter pointed tail.
+    female: { head: '#8a6e52', neck: undefined, throat: undefined, breast: undefined, body: '#8e7356', belly: '#cdb99a', wing: '#7a6650', wingBar: '#6e5a42', tail: '#7a6248', spots: '#4e3a28', beak: '#3a3e44', tailLength: 0.25 },
+  };
 
   protected override reach = 1.6;
 }
@@ -349,10 +393,11 @@ export class GreenWingedTeal extends Anas {
     rank: 'species',
     name: 'Anas crecca',
     common: 'Green-winged Teal',
-    note: 'The smallest dabbler. The drake has a chestnut head with a green eye patch, a vertical white bar on the shoulder and a buff patch under the tail. Small groups on the creek mouth and sheltered shore at Gardiner in winter.',
+    note: 'The smallest dabbler. The drake has a chestnut head with a green eye patch, a vertical white bar on the shoulder and a buff patch under the tail. Small groups on the creek mouth and sheltered shore at Gardiner in winter. Flocks fly fast and tight, twisting and turning together, and spring straight up off the water when flushed.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 10,
     call: 'krick, krick (the drake’s high, ringing whistle)',
     presence: [2, 2, 2, 1, 0, 0, 0, 1, 1, 2, 2, 2],
   };
@@ -377,6 +422,10 @@ export class GreenWingedTeal extends Anas {
     tail: '#2a2a2a',
     beak: '#2a2a2a',
     legs: '#7a7a80',
+  };
+  static override variants: Variants = {
+    // The hen: small and mottled brown with a dark line through the eye. The green speculum is the same.
+    female: { head: '#8a6e52', eyeLine: '#3a2a1e', breast: undefined, band: undefined, spots: '#4e3a28', body: '#8a7052', belly: '#d8ccb4', tail: '#6e5a44' },
   };
 
   protected override reach = 0.5;
@@ -405,6 +454,10 @@ export abstract class Mareca extends Anatidae {
       feeding: true,
       cue: 'Comes up the beach and crops short grass like a small goose, walking steadily with the head low. Mallards and Pintails seldom do this.',
     },
+    flyTogether: {
+      label: 'Spring up together',
+      cue: 'When startled, the whole flock springs straight up off the water at once, with no run, and climbs away in a tight bunch.',
+    },
   };
 
   protected override runUp = 3;
@@ -420,10 +473,11 @@ export class AmericanWigeon extends Mareca {
     rank: 'species',
     name: 'Mareca americana',
     common: 'American Wigeon',
-    note: 'Drake: white crown, green swath behind the eye, pinkish flanks and a small pale-blue bill with a black tip. Rafts of whistling birds on Discovery Bay from fall to early spring, and often seen grazing at the edge of Gardiner Beach.',
+    note: 'Drake: white crown, green swath behind the eye, pinkish flanks and a small pale-blue bill with a black tip. Rafts of whistling birds on Discovery Bay from fall to early spring, and often seen grazing at the edge of Gardiner Beach. Flocks graze together on the shore grass as well as feeding on the water.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 25,
     call: 'whee-whee-WHEW (the drake’s three-note whistle)',
     presence: [3, 3, 2, 1, 0, 0, 0, 0, 1, 2, 3, 3],
   };
@@ -445,6 +499,10 @@ export class AmericanWigeon extends Mareca {
     tail: '#2a2a2a',
     beak: '#9aa8b8',
     legs: '#7a7a80',
+  };
+  static override variants: Variants = {
+    // The hen: gray-brown head without the white crown or green swath, warm rusty flanks and a grayer shoulder patch.
+    female: { head: '#8e8a84', cap: undefined, eyeLine: undefined, breast: '#a87a62', body: '#a8765e', wingBar: '#b0aca4', spots: '#5a4a3e' },
   };
 
   protected override reach = 0.6;
