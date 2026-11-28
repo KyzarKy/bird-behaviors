@@ -10,18 +10,16 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
 
 interface Props {
   bird: Bird;
-  /** Simulation speed multiplier; 0 pauses. */
-  speed: number;
   closeUp: boolean;
   onBehaviorChange: (key: string | null) => void;
 }
 
 /** Owns the animation loop: steps the simulation and paints it. */
-export function Stage({ bird, speed, closeUp, onBehaviorChange }: Props) {
+export function Stage({ bird, closeUp, onBehaviorChange }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Read through a ref so changing controls does not restart the loop.
-  const live = useRef({ speed, closeUp, onBehaviorChange });
-  live.current = { speed, closeUp, onBehaviorChange };
+  const live = useRef({ closeUp, onBehaviorChange });
+  live.current = { closeUp, onBehaviorChange };
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -35,10 +33,9 @@ export function Stage({ bird, speed, closeUp, onBehaviorChange }: Props) {
       raf = requestAnimationFrame(frame);
       const real = Math.min(0.05, (now - last) / 1000);
       last = now;
-      const dt = real * live.current.speed;
-      if (dt > 0) {
-        bird.world.step(dt);
-        bird.update(dt);
+      if (real > 0) {
+        bird.world.step(real);
+        bird.update(real);
       }
       if (bird.current !== shown) live.current.onBehaviorChange((shown = bird.current));
 

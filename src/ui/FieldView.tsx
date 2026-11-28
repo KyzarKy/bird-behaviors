@@ -15,13 +15,6 @@ const BARS: { field: keyof FlightProfile; label: string }[] = [
   { field: 'glide', label: 'Glide' },
 ];
 
-const SPEEDS = [
-  { value: '0', label: 'Pause' },
-  { value: '0.25', label: '¼×' },
-  { value: '0.5', label: '½×' },
-  { value: '1', label: '1×' },
-] as const;
-
 export function FieldView({ species, scene }: { species: SpeciesClass; scene: HabitatId }) {
   const [variant, setVariant] = useState<Variant>('adult');
   const plumages = useMemo(() => {
@@ -35,7 +28,8 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
   const flight = useMemo(() => new Map(traitSources(species, 'flight').map((s) => [s.field, s.from])), [species]);
   const [current, setCurrent] = useState<string | null>(null);
   const [lastKey, setLastKey] = useState<string | null>(null);
-  const [speed, setSpeed] = useState<(typeof SPEEDS)[number]['value']>('1');
+  // On phones the controls fold into a drawer, so the behaviors list peeks above the fold.
+  const [drawer, setDrawer] = useState(false);
   // A phone's stage is small, so it starts zoomed in on the bird.
   const [closeUp, setCloseUp] = useState(() => window.matchMedia('(max-width: 640px)').matches);
   const [auto, setAuto] = useState(false);
@@ -58,7 +52,6 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
     stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     bird.perform(key);
     setLastKey(key);
-    if (speed === '0') setSpeed('1');
   };
   const f = bird.flight;
   const from = (field: keyof FlightProfile) => <ClassLink cls={flight.get(field)!} />;
@@ -81,28 +74,34 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
           </nav>
         </header>
 
-        <Stage bird={bird} speed={Number(speed)} closeUp={closeUp} onBehaviorChange={setCurrent} />
+        <Stage bird={bird} closeUp={closeUp} onBehaviorChange={setCurrent} />
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div className="w-full sm:w-auto sm:min-w-max sm:flex-1">
-            <Select aria-label="Scene" value={scene} onChange={(e) => changeScene(e.target.value as HabitatId)} className="w-full sm:w-auto">
-              {Object.values(HABITATS).map((h) => (
-                <option key={h.id} value={h.id}>
-                  {h.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-          {/* On phones the scene, the speed, the plumage and the two checkboxes each get a row. */}
-          <div className="w-full sm:w-auto">
-            <SegmentedControl label="Playback speed" value={speed} onChange={setSpeed} options={SPEEDS} />
-          </div>
-          {plumages.length > 1 && (
-            <div className="w-full sm:w-auto">
-              <SegmentedControl label="Plumage" value={variant} onChange={setVariant} options={plumages} />
-            </div>
-          )}
-          <div className="flex w-full gap-x-4 sm:w-auto">
+        <button
+          type="button"
+          aria-expanded={drawer}
+          aria-controls="stage-controls"
+          onClick={() => setDrawer(!drawer)}
+          className="flex min-h-11 items-center justify-between rounded-xl border border-border bg-card px-4 text-sm sm:hidden"
+        >
+          <span className="truncate">
+            <span className="font-medium">Scene and settings</span>
+            {!drawer && <span className="text-muted-foreground"> · {HABITATS[scene].name}</span>}
+          </span>
+          <span aria-hidden="true" className={`ml-2 transition-transform ${drawer ? 'rotate-180' : ''}`}>
+            ▾
+          </span>
+        </button>
+        {/* A drawer on phones, always open from sm up. */}
+        <div id="stage-controls" className={`${drawer ? 'flex' : 'hidden'} flex-col items-start gap-3 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4`}>
+          <Select aria-label="Scene" value={scene} onChange={(e) => changeScene(e.target.value as HabitatId)} className="w-full sm:w-auto">
+            {Object.values(HABITATS).map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.name}
+              </option>
+            ))}
+          </Select>
+          {plumages.length > 1 && <SegmentedControl label="Plumage" value={variant} onChange={setVariant} options={plumages} />}
+          <div className="flex gap-x-4">
             <Checkbox label="Close-up" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
             <Checkbox label="Auto" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
           </div>

@@ -1,6 +1,6 @@
 # Roadmap
 
-Built so far: 165 species across 18 orders, 2 habitats, triggerable behaviors with slow motion and close-up, an auto mode where the bird chooses for itself and everything comes up every few minutes, one `forage` behavior per bird, food in the scene for each bird with peeks and regrowth (see [docs/behaviors.md](docs/behaviors.md#food-in-the-scene)), a species list sorted by how likely each bird is this month, female and juvenile plumages for species that have them (`variants`, picked under the stage), the class hierarchy explorer, browser tests on a phone screen, and an interface on `@kyzarky/ui`.
+Built so far: 165 species across 18 orders, 2 habitats, triggerable behaviors with a close-up, an auto mode where the bird chooses for itself and everything comes up every few minutes, one `forage` behavior per bird, food in the scene for each bird with peeks and regrowth (see [docs/behaviors.md](docs/behaviors.md#food-in-the-scene)), a species list sorted by how likely each bird is this month, female and juvenile plumages for species that have them (`variants`, picked under the stage), the class hierarchy explorer, browser tests on a phone screen, and an interface on `@kyzarky/ui`.
 
 ## Next, in order
 
