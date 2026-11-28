@@ -14,6 +14,8 @@ export class Flock {
   birds: Bird[];
   /** Seconds until the flock does something together. */
   private next = 0;
+  /** The flock behavior under way, until the last bird finishes it. */
+  private doing: string | null = null;
   private plan = new Map<Bird, { delay: number; to: Vec | null; rank: number; side: -1 | 0 | 1 }>();
   /** Which way the flock is heading when it moves, and the middle of where it starts and where it is going. */
   heading: 1 | -1 = 1;
@@ -99,6 +101,7 @@ export class Flock {
   perform(key: string) {
     this.planMove();
     for (const b of this.birds) b.perform(key);
+    this.doing = key;
     this.next = rand(25, 45);
   }
 
@@ -125,7 +128,9 @@ export class Flock {
   update(dt: number) {
     this.lead.world.step(dt);
     for (const b of this.birds) b.update(dt);
-    if (this.on && (this.next -= dt) <= 0) {
+    // The next one waits until the last bird is done with this one, so nobody is cut off mid-behavior.
+    if (this.doing && !this.birds.some((b) => b.current === this.doing)) this.doing = null;
+    if (this.on && !this.doing && (this.next -= dt) <= 0) {
       const options = behaviorsOf(this.lead.constructor as SpeciesClass).filter((b) => b.spec.flock && !this.lead.missing(b.key));
       let roll = Math.random() * options.reduce((sum, b) => sum + (b.spec.weight ?? 1), 0);
       const pick = options.find((b) => (roll -= b.spec.weight ?? 1) < 0);
