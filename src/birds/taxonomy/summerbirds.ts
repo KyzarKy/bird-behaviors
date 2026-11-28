@@ -572,7 +572,7 @@ export abstract class Cardinalidae extends Passeriformes {
     forage: {
       eats: 'grassBugs',
       label: 'Hop and pick insects',
-      cue: 'Drops to the ground and hops through the grass picking up grasshoppers and other insects, most of all when it has young to feed.',
+      cue: 'Comes down into low growth or onto the ground to pick off grasshoppers and other insects. A grosbeak more often gleans up in the foliage; a bunting feeds mainly low.',
     },
     pluckFruit: {
       eats: 'berries',
@@ -583,12 +583,12 @@ export abstract class Cardinalidae extends Passeriformes {
   };
 
   *pluckFruit(): Script {
-    // Into the shrub, beside a berry.
-    const berry = this.preySpot(this.findPerch(['shrub']) ?? { ...this.pos });
-    yield* this.flyTo(berry);
+    // Into the shrub, beside a berry, and reach out for it.
+    const reach = { neck: 1.1, head: -0.5, pitch: 0.5 };
     for (let i = 0; i < 2; i++) {
-      yield* this.poseTo({ neck: 1.1, head: -0.5, pitch: 0.5 }, 0.2);
-      this.take(Infinity, berry);
+      const berry = this.pieceInReach(reach);
+      if (!berry) return;
+      yield* this.reachFor(berry, reach, { hold: Infinity });
       yield* this.poseTo({ neck: 0.95, head: 0, pitch: this.restingPose().pitch }, 0.2);
       yield* this.wait(0.3);
       yield* this.poseTo({ head: 0.8, neck: 1.2 }, 0.15);

@@ -78,6 +78,12 @@ export function drawBackdrop(ctx: Ctx, world: World) {
     }
   }
 
+  // Open water down to the seabed. Left unpainted, it kept what was drawn there last frame under the water's tint.
+  if (h.water) {
+    ctx.fillStyle = '#4682a5';
+    ctx.fillRect(h.water.from, bottom, width - h.water.from, -bottom);
+  }
+
   // Ground. Under water it slopes away as the seabed.
   ctx.fillStyle = h.ground === 'grass' ? '#6f9a54' : '#d9c8a0';
   ctx.beginPath();
@@ -87,7 +93,8 @@ export function drawBackdrop(ctx: Ctx, world: World) {
   ctx.lineTo(0, bottom);
   ctx.fill();
   ctx.fillStyle = h.ground === 'grass' ? '#5e8747' : '#c9b78d';
-  ctx.fillRect(0, bottom, width, -bottom - 3.5);
+  // The soil below the surface, on land only: under the water it would hide the seabed.
+  ctx.fillRect(0, bottom, h.water ? h.water.from : width, -bottom - 3.5);
 
   if (h.litter) {
     const [from, to] = h.litter;

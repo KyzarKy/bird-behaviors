@@ -96,7 +96,7 @@ export abstract class Trochilidae extends Apodiformes {
     this.pose.facing = dir;
     yield* this.hoverFor(0.8);
     for (let i = 0; i < 2; i++) {
-      yield* this.flyTo({ x: audience.x - dir * 7, y: Math.min(49, audience.y + this.diveHeight) }, { land: false });
+      yield* this.flyTo({ x: audience.x - dir * 7, y: Math.min(this.sky, audience.y + this.diveHeight) }, { land: false });
       yield* this.flyTo({ x: audience.x - dir * 1.5, y: audience.y + 2 }, { land: false, speed: 2.2 });
       this.diveSound();
       yield* this.flyTo({ x: audience.x + dir * 7, y: audience.y + 7 }, { land: false, speed: 1.6 });

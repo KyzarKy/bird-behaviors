@@ -305,7 +305,7 @@ export function drawBird(ctx: Ctx, bird: Bird) {
   ctx.lineCap = ctx.lineJoin = 'round';
 
   // Legs stay planted while the body pitches above them.
-  if (!flying && !afloat) {
+  if (!flying && !afloat && !bird.submerged) {
     const hipX = -a * 0.05 * cos + b * 0.55 * sin;
     const hipY = cy - a * 0.05 * sin - b * 0.55 * cos;
     ctx.strokeStyle = k.legs;

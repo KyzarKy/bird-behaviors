@@ -4,7 +4,7 @@
  * drawFoodBack goes under the bird. drawFoodFront goes over it: the cover that hides carrion.
  */
 import type { FoodKind } from '../birds/core/food';
-import type { FoodPatch, Peek, World } from '../birds/core/World';
+import { peekSpot, type FoodPatch, type Peek, type World } from '../birds/core/World';
 
 const TAU = Math.PI * 2;
 type Ctx = CanvasRenderingContext2D;
@@ -136,7 +136,7 @@ export function drawFoodBack(ctx: Ctx, world: World) {
   if (p && draw) {
     const t = p.t / p.seconds;
     ctx.save();
-    ctx.globalAlpha = Math.min(1, Math.sin(Math.PI * t) * 2.5);
+    ctx.globalAlpha = p.held ? 1 : Math.min(1, Math.sin(Math.PI * t) * 2.5);
     draw(ctx, p, t, world);
     ctx.restore();
   }
@@ -219,27 +219,29 @@ export const PEEKS: Partial<Record<FoodKind, PeekDraw>> = {
     ctx.quadraticCurveTo(0.25 * e, 0.5 * e, -0.1, 1.1 * e);
     ctx.stroke();
   },
-  grassBugs(ctx, p, t) {
+  grassBugs(ctx, p, t, world) {
     // A grasshopper hops out of the grass and lands again.
-    big(ctx, p.x + 2.4 * t, 0.15 + 1.6 * Math.sin(Math.PI * Math.min(1, t * 1.5)));
+    const s = peekSpot(p, world.habitat);
+    big(ctx, s.x, s.y + 0.15);
     grasshopper(ctx, t);
   },
-  litterBugs(ctx, p, t) {
+  litterBugs(ctx, p, t, world) {
     // A beetle runs out of the leaves and back.
-    big(ctx, p.x + 1.6 * Math.sin(Math.PI * t), 0.12);
+    big(ctx, peekSpot(p, world.habitat).x, 0.12);
     ctx.scale(t < 0.5 ? 1 : -1, 1);
     beetle(ctx, t);
   },
   barkBugs(ctx, p, t, world) {
     // An ant climbs the trunk where the food is.
-    const trunk = world.habitat.trunks.find((k) => Math.abs(k.x - p.x) < 3);
-    big(ctx, (trunk?.x ?? p.x) + 0.3, 5 + ((p.x * 37.13) % 1) * 20 + 1.5 * t);
+    const s = peekSpot(p, world.habitat);
+    big(ctx, s.x, s.y);
     ctx.rotate(Math.PI / 2);
     ant(ctx, t);
   },
-  leafBugs(ctx, p, t) {
+  leafBugs(ctx, p, t, world) {
     // A caterpillar inching along under a leaf.
-    big(ctx, p.x - 0.4 + 0.6 * t, p.y);
+    const s = peekSpot(p, world.habitat);
+    big(ctx, s.x, s.y);
     caterpillar(ctx, t);
   },
   ants(ctx, p, t) {
@@ -251,9 +253,9 @@ export const PEEKS: Partial<Record<FoodKind, PeekDraw>> = {
       ctx.restore();
     }
   },
-  sandCritters(ctx, p, t) {
+  sandCritters(ctx, p, t, world) {
     // A crab runs sideways.
-    big(ctx, p.x + 2 * t, 0);
+    big(ctx, peekSpot(p, world.habitat).x, 0);
     crab(ctx, t);
   },
   wrack(ctx, p, t) {
@@ -269,7 +271,7 @@ export const PEEKS: Partial<Record<FoodKind, PeekDraw>> = {
     // A few minnows dart through the shallows, and dimple the surface.
     for (let i = 0; i < 3; i++) {
       ctx.save();
-      ctx.translate(p.x + (i - 1) * 0.9 + 3 * t, p.y - i * 0.25);
+      ctx.translate(peekSpot(p, world.habitat).x + (i - 1) * 0.9, p.y - i * 0.25);
       fish(ctx, world.time + i, 0.8);
       ctx.restore();
     }
@@ -287,9 +289,9 @@ export const PEEKS: Partial<Record<FoodKind, PeekDraw>> = {
       dot(ctx, p.x + (i - 3) * 0.9, -0.3 + 0.8 * Math.sin(Math.PI * k), 0.2);
     }
   },
-  voles(ctx, p, t) {
+  voles(ctx, p, _t, world) {
     // A vole runs between clumps of grass.
-    big(ctx, p.x + 5 * t, 0.3);
+    big(ctx, peekSpot(p, world.habitat).x, 0.3);
     vole(ctx);
   },
 };

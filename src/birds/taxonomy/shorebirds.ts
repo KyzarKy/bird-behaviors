@@ -328,9 +328,9 @@ export abstract class Scolopacidae extends Charadriiformes {
     for (let i = 0; i < this.probeBouts; i++) {
       yield* this.moveOnGround(this.mealRange(true) ? this.foodSpot(4).x : clamp(this.pos.x + rand(-4, 2), centre - 6, centre + 2));
       yield* this.poseTo({ pitch: rest.pitch - 0.45, neck: -0.3, head: -1 }, 0.07);
-      yield* this.glimpse();
+      const shown = yield* this.glimpse();
       for (let k = 0; k < this.probeStitch * 2; k++) yield* this.poseTo({ neck: k % 2 ? -0.3 : -0.55 }, 0.04);
-      if (this.atFood()) this.take();
+      this.takeOrHide(shown);
       yield* this.relax(0.1);
     }
     yield* this.relax();
@@ -1070,6 +1070,7 @@ export class CaspianTern extends Hydroprogne {
 // ================================================================== Alcidae
 
 export abstract class Alcidae extends Charadriiformes {
+  protected override diveDepth = 8;
   static override taxon: Taxon = {
     rank: 'family',
     name: 'Alcidae',
@@ -1134,6 +1135,7 @@ export abstract class Alcidae extends Charadriiformes {
 }
 
 export abstract class Cepphus extends Alcidae {
+  protected override diveDepth = 9;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Cepphus',
@@ -1197,6 +1199,7 @@ export class PigeonGuillemot extends Cepphus {
 }
 
 export abstract class Cerorhinca extends Alcidae {
+  protected override diveDepth = 10;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Cerorhinca',
@@ -1263,6 +1266,7 @@ export class RhinocerosAuklet extends Cerorhinca {
 }
 
 export abstract class Brachyramphus extends Alcidae {
+  protected override diveDepth = 7;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Brachyramphus',
@@ -1325,6 +1329,7 @@ export class MarbledMurrelet extends Brachyramphus {
 }
 
 export abstract class Uria extends Alcidae {
+  protected override diveDepth = 11;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Uria',

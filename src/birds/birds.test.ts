@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { drawnFlapRate } from './core/Bird';
 import { behaviorsOf, buildTree, lineage, resolveTraits, traitSources, type BirdClass } from './core/reflect';
-import { DEEP, HABITATS, World } from './core/World';
+import { DEEP, HABITATS, STAGE, World, peekSpot } from './core/World';
 import { EXTRAS, FOOD_SITES, FOODS, eatsIn, type FoodKind } from './core/food';
 import { drawFoodBack, PEEKS, PREY } from '../render/drawFood';
 import type { Ecology, HabitatId } from './core/traits';
@@ -11,6 +11,27 @@ import { Galliformes, Chicken, CaliforniaQuail } from './taxonomy/galliformes';
 import { AnnasHummingbird, Trochilidae } from './taxonomy/apodiformes';
 import { Colaptes, NorthernFlicker, Picidae } from './taxonomy/piciformes';
 import { BaldEagle, BeltedKingfisher } from './taxonomy/waterside';
+import { RedBreastedSapsucker } from './taxonomy/yardbirds';
+
+/** Math.random from a fixed seed for the length of `run`, so a simulated check fails the same way every time. */
+// SEED=<n> shifts every seed so the checks try other paths; SEED=random picks a new n each run. A failure names the
+// SEED that reproduces it. Unset, the seeds stay fixed.
+const SEED = (() => {
+  const v: string | undefined = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env.SEED;
+  return v === 'random' ? 1 + Math.floor(Math.random() * 2147483645) : v ? Number(v) : 0;
+})();
+const seeded = <T>(seed: number, run: () => T): T => {
+  let s = SEED ? ((seed + SEED * 48271) % 2147483646) + 1 : seed;
+  const spy = vi.spyOn(Math, 'random').mockImplementation(() => ((s = (s * 16807) % 2147483647) - 1) / 2147483646);
+  try {
+    return run();
+  } catch (e) {
+    if (e instanceof Error) e.message += ` (reproduce with SEED=${SEED})`;
+    throw e;
+  } finally {
+    spy.mockRestore();
+  }
+};
 
 const names = (classes: BirdClass[]) => classes.map((c) => c.taxon.name);
 const make = (cls: (typeof SPECIES)[number], scene?: HabitatId) => {
@@ -117,6 +138,16 @@ describe('simulation', () => {
 });
 
 describe('regressions', () => {
+  // The Osprey flew on past its plunge to x + 6, which could be 100; held at the edge at 99, it flew into it forever.
+  it('a flight to a point past the edge of the scene ends at the edge', () => {
+    const bird = make(BaldEagle, 'beach');
+    bird.pos = { x: 92, y: 9 };
+    const flight = (bird as unknown as { flyTo(t: { x: number; y: number }, o: { land: boolean }): Generator<void, boolean, number> }).flyTo({ x: 104, y: 9 }, { land: false });
+    let frames = 0;
+    while (!flight.next(1 / 60).done) expect(++frames, 'still flying at the edge').toBeLessThan(60 * 20);
+    expect(bird.pos.x).toBeLessThanOrEqual(99);
+  });
+
   // From a piling the run-up used to be placed back over the beach, and the turn toward the water went through the sand.
   for (const post of HABITATS.beach.perches.filter((p) => p.kind === 'post')) {
     it(`Bald Eagle fishing from the piling at x=${post.x} never hits the beach`, () => {
@@ -154,7 +185,10 @@ describe('auto mode', () => {
         bird.world.step(1 / 60);
         bird.update(1 / 60);
         if (bird.current) seen.add(bird.current);
-        expect(bird.pos.x >= 0 && bird.pos.x <= 100 && bird.pos.y > -DEEP - 1 && bird.pos.y < 54).toBe(true);
+        expect(bird.pos.x >= 0 && bird.pos.x <= 100 && bird.pos.y > -DEEP - 1).toBe(true);
+        // Its head stays under the top of the scene (wingtips at the top of a beat may go past).
+        const head = bird.headPoint();
+        expect(head.y + head.r, `${bird.current}: its head goes out the top of the scene`).toBeLessThan(STAGE.top);
       }
       expect(seen.size).toBeGreaterThan(1);
     });
@@ -283,6 +317,8 @@ describe('food in the scene', () => {
               expect(gap, `takes it ${gap.toFixed(1)} away from its bill and feet`).toBeLessThan(2.5);
               takes.push(track.length);
               at.push({ ...where });
+              // Food on top of something (ants along the drift log): it stands up there to eat, not on the ground below.
+              if (site.stand) expect(Math.abs(bird.pos.y - site.y), `feeds from the ground below the ${k} on the log`).toBeLessThan(0.3);
               // An animal that keeps out of sight is seen before it is taken: drawn where the bird takes it.
               if (FOODS[k].hidden) {
                 const prey = bird.world.prey;
@@ -404,4 +440,240 @@ describe('food in the scene', () => {
     world.restore();
     expect(left()).toBe(all);
   });
+
+  it('ends a peek of another animal when feeding starts, and starts none until it is done', () => {
+    const flicker = make(NorthernFlicker, 'yard');
+    const world = flicker.world;
+    world.peek = { kind: 'worms', x: 30, y: 0, t: 0.5, seconds: 2 };
+    flicker.perform('forage');
+    expect(world.peek).toBeNull();
+    for (let t = 0; t < 40 && flicker.current; t += 0.25) {
+      flicker.update(0.25);
+      world.step(0.25);
+      expect(world.peek, 'no new peek while it feeds').toBeNull();
+    }
+  });
+
+  // An animal of the kind a bird eats that is showing when it starts to feed holds still where it is. Either the bird
+  // goes for it and takes it, the animal never jumping or vanishing on the way, or the bird goes for another and it
+  // hides as that one shows. A check of only the first frame let birds pick a new target a moment later.
+  const seedOf = (s: string) => ([...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 2147483646, 7) || 1);
+  for (const cls of SPECIES) {
+    for (const scene of (Object.keys(HABITATS) as HabitatId[]).filter((h) => inScene(cls, h))) {
+      for (const b of behaviorsOf(cls).filter((b) => b.spec.feeding && FOODS[eatsIn(b.spec, scene)!]?.hidden)) {
+        const kind = eatsIn(b.spec, scene)!;
+        it(`${cls.taxon.common} (${scene}): ${b.key} goes for the ${kind} that showed, or lets it hide`, () =>
+          seeded(seedOf(`${cls.taxon.common}${scene}${b.key}`), () => {
+            for (let run = 0; run < 3; run++) {
+              const bird = make(cls, scene);
+              if (bird.missing(b.key)) return;
+              const world = bird.world;
+              bird.update(1 / 60);
+              const f = world.food.find((f) => f.kind === kind)!;
+              const u = f.units[Math.floor(Math.random() * f.units.length)];
+              world.peek = { kind, x: u ? u.x : f.site.x[0] + Math.random() * (f.site.x[1] - f.site.x[0]), y: u ? u.y : f.site.y, t: 0.3 + Math.random() * 1.4, seconds: 2 };
+              const spot = peekSpot(world.peek, world.habitat);
+              let taken = false;
+              const eat = world.eat.bind(world);
+              world.eat = (k, w) => ((taken = true), eat(k, w));
+              bird.perform(b.key);
+              let picked = false;
+              let last = world.prey && { ...world.prey };
+              for (let frames = 0; frames < 60 * 60 && !taken && bird.current; frames++) {
+                world.step(1 / 60);
+                bird.update(1 / 60);
+                if (taken || !bird.current) break;
+                const q = world.prey;
+                if (!picked && !q) expect(world.peek, 'the animal that showed vanishes before the bird picks one').not.toBeNull();
+                if (!picked && q) {
+                  picked = Math.hypot(q.x - spot.x, q.y - spot.y) < 2;
+                  if (!picked) {
+                    expect(world.peek, 'goes for another while the one that showed stays out').toBeNull();
+                    break;
+                  }
+                }
+                if (picked) {
+                  expect(q, 'the animal it went for vanishes before it is taken').not.toBeNull();
+                  if (q && last) expect(Math.hypot(q.x - last.x, q.y - last.y), 'the animal it went for jumps somewhere else').toBeLessThan(2);
+                }
+                last = q && { ...q };
+              }
+            }
+          }));
+      }
+    }
+  }
+
+  // A dabbler tips up over the eelgrass as deep as it can still reach the bottom, so each bite shows its full upend.
+  // The bed used to be so shallow that a swan's neck alone reached the bottom anywhere in it, so it never tipped.
+  for (const cls of SPECIES.filter((c) => inScene(c, 'beach'))) {
+    const probe = make(cls, 'beach') as unknown as { feeding?: string; tipUp?: unknown };
+    const forage = behaviorsOf(cls).find((b) => b.key === 'forage');
+    if (probe.feeding !== 'dabble' || !probe.tipUp || !forage || eatsIn(forage.spec, 'beach') !== 'eelgrass') continue;
+    it(`${cls.taxon.common} upends to the bottom of the eelgrass`, () =>
+      seeded(seedOf(`${cls.taxon.common}upend`), () => {
+        const bird = make(cls, 'beach');
+        const rest = bird.pose.pitch;
+        let bites = 0;
+        const eat = bird.world.eat.bind(bird.world);
+        bird.world.eat = (k, at) => {
+          const b = bird.billTip();
+          expect(Math.abs(b.y - bird.world.floorY(b.x)), 'takes the weed with its bill off the bottom').toBeLessThan(0.3);
+          expect(bird.pose.pitch, 'takes the weed without tipping up').toBeLessThan(rest - 0.3);
+          bites++;
+          eat(k, at);
+        };
+        bird.update(1 / 60);
+        bird.perform('forage');
+        for (let frames = 0; frames < 60 * 60 && bird.current; frames++) {
+          bird.world.step(1 / 60);
+          bird.update(1 / 60);
+        }
+        expect(bites).toBeGreaterThan(0);
+      }));
+  }
+
+  // Each diver works its own depth: down to at least half its limit where the food goes that deep, and no deeper than
+  // the limit. With the mussels only in the shallows, a Long-tailed Duck's deep dive went no deeper than a Bufflehead's.
+  for (const cls of SPECIES.filter((c) => inScene(c, 'beach'))) {
+    const feeding = behaviorsOf(cls).filter((b) => b.spec.feeding);
+    if (!make(cls, 'beach').ecology.swims || !feeding.length) continue;
+    it(`${cls.taxon.common} dives to its own depth`, () =>
+      seeded(seedOf(`${cls.taxon.common}depth`), () => {
+        for (const b of feeding) {
+          const bird = make(cls, 'beach');
+          if (bird.missing(b.key)) continue;
+          const limit = (bird as unknown as { diveDepth: number }).diveDepth;
+          bird.update(1 / 60);
+          bird.perform(b.key);
+          let deepest = 0;
+          for (let frames = 0; frames < 60 * 60 && bird.current; frames++) {
+            bird.world.step(1 / 60);
+            bird.update(1 / 60);
+            if (bird.submerged) deepest = Math.max(deepest, -bird.billTip().y);
+          }
+          const site = bird.world.site(eatsIn(b.spec, 'beach')!);
+          if (!deepest || !site) continue;
+          // How deep the food goes: the bottom at the outer edge of a bed, or the bottom of a school.
+          const food = site.onBottom ? -bird.world.floorY(Math.min(site.x[1], 96)) : -(site.y - (site.spread ?? 0));
+          const reach = Math.min(limit / 2, food, -bird.world.floorY(Math.min(site.x[1], 96)) - 0.6);
+          expect(deepest, `${b.key}: dives only ${deepest.toFixed(1)} deep, short of its usual ${reach.toFixed(1)}`).toBeGreaterThan(reach - 1);
+          expect(deepest, `${b.key}: dives ${deepest.toFixed(1)} deep, past its limit of ${limit}`).toBeLessThan(limit + 1.5);
+        }
+      }));
+  }
+
+  // The animal a bird hunts moves like an animal while it is drawn: it shows, swims or hops, and hides, but never
+  // jumps across the scene. The snorkeling mergansers showed a new fish 10 apart at each stop, and a fish deeper than
+  // the bill reached jumped up to it. Checked from the start of the behavior, not only once the bird has picked one.
+  for (const cls of SPECIES) {
+    for (const scene of (Object.keys(HABITATS) as HabitatId[]).filter((h) => inScene(cls, h))) {
+      for (const b of behaviorsOf(cls).filter((b) => b.spec.feeding && FOODS[eatsIn(b.spec, scene)!]?.hidden)) {
+        it(`${cls.taxon.common} (${scene}): the animal ${b.key} hunts never jumps while drawn`, () =>
+          seeded(seedOf(`${cls.taxon.common}${scene}${b.key}moves`), () => {
+            for (let run = 0; run < 3; run++) {
+              const bird = make(cls, scene);
+              if (bird.missing(b.key)) return;
+              bird.update(1 / 60);
+              bird.perform(b.key);
+              let last = bird.world.prey && { ...bird.world.prey };
+              for (let frames = 0; frames < 60 * 60 && bird.current; frames++) {
+                bird.world.step(1 / 60);
+                bird.update(1 / 60);
+                const q = bird.world.prey;
+                if (q && last) expect(Math.hypot(q.x - last.x, q.y - last.y), `${(frames / 60).toFixed(2)}s: jumps from ${last.x.toFixed(1)},${last.y.toFixed(1)} to ${q.x.toFixed(1)},${q.y.toFixed(1)}`).toBeLessThan(1);
+                last = q && { ...q };
+              }
+            }
+          }));
+      }
+    }
+  }
+
+  // Under water a bird swims the way it faces. The dive helper put the body a bill's reach short of food that was
+  // closer than that, so the bird rolled forward and then swam backward to it.
+  for (const cls of SPECIES.filter((c) => inScene(c, 'beach'))) {
+    const feeding = behaviorsOf(cls).filter((b) => b.spec.feeding);
+    if (!make(cls, 'beach').ecology.swims || !feeding.length) continue;
+    it(`${cls.taxon.common} swims forward under water`, () =>
+      seeded(seedOf(cls.taxon.common), () => {
+        for (const b of feeding) {
+          for (let run = 0; run < 2; run++) {
+            const bird = make(cls, 'beach');
+            if (bird.missing(b.key)) break;
+            bird.update(1 / 60);
+            bird.perform(b.key);
+            let back = 0;
+            for (let frames = 0; frames < 60 * 60 && bird.current; frames++) {
+              const x0 = bird.pos.x;
+              const was = bird.submerged;
+              bird.world.step(1 / 60);
+              bird.update(1 / 60);
+              if (was && bird.submerged) back += Math.max(0, -(bird.pos.x - x0) * bird.pose.facing);
+              if (!bird.submerged) {
+                expect(back, `${b.key}: swims ${back.toFixed(1)} backward on one dive`).toBeLessThan(0.3);
+                back = 0;
+              }
+            }
+          }
+        }
+      }));
+  }
+
+  // Two feeding behaviors of one bird that move it exactly alike, given the same luck, are one action listed twice.
+  // The geese's Feed and Graze both ran grazeOnLand by different routes, which the alias check above can't see.
+  for (const cls of SPECIES) {
+    for (const scene of (Object.keys(HABITATS) as HabitatId[]).filter((h) => inScene(cls, h))) {
+      const feeding = behaviorsOf(cls).filter((b) => b.spec.feeding);
+      if (feeding.length < 2) continue;
+      it(`${cls.taxon.common} (${scene}) has no two feeding behaviors that are the same action`, () => {
+        const trace = (key: string) =>
+          seeded(12345, () => {
+            const bird = make(cls, scene);
+            if (bird.missing(key)) return key;
+            bird.update(1 / 60);
+            bird.perform(key);
+            const out: string[] = [];
+            for (let frames = 0; frames < 60 * 90 && bird.current; frames++) {
+              bird.world.step(1 / 60);
+              bird.update(1 / 60);
+              if (frames % 6 === 0) out.push(`${bird.pos.x.toFixed(2)},${bird.pos.y.toFixed(2)},${bird.pose.pitch.toFixed(2)},${bird.pose.neck.toFixed(2)}`);
+            }
+            return out.join(' ');
+          });
+        const seen = new Map<string, string>();
+        for (const b of feeding) {
+          const t = trace(b.key);
+          expect(seen.get(t), `${b.key} does exactly what ${seen.get(t)} does`).toBeUndefined();
+          seen.set(t, b.key);
+        }
+      });
+    }
+  }
+
+  it('Red-breasted Sapsucker licks the wells on the side of the trunk it drilled', () =>
+    seeded(99, () => {
+      for (let run = 0; run < 12; run++) {
+        const bird = make(RedBreastedSapsucker, 'yard');
+        // Start on either side of the oak, so it drills on either side.
+        bird.pos = { x: run % 2 ? 70 : 99, y: 20 };
+        const chips: number[] = [];
+        const licks: number[] = [];
+        const burst = bird.world.burst.bind(bird.world);
+        bird.world.burst = (kind, x, y, n, dir) => (kind === 'chip' && chips.push(x), burst(kind, x, y, n, dir));
+        const eat = bird.world.eat.bind(bird.world);
+        bird.world.eat = (k, at) => (licks.push(at.x), eat(k, at));
+        bird.update(1 / 60);
+        bird.perform('forage');
+        for (let frames = 0; frames < 60 * 60 && bird.current; frames++) {
+          bird.world.step(1 / 60);
+          bird.update(1 / 60);
+        }
+        const trunk = 86;
+        expect(chips.length).toBeGreaterThan(0);
+        expect(licks.length).toBeGreaterThan(0);
+        const side = Math.sign(chips[0] - trunk);
+        for (const x of [...chips, ...licks]) expect(Math.sign(x - trunk), 'drills one side and licks the other').toBe(side);
+      }
+    }));
 });

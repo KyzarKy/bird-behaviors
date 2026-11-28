@@ -87,7 +87,9 @@ export interface FoodSite {
   spread?: number;
   /** Pieces drawn in place. One a bird takes is gone until the bird's behavior ends. Small animals have none and only peek. */
   units?: Vec[];
-  /** The pieces lie on the seabed: their y is height above the bottom wherever they are. */
+  /** The food is on top of something a bird stands on to feed (the drift log): this x range of it, at height `y`. */
+  stand?: [number, number];
+  /** The food lies along the seabed, at whatever depth the bottom is: a piece's y is its height above the bottom. */
   onBottom?: boolean;
 }
 
@@ -136,8 +138,12 @@ export const FOOD_SITES: Record<HabitatId, Partial<Record<FoodKind, FoodSite>>> 
     grassBugs: { x: [15, 30], y: 0 },
     litterBugs: { x: [60, 73], y: 0 },
     barkBugs: { x: [31, 33], y: 15, spread: 14 },
-    // Under the leaves at the ends of the low oak limbs and along the bottom of the crown.
-    leafBugs: { x: [68, 98], y: 18, units: [[70.6, 16.5], [71.9, 17], [74.4, 20.6], [75.8, 21.2], [96.6, 18.5], [97.8, 18.9], [79, 21.6], [92.5, 23.6]].map(([x, y]) => ({ x, y })) },
+    // Under the leaves at the ends of the low oak limbs, along the bottom of the crown, and at the twig tips of the shrub.
+    leafBugs: {
+      x: [44, 98],
+      y: 18,
+      units: [[70.6, 16.5], [71.9, 17], [74.4, 20.6], [75.8, 21.2], [96.6, 18.5], [97.8, 18.9], [79, 21.6], [92.5, 23.6], [45.2, 3.6], [46.5, 5.4], [50.5, 6.8], [54, 4.4]].map(([x, y]) => ({ x, y })),
+    },
     swarm: { x: [42, 52], y: 15, spread: 2.5 },
     voles: { x: [16, 44], y: 0 },
     flock: { x: [44, 56], y: 4, spread: 4 },
@@ -148,12 +154,14 @@ export const FOOD_SITES: Record<HabitatId, Partial<Record<FoodKind, FoodSite>>> 
     fallenSeed: { x: [5, 17], y: 0, units: along(12, 5, 17, 0.12) },
     grassBugs: { x: [5, 17], y: 0 },
     voles: { x: [5, 17], y: 0 },
-    ants: { x: [21, 31], y: 1.6 },
+    // Along the top of the drift log.
+    ants: { x: [21, 31], y: 1.6, stand: [19.5, 32.5] },
     wrack: { x: [33, 42], y: 0 },
     carrion: { x: [36, 39], y: 0 },
     swarm: { x: [33, 43], y: 5, spread: 2.5 },
-    // A mussel bed on the bottom of the shallows, for the diving ducks.
-    shellfish: { x: [62, 76], y: -3.3, spread: 2.5, onBottom: true, units: along(8, 62, 76, 0.35) },
+    // Mussels and clams on the bottom from the shallows out to the deep water, for the diving ducks: a Bufflehead
+    // works the inner end, a Long-tailed Duck the outer.
+    shellfish: { x: [62, 92], y: -5.6, spread: 4.6, onBottom: true, units: along(16, 62, 92, 0.35) },
     // Clusters at the foot of the rocks, clear of the wrack line so they can be seen.
     mussels: { x: [42, 51], y: 1.5, units: [[42.6, 0.3], [43.2, 0.7], [43.8, 0.3], [46.4, 0.3], [47, 0.7], [47.6, 0.35], [48.2, 0.75], [50.4, 0.3], [51, 0.25], [50.8, 0.7]].map(([x, y]) => ({ x, y })) },
     sandCritters: { x: [46, 64], y: 0 },
@@ -161,10 +169,11 @@ export const FOOD_SITES: Record<HabitatId, Partial<Record<FoodKind, FoodSite>>> 
     flock: { x: [50, 56], y: 0 },
     // Small fish in the shallows, near the surface: for waders, kingfishers and the Hooded Merganser.
     minnows: { x: [60, 72], y: -0.8, spread: 1 },
-    // Rooted on the bottom of the shallows and reaching up toward the surface.
-    eelgrass: { x: [60, 70], y: -1.6, spread: 2.4 },
+    // A meadow rooted on the bottom from the shallows out into deep water, the blades reaching up toward the surface:
+    // from just under the surface inshore to the bottom ten deep at the outer edge.
+    eelgrass: { x: [60, 92], y: -5.2, spread: 5.1, onBottom: true },
     plankton: { x: [72, 88], y: 0 },
     // A school of herring and sand lance from near the surface down to the deep water.
-    baitfish: { x: [70, 94], y: -1.5, spread: 2.5 },
+    baitfish: { x: [70, 94], y: -5.5, spread: 4 },
   },
 };

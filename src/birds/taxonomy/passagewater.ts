@@ -100,6 +100,7 @@ export class NorthernShoveler extends Spatula {
 // ================================================================== Bay ducks
 
 export abstract class Aythya extends Anatidae {
+  protected override diveDepth = 5.5;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Aythya',
@@ -114,7 +115,7 @@ export abstract class Aythya extends Anatidae {
     forage: {
       eats: 'shellfish',
       label: 'Dive',
-      cue: 'Springs forward and goes under with a small jump, and stays down much longer than a Bufflehead, pulling mussels and clams off the bottom, and comes up a little way from where it went down.',
+      cue: 'Springs forward and goes under with a small jump, and stays down much longer than a Bufflehead. It comes up a little way from where it went down with mussels and clams from the bottom.',
     },
   };
 
@@ -125,6 +126,7 @@ export abstract class Aythya extends Anatidae {
 }
 
 export class GreaterScaup extends Aythya {
+  protected override diveDepth = 7.5;
   static override taxon: Taxon = {
     rank: 'species',
     name: 'Aythya marila',
@@ -199,6 +201,7 @@ export class LesserScaup extends Aythya {
 }
 
 export class RingNeckedDuck extends Aythya {
+  protected override diveDepth = 4;
   static override taxon: Taxon = {
     rank: 'species',
     name: 'Aythya collaris',
@@ -212,6 +215,14 @@ export class RingNeckedDuck extends Aythya {
   };
 
   static override flight: Partial<FlightProfile> = { flapRate: 8, agility: 0.55 };
+
+  static override behaviors: BehaviorTable<RingNeckedDuck> = {
+    forage: {
+      eats: 'eelgrass',
+      label: 'Dive',
+      cue: 'Springs forward and goes under with a small jump, and stays down much longer than a Bufflehead. It comes up a little way from where it went down with pondweed and seeds from the bottom, and now and then a snail. Unlike the scaups, it lives mostly on plants.',
+    },
+  };
 
   static override look: Partial<Look> = {
     length: 0.4,
@@ -240,6 +251,7 @@ export class RingNeckedDuck extends Aythya {
 // ================================================================== Stifftails
 
 export abstract class Oxyura extends Anatidae {
+  protected override diveDepth = 3.5;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Oxyura',
@@ -255,7 +267,7 @@ export abstract class Oxyura extends Anatidae {
   static override behaviors: BehaviorTable<Oxyura> = {
     forage: {
       label: 'Sink and dive',
-      cue: 'Slides under without a jump and without much splash, the tail the last thing to go, and comes up with eelgrass and other weed from the bottom. Unlike a scaup, it also dives to escape rather than flying.',
+      cue: 'Slides under without a jump and without much splash, the tail the last thing to go, and works the bottom for midge larvae, seeds and bits of weed. Unlike a scaup, it also dives to escape rather than flying.',
     },
     bubbleDisplay: {
       label: 'Bubble display',
@@ -474,6 +486,7 @@ export abstract class Gruiformes extends Bird {
 }
 
 export abstract class Rallidae extends Gruiformes {
+  protected override diveDepth = 2.5;
   static override taxon: Taxon = {
     rank: 'family',
     name: 'Rallidae',
@@ -663,9 +676,10 @@ export abstract class Numenius extends Scolopacidae {
     for (let i = 0; i < 3; i++) {
       yield* this.moveOnGround(this.foodSpot(3).x);
       yield* this.poseTo({ pitch: rest.pitch - 0.5, neck: -0.2, head: -1.1 }, 0.2);
-      yield* this.wait(rand(0.5, 0.9));
+      const shown = yield* this.glimpse();
+      yield* this.wait(rand(0.2, 0.6));
       // The long bill comes up with a crab.
-      this.take(Infinity);
+      this.takeOrHide(shown, Infinity);
       yield* this.poseTo({ pitch: rest.pitch, neck: rest.neck, head: 0.1 }, 0.25);
       yield* this.poseTo({ head: 0.5 }, 0.12);
       this.hold(null);
@@ -923,12 +937,14 @@ export abstract class Sterna extends Laridae {
   *plungeDive(): Script {
     const water = this.world.habitat.water;
     if (!water) return;
-    const x = clamp(this.preySpot({ x: water.from + rand(10, 24), y: 0 }).x, water.from + 6, 94 - this.attempts * 6);
-    yield* this.flyTo({ x: x - 6, y: 7 }, { land: false });
+    // The first plunge is at the fish it marked; the tries after it go on along the water, back toward shore when there is no room ahead.
+    const x = clamp(this.preySpot({ x: water.from + rand(10, 24), y: 0 }).x - 1, water.from + 6, 93);
+    const step = x + (this.attempts - 1) * 6 > 93 ? -6 : 6;
+    yield* this.flyTo({ x: x - step, y: 7 }, { land: false });
     // Often a miss or two before a fish.
     const tries = Math.ceil(rand(0, this.attempts)) || 1;
     for (let i = 0; i < tries; i++) {
-      const at = x + i * 6;
+      const at = x + i * step;
       yield* this.flyTo({ x: at, y: 6 }, { land: false, speed: 0.6 });
       yield* this.hoverFor(1, { aim: -1.2 });
       yield* this.plungeAt(at + 1, { speed: 1.8, depth: 1, miss: i < tries - 1 });
@@ -1051,6 +1067,7 @@ export class ParasiticJaeger extends Stercorarius {
 // ================================================================== Murrelets
 
 export abstract class Synthliboramphus extends Alcidae {
+  protected override diveDepth = 7.5;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Synthliboramphus',

@@ -9,9 +9,9 @@
  * zero for several months, and the winter visitors are zero all summer.
  */
 import { clamp, rand } from '../core/Bird';
-import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon } from '../core/traits';
+import type { BehaviorTable, Ecology, FlightProfile, Look, Script, Taxon, Vec } from '../core/traits';
 import { Phasianidae } from './galliformes';
-import { Passerellidae, Passeriformes, Tyrannidae, Turdidae } from './passeriformes';
+import { AmericanCrow, Passerellidae, Passeriformes, Tyrannidae, Turdidae } from './passeriformes';
 import { Buteo, Strigidae } from './raptors';
 import { Icteridae, Melospiza, Zonotrichia } from './seedeaters';
 import { Cardinalidae } from './summerbirds';
@@ -463,7 +463,7 @@ export abstract class Laniidae extends Passeriformes {
       eats: 'grassBugs',
       label: 'Impale prey on a thorn',
       feeding: true,
-      cue: 'Catches a grasshopper or other big insect, carries it to a thorn, a twig fork or a splinter on a fence post and jams it on, then tears off pieces. Impaled prey left on a thorn or a wire fence is the sign of a shrike.',
+      cue: 'Carries its catch (a vole, a small bird, or early and late in the season a grasshopper) to a thorn, a twig fork or a splinter on a fence post and jams it on, then tears off pieces. Impaled prey left on a thorn or a wire fence is the sign of a shrike.',
     },
   };
 
@@ -569,7 +569,7 @@ export abstract class Myadestes extends Turdidae {
     forage: {
       eats: 'berries',
       label: 'Guard a berry tree',
-      cue: 'Perches upright on top of the berry bush it has claimed for the winter, drops into it to eat the berries, and goes straight back to the same lookout to watch over it. Robins and waxwings feed in flocks; a solitaire is always alone.',
+      cue: 'Perches upright on top of the berry tree or bush it has claimed for the winter and chases off any other bird that comes for the fruit. It drops in to eat the berries and goes straight back to the same lookout. Robins and waxwings feed in flocks; a solitaire is always alone.',
     },
   };
 
@@ -815,13 +815,35 @@ export abstract class Tyrannus extends Tyrannidae {
   *chaseIntruder(): Script {
     yield* this.toPerch(['post', 'treetop']);
     const home = { ...this.pos };
-    yield* this.lookAround(1.2);
-    const dir = home.x < 50 ? 1 : -1;
+    // A crow comes over the territory from the far side, flying past above the post.
+    const dir: 1 | -1 = home.x < 50 ? 1 : -1;
+    const x0 = dir === 1 ? -4 : 104;
+    let fleeing = -1;
+    const path = (t: number): Vec =>
+      fleeing < 0 || t < fleeing
+        ? { x: x0 + dir * t * 7, y: 42 + Math.sin(t * 1.3) }
+        : // Harried, it speeds up and climbs away out of the scene.
+          { x: x0 + dir * (fleeing * 7 + (t - fleeing) * 10), y: 42 + Math.sin(fleeing * 1.3) + (t - fleeing) * 0.4 };
+    const clock = this.flyOther(new AmericanCrow(this.world, false), path, 3.5);
+    this.pose.facing = (-dir) as 1 | -1;
+    yield* this.lookAround(0.6);
+    // Spots it coming and goes up at it, calling.
+    while (Math.abs(path(clock()).x - home.x) > 22) yield;
     this.say(this.ecology.call, 1.6);
-    yield* this.flyTo({ x: clamp(home.x + dir * 18, 6, 94), y: 30 }, { land: false, speed: 1.5 });
-    yield* this.flyTo({ x: clamp(home.x + dir * 28, 6, 94), y: 28 }, { land: false, speed: 1.5 });
+    const cut = path(clock() + 1.2);
+    yield* this.flyTo({ x: cut.x - dir * 1.5, y: cut.y + 2.5 }, { land: false, speed: 1.6 });
+    fleeing = clock();
+    // On the crow's back, diving at it again and again until it is well out of the territory.
+    for (let i = 0; dir * (path(clock()).x - home.x) < 30 && path(clock()).x > 4 && path(clock()).x < 96; i++) {
+      const c = path(clock() + 0.3);
+      // Up above it, then down onto its back.
+      yield* this.flyTo({ x: clamp(c.x - dir * 1, 2, 98), y: Math.min(47, c.y + (i % 2 ? 3 : 1)) }, { land: false, speed: 1.2 });
+      if (i % 3 === 1) this.say('kit-kit-kit', 0.8);
+    }
+    // Then straight back to the same post, while the crow carries on out of sight.
     yield* this.flyTo(home);
     yield* this.relax(0.3);
+    while (path(clock()).x > -6 && path(clock()).x < 106) yield;
   }
 }
 

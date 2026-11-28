@@ -10,7 +10,8 @@
     "test": "vitest run",
     "verify": "npm run typecheck && npm run test && npm run build",
     "e2e": "npm run build && playwright test",
-    "sheets": "node scripts/sheets.mjs"
+    "sheets": "node scripts/sheets.mjs",
+    "sweep": "node scripts/sweep.mjs"
   },
   "dependencies": {
     "@kyzarky/ui": "0.7.0",

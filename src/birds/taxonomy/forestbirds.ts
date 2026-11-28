@@ -95,12 +95,11 @@ export abstract class Aegithalidae extends Passeriformes {
 
   *streamFlock(): Script {
     this.say(this.ecology.call, 2.5);
+    const reach = { neck: 0.2, head: -0.8 };
     for (let stop = 0; stop < 3; stop++) {
-      const next = this.findPerch(['shrub', 'twig'], 'any');
-      if (!next) return;
-      yield* this.flyTo(next, { speed: 1.1 });
-      yield* this.poseTo({ rotation: Math.PI * this.pose.facing }, 0.15);
-      yield* this.peck(Math.ceil(rand(2, 4)), 0.6);
+      const leaf = this.pieceInReach(reach, true);
+      if (!leaf) break;
+      yield* this.reachFor(leaf, reach, { hang: true, bites: Math.ceil(rand(2, 4)), hold: 0.4 });
       yield* this.poseTo({ rotation: 0 }, 0.15);
     }
     yield* this.relax();
@@ -467,8 +466,7 @@ export abstract class Regulidae extends Passeriformes {
       const bill = this.billTip();
       yield* this.hoverFor(0.25, { aim: -0.6, drift: { x: leaf.x - bill.x, y: leaf.y - bill.y } });
       // Picks a caterpillar off the leaf tip in the hover.
-      yield* this.glimpse();
-      if (!this.pose.carry && this.atFood()) this.take(0.5);
+      this.takeOrHide(yield* this.glimpse(), 0.5);
       // Flits on to the next tip without landing.
       yield* this.hoverFor(0.3, { drift: { x: rand(-2, 2), y: 1 } });
     }
@@ -997,8 +995,7 @@ export abstract class Vireonidae extends Passeriformes {
       yield* this.wait(this.pace / 2);
       // Reach under the leaf.
       yield* this.poseTo({ neck: 0.3, head: -1.1, pitch: -0.3 }, 0.25);
-      yield* this.glimpse();
-      if (this.atFood()) this.take(0.4);
+      this.takeOrHide(yield* this.glimpse(), 0.4);
       yield* this.wait(0.3);
       yield* this.relax(0.2);
     }

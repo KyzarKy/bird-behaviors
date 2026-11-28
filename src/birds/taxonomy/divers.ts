@@ -81,6 +81,7 @@ export abstract class Gaviiformes extends Bird {
 }
 
 export abstract class Gaviidae extends Gaviiformes {
+  protected override diveDepth = 11;
   static override taxon: Taxon = {
     rank: 'family',
     name: 'Gaviidae',
@@ -163,6 +164,7 @@ export class CommonLoon extends Gavia {
 }
 
 export class PacificLoon extends Gavia {
+  protected override diveDepth = 9.5;
   static override taxon: Taxon = {
     rank: 'species',
     name: 'Gavia pacifica',
@@ -204,6 +206,7 @@ export class PacificLoon extends Gavia {
 }
 
 export class RedThroatedLoon extends Gavia {
+  protected override diveDepth = 7;
   static override taxon: Taxon = {
     rank: 'species',
     name: 'Gavia stellata',
@@ -299,6 +302,7 @@ export abstract class Podicipediformes extends Bird {
 }
 
 export abstract class Podicipedidae extends Podicipediformes {
+  protected override diveDepth = 5.5;
   static override taxon: Taxon = {
     rank: 'family',
     name: 'Podicipedidae',
@@ -403,6 +407,7 @@ export class HornedGrebe extends Podiceps {
 }
 
 export class RedNeckedGrebe extends Podiceps {
+  protected override diveDepth = 7;
   static override taxon: Taxon = {
     rank: 'species',
     name: 'Podiceps grisegena',
@@ -445,6 +450,7 @@ export class RedNeckedGrebe extends Podiceps {
 }
 
 export abstract class Aechmophorus extends Podicipedidae {
+  protected override diveDepth = 8;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Aechmophorus',
@@ -522,6 +528,7 @@ export class WesternGrebe extends Aechmophorus {
 }
 
 export abstract class Podilymbus extends Podicipedidae {
+  protected override diveDepth = 4;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Podilymbus',
@@ -647,6 +654,7 @@ export abstract class Suliformes extends Bird {
 }
 
 export abstract class Phalacrocoracidae extends Suliformes {
+  protected override diveDepth = 7.5;
   static override taxon: Taxon = {
     rank: 'family',
     name: 'Phalacrocoracidae',
@@ -780,6 +788,7 @@ export class DoubleCrestedCormorant extends Nannopterum {
 }
 
 export abstract class Urile extends Phalacrocoracidae {
+  protected override diveDepth = 10;
   static override taxon: Taxon = {
     rank: 'genus',
     name: 'Urile',
@@ -806,6 +815,7 @@ export abstract class Urile extends Phalacrocoracidae {
 }
 
 export class PelagicCormorant extends Urile {
+  protected override diveDepth = 11;
   static override taxon: Taxon = {
     rank: 'species',
     name: 'Urile pelagicus',

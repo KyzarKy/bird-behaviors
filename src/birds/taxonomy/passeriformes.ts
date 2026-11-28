@@ -413,9 +413,9 @@ export abstract class Turdus extends Turdidae {
 
   static override behaviors: BehaviorTable<Turdus> = {
     forage: {
-      eats: { yard: 'worms', beach: 'sandCritters' },
+      eats: { yard: 'worms', beach: 'grassBugs' },
       label: 'Run, stop and stab',
-      cue: 'Runs a few steps, stops dead and stands tall, cocks its head to one side, then stabs at a worm in the lawn, or at a small crab or sand hopper along the beach. The head tilt is the bird looking, not listening: its eyes are on the sides of its head.',
+      cue: 'Runs a few steps, stops dead and stands tall, cocks its head to one side, then stabs at a worm in the lawn, or at an insect in the beach grass. The head tilt is the bird looking, not listening: its eyes are on the sides of its head.',
     },
   };
 
@@ -507,16 +507,13 @@ export abstract class Paridae extends Passeriformes {
   }
 
   *hangGlean(): Script {
+    // Under the twig tip, the head curled up to the leaf.
+    const reach = { neck: 0.2, head: -0.8 };
     for (let visit = 0; visit < 2; visit++) {
-      const twig = this.findPerch(['twig']);
-      if (!twig) return;
-      yield* this.flyTo(twig);
-      yield* this.wait(0.2);
-      yield* this.poseTo({ rotation: Math.PI * this.pose.facing }, 0.18);
-      for (let i = 0; i < 3; i++) {
-        yield* this.peck(Math.ceil(rand(1, 3)), 0.7);
-        yield* this.wait(rand(0.1, 0.4));
-      }
+      const leaf = this.pieceInReach(reach, true);
+      if (!leaf) break;
+      yield* this.reachFor(leaf, reach, { hang: true, bites: Math.ceil(rand(2, 4)), hold: 0.5 });
+      yield* this.wait(rand(0.3, 0.6));
       yield* this.poseTo({ rotation: 0 }, 0.18);
       yield* this.wait(0.2);
     }

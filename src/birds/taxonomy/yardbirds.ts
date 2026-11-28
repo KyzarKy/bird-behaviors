@@ -268,28 +268,50 @@ export abstract class Sphyrapicus extends Picidae {
   *tapWells(): Script {
     const trunk = this.findTrunk();
     if (!trunk?.climb) return;
-    // The wells: where the sap is on this trunk, or a column up the bark.
+    // The wells: where the sap is on this trunk, or a column up the bark. Each row is one height.
     const sap = this.world.food.find((f) => f.kind === 'sap')?.units.filter((u) => Math.abs(u.x - trunk.x) < 2) ?? [];
-    const rows = sap.length ? [...new Set(sap.map((u) => u.y))].sort((a, b) => a - b) : [0, 1, 2, 3].map((i) => trunk.climb![0] + 2.5 + i * 2.5);
-    const goTo = (y: number) => {
+    const rows: Vec[] = [];
+    for (const u of [...sap].sort((a, b) => a.y - b.y)) if (!rows.some((r) => Math.abs(r.y - u.y) < 0.8)) rows.push({ ...u });
+    if (!rows.length) for (let i = 0; i < 4; i++) rows.push({ x: trunk.x, y: trunk.climb[0] + 2.5 + i * 2.5 });
+    const drill = { neck: -0.15, head: -0.9 };
+    // Feet low enough that the bill, struck against the bark, meets the well.
+    const footFor = (y: number) => y - (this.billWith(drill).y - this.pos.y);
+    // Up the bark in a hitch or two, tail braced, not a slide.
+    const hitchTo = (y: number) => {
       const y0 = this.pos.y;
-      return this.tween(0.25, (t) => (this.pos.y = y0 + (y - y0) * t));
+      return this.tween(0.15, (t) => {
+        this.pos.y = y0 + (y - y0) * t;
+        this.pose.crouch = 0.4 * Math.sin(Math.PI * t);
+      });
     };
-    const side = yield* this.flyToTrunk(trunk, rows[0], true);
-    for (const y of rows) {
-      yield* goTo(y);
+    const side = yield* this.flyToTrunk(trunk, rows[0].y, true);
+    // The well in a row on the side of the trunk it is working.
+    const wellAt = (row: Vec) => sap.filter((u) => Math.abs(u.y - row.y) < 0.8).sort((a, b) => Math.abs(a.x - this.pos.x) - Math.abs(b.x - this.pos.x))[0] ?? row;
+    this.pose.tailAngle = -0.5;
+    for (const row of rows) {
+      yield* hitchTo(footFor(row.y));
+      const well = wellAt(row);
       // Drilling only opens the well; the sap comes later.
-      yield* this.peck(3, 0.9, false);
-      this.world.burst('chip', this.pos.x, y, 2, side);
+      for (let hit = 0; hit < 3; hit++) {
+        yield* this.poseTo(drill, 0.05);
+        if (hit === 0) this.world.burst('chip', well.x, well.y, 2, side);
+        yield* this.poseTo({ neck: 0.95, head: 0 }, 0.12);
+      }
+      yield* this.wait(0.15);
     }
-    // Leave for a while, then come back to the first well and lick up the column.
+    // Leave for a while, then come back to the bottom well on the same side and lick up the column in the same order.
     yield* this.toPerch(['branch'], 'near');
     yield* this.lookAround(1.5);
-    yield* this.flyToTrunk(trunk, rows[0], true);
-    for (const y of rows) {
-      yield* goTo(y);
-      yield* this.peck(1, 0.5);
+    yield* this.flyToTrunk(trunk, footFor(rows[0].y), true, side);
+    this.pose.tailAngle = -0.5;
+    for (const row of rows) {
+      yield* hitchTo(footFor(row.y));
+      yield* this.poseTo(drill, 0.12);
+      this.take(0.5, wellAt(row));
+      yield* this.wait(0.35);
+      yield* this.poseTo({ neck: 0.95, head: 0 }, 0.12);
     }
+    yield* this.relax();
   }
 
   override *drum(): Script {
@@ -387,7 +409,7 @@ export abstract class Columbidae extends Columbiformes {
   static override behaviors: BehaviorTable<Columbidae> = {
     forage: {
       label: 'Walk and peck seeds',
-      cue: 'Walks with a steady head-nod, pecking fast, two or three times a step, at seeds on the ground. Compare the stop-and-stab of a robin.',
+      cue: 'Walks with a steady head-nod, pecking up seeds from the ground as it goes. Compare the stop-and-stab of a robin.',
       eats: 'fallenSeed',
     },
     clapOff: {
@@ -456,15 +478,17 @@ export abstract class Patagioenas extends Columbidae {
   };
 
   *canopyFeed(): Script {
-    // Clambers into the shrub to reach the berries.
-    const berry = this.preySpot(this.findPerch(['shrub', 'branch'], 'any') ?? { ...this.pos });
-    yield* this.flyTo(berry);
-    for (let i = 0; i < 4; i++) {
-      // Stretches for a berry, flapping to keep its balance on the thin twigs.
-      this.pose.wings = 'open';
-      yield* this.poseTo({ pitch: 0.7, neckExt: 1.7, head: 0.3, flap: 0.6 }, 0.2);
+    // Clambers into the shrub and stretches up for a berry, flapping to keep its balance on the thin twigs.
+    const reach = { pitch: 0.7, neckExt: 1.7, head: 0.3 };
+    for (let i = 0; i < 3; i++) {
+      const berry = this.pieceInReach(reach);
+      if (!berry) break;
+      yield* this.alongside(this.reachFor(berry, reach, { hold: 0.5 }), () => {
+        if (this.airborne) return;
+        this.pose.wings = 'open';
+        this.pose.flap = Math.sin(this.world.time * 9) * 0.5;
+      });
       yield* this.poseTo({ flap: -0.4 }, 0.12);
-      if (i % 2 === 0) this.take(0.5, berry);
       yield* this.poseTo({ flap: 0.4 }, 0.12);
       this.pose.wings = 'folded';
       yield* this.poseTo({ pitch: this.restingPose().pitch, neckExt: 1, head: 0, flap: 0 }, 0.2);

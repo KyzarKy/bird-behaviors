@@ -654,27 +654,17 @@ export abstract class Loxia extends Fringillidae {
   }
 
   *pryCones(): Script {
-    // To a cone in the crown of a conifer.
-    const top = this.preySpot(this.findPerch(['treetop'], 'any') ?? { ...this.pos });
-    yield* this.flyTo(top);
+    // From cone to cone in the crown of a conifer, bill on the cone, twisting the scales apart.
+    const reach = { pitch: -0.3, neck: 0.3, head: -0.9, beakOpen: 0.8 };
     for (let i = 0; i < 3; i++) {
-      const side = i % 2 ? -1 : 1;
-      const x0 = this.pos.x;
-      const y0 = this.pos.y;
-      // Hauls itself along with the bill, then hangs from the cone.
-      yield* this.tween(0.4, (t) => {
-        this.pos.x = x0 + side * 1.2 * t;
-        this.pos.y = y0 - t;
-        this.pose.rotation = this.pose.facing * 0.8 * t;
-      });
-      for (let pry = 0; pry < 4; pry++) {
-        yield* this.poseTo({ beakOpen: 1, head: -0.9 }, 0.1);
-        if (i === 0 && pry === 0) this.take(0.6, top);
-        yield* this.poseTo({ beakOpen: 0.2, head: -0.5 }, 0.1);
-        this.world.emit('seed', this.pos.x, this.pos.y, { vx: rand(-2, 2), gravity: 25, life: 3 });
-      }
+      const cone = this.pieceInReach(reach);
+      if (!cone) break;
+      yield* this.reachFor(cone, reach, { bites: 5, hold: 0.6 });
+      // Scales and the seeds it didn't get drop from the cone.
+      for (let s = 0; s < 3; s++) this.world.emit('seed', cone.x, cone.y, { vx: rand(-2, 2), vy: rand(0, 2), gravity: 25, life: 3 });
+      yield* this.poseTo({ beakOpen: 0 }, 0.1);
+      yield* this.wait(rand(0.3, 0.6));
     }
-    this.pose.rotation = 0;
     yield* this.toPerch();
     yield* this.relax();
   }
@@ -780,7 +770,7 @@ export abstract class Icteridae extends Passeriformes {
     forage: {
       eats: { yard: 'worms', beach: 'wrack' },
       label: 'Walk and peck',
-      cue: 'Strides across the lawn stabbing at worms, or along the beach wrack snapping up kelp flies, walking without hopping. A sparrow of similar size hops.',
+      cue: 'Strides across the grass picking up insects, worms and seeds, or along the beach wrack snapping up kelp flies, walking without hopping. A sparrow of similar size hops.',
     },
   };
 
@@ -1074,9 +1064,10 @@ export abstract class Sturnidae extends Passeriformes {
     for (let i = 0; i < 3; i++) {
       yield* this.moveOnGround(this.foodSpot(5).x);
       yield* this.poseTo({ pitch: -0.35, neck: -0.2, head: -0.9 }, 0.1);
+      const shown = yield* this.glimpse();
       yield* this.poseTo({ beakOpen: 1 }, 0.25);
       // Prising the soil open with the bill, it finds a grub.
-      if (!this.pose.carry && this.atFood()) this.take();
+      this.takeOrHide(shown);
       yield* this.wait(0.2);
       yield* this.poseTo({ beakOpen: 0 }, 0.1);
       yield* this.relax(0.1);

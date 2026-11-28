@@ -6,10 +6,10 @@ import type { HabitatId, Item, PerchKind, Vec } from './traits';
  * Stage coordinates: x runs 0..100 left to right, y is height above the
  * ground line. Distances and bird sizes are stylized, not to scale.
  */
-export const STAGE = { width: 100, top: 53, bottom: -9 };
+export const STAGE = { width: 100, top: 51, bottom: -13 };
 
 /** Depth of the bay where the beach has shelved away, deep enough for a diving bird to swim under. */
-export const DEEP = 7;
+export const DEEP = 11;
 /** How fast the bottom drops away from the waterline: depth per stage unit out. */
 export const SHELVE = 0.3;
 
@@ -44,7 +44,9 @@ export interface Habitat {
   perches: Perch[];
 }
 
-export type ParticleKind = 'dust' | 'splash' | 'chip' | 'leaf' | Item;
+const DEBRIS = ['dust', 'splash', 'chip', 'leaf'] as const;
+const isDebris = (k: string): boolean => (DEBRIS as readonly string[]).includes(k);
+export type ParticleKind = (typeof DEBRIS)[number] | Item;
 
 export interface Particle extends Vec {
   kind: ParticleKind;
@@ -73,6 +75,36 @@ export interface Peek extends Vec {
   /** Seconds since it began. */
   t: number;
   seconds: number;
+  /** Holding still: a bird began feeding on its kind while it showed, and may go for it. */
+  held?: boolean;
+}
+
+/**
+ * Where the animal in a peek is at this moment of it: some run, hop or swim while they show. The
+ * drawing follows this, and so does a bird that goes after the one it saw.
+ */
+export function peekSpot(p: Peek, habitat: Habitat): Vec {
+  const t = p.t / p.seconds;
+  switch (p.kind) {
+    case 'grassBugs':
+      return { x: p.x + 2.4 * t, y: p.y + 1.6 * Math.sin(Math.PI * Math.min(1, t * 1.5)) };
+    case 'litterBugs':
+      return { x: p.x + 1.6 * Math.sin(Math.PI * t), y: p.y };
+    case 'barkBugs': {
+      const trunk = habitat.trunks.find((k) => Math.abs(k.x - p.x) < 3);
+      return { x: (trunk?.x ?? p.x) + 0.3, y: 5 + ((p.x * 37.13) % 1) * 20 + 1.5 * t };
+    }
+    case 'leafBugs':
+      return { x: p.x - 0.4 + 0.6 * t, y: p.y };
+    case 'sandCritters':
+      return { x: p.x + 2 * t, y: p.y };
+    case 'minnows':
+      return { x: p.x + 3 * t, y: p.y };
+    case 'voles':
+      return { x: p.x + 5 * t, y: p.y };
+    default:
+      return { x: p.x, y: p.y };
+  }
 }
 
 /** The one animal a hunting bird is going after, drawn where it is until the bird takes it. */
@@ -90,6 +122,8 @@ export class World {
   prey: Prey | null = null;
   /** Other birds in the story of a behavior, such as the tern a jaeger robs. Drawn, and moved by the bird that brought them. */
   others: Bird[] = [];
+  /** A bird is feeding: no peeks start until it is done, so none shows beside the animal it is after. */
+  feeding = false;
   /** Seconds since the scene was made. */
   time = 0;
   // The first peek comes within a few seconds of a bird arriving, then one every 10 to 15 seconds.
@@ -131,6 +165,9 @@ export class World {
     }
     this.prey = null;
     this.others = [];
+    // A shell, fish or grasshopper the behavior put down goes with it; dust and splashes play out.
+    this.particles = this.particles.filter((p) => isDebris(p.kind));
+    if (this.peek?.held) this.peek = null;
   }
 
   /** A hunter is coming in: the flock bursts out of cover until the hunt is over. */
@@ -142,8 +179,8 @@ export class World {
   step(dt: number) {
     this.time += dt;
     for (const f of this.food) f.away = Math.max(0, Math.min(1, f.away + (f.flushed ? dt / 1.2 : -dt / 2)));
-    if (this.peek && (this.peek.t += dt) > this.peek.seconds) this.peek = null;
-    if ((this.nextPeek -= dt) <= 0) {
+    if (this.peek && !this.peek.held && (this.peek.t += dt) > this.peek.seconds) this.peek = null;
+    if (!this.feeding && (this.nextPeek -= dt) <= 0) {
       // Only small animals that keep out of sight peek, taking turns. Plants and the flock are always in view.
       const hidden = this.food.filter((f) => FOODS[f.kind].hidden);
       const f = hidden[this.peeked++ % Math.max(1, hidden.length)];
