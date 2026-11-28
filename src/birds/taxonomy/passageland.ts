@@ -441,6 +441,10 @@ export class LazuliBunting extends Passerina {
     beak: '#4a4a4a',
     legs: '#444444',
   };
+  static override variants: Variants = {
+    // Female: plain warm brown with a buff breast and a hint of blue in the tail.
+    female: { body: '#9a8a70', head: '#9a8a70', breast: '#d8b890', wing: '#7a6a58', wingBar: '#d8d0c0', tail: '#7a8a9a' },
+  };
 }
 
 // ================================================================== Laniidae
@@ -695,6 +699,10 @@ export class WesternBluebird extends Sialia {
     tail: '#3560b0',
     beak: '#222222',
     legs: '#222222',
+  };
+  static override variants: Variants = {
+    // Female: gray-brown head and back, a pale orange breast and blue wings.
+    female: { body: '#8a8478', head: '#8a8478', throat: '#c8c0b4', breast: '#c8885a', wing: '#5a78b0', tail: '#5a78b0' },
   };
 }
 
@@ -1388,6 +1396,10 @@ export class SootyGrouse extends Dendragapus {
     tail: '#2a2c30',
     beak: '#222222',
     legs: '#6a6258',
+  };
+  static override variants: Variants = {
+    // Female: mottled brown all over, without the orange comb over the eye that males show.
+    female: { body: '#7a6450', head: '#7a6450', belly: '#9a8470', throat: '#8a7460', spots: '#3a2e24', eyeRing: undefined, wing: '#6a5644' },
   };
 }
 

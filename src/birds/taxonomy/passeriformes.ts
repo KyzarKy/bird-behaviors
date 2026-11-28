@@ -484,6 +484,12 @@ export class AmericanRobin extends Turdus {
     beak: '#e0b030',
     legs: '#5a4632',
   };
+  static override variants: Variants = {
+    // Female: a paler, gray-brown head and a paler orange breast.
+    female: { head: '#55504a', breast: '#d07a46', belly: '#d07a46' },
+    // Juvenile: a pale, black-spotted breast and a speckled back.
+    juvenile: { breast: '#d8a070', belly: '#e0b890', spots: '#3a2e24' },
+  };
 }
 
 // ================================================================== Paridae
@@ -678,6 +684,10 @@ export class RedBreastedNuthatch extends Sitta {
     tail: '#3c4f60',
     beak: '#222222',
     legs: '#333333',
+  };
+  static override variants: Variants = {
+    // Female: the cap and eye stripe are dark gray, not black, and the underparts are paler.
+    female: { cap: '#56606a', eyeLine: '#56606a', belly: '#d8a070' },
   };
 }
 
