@@ -398,6 +398,14 @@ export abstract class Fringillidae extends Passeriformes {
       label: 'Husk a seed',
       cue: 'Sits on a seed head or a branch, rolls one seed in its bill, and drops the husk. It eats the seed and spits the hull. A chickadee carries the seed away and hammers it.',
     },
+    feedTogether: {
+      eats: 'seedHeads',
+      label: 'Feed together',
+      cue: 'The flock settles into one weedy patch or tree and feeds together, each bird on its own seed head, keeping up a soft twitter of contact calls, until one flies and the rest follow.',
+      feeding: true,
+      flock: true,
+      weight: 2,
+    },
   };
 
   /** Seeds eaten in one visit. */
@@ -421,6 +429,13 @@ export abstract class Fringillidae extends Passeriformes {
       yield* this.relax(0.1);
     }
     yield* this.relax();
+  }
+
+  /** Everyone feeds at once, a perch each, with a contact call as it starts. */
+  *feedTogether(): Script {
+    yield* this.wait((this.flock?.delay(this) ?? 0) * 1.5);
+    this.say(this.ecology.call, 1.2);
+    yield* this.forage();
   }
 }
 
@@ -478,10 +493,10 @@ export class PurpleFinch extends Haemorhous {
     rank: 'species',
     name: 'Haemorhous purpureus',
     common: 'Purple Finch',
-    note: 'Males are washed raspberry over head, back and breast, with a pale eyebrow and a short notched tail. Found in the conifer edge around Gardiner and the Miller Peninsula, scarce in winter and more regular from April to September.',
+    note: 'Males are washed raspberry over head, back and breast, with a pale eyebrow and a short notched tail. Found in the conifer edge around Gardiner and the Miller Peninsula, scarce in winter and more regular from April to September. Outside the breeding season often in small flocks.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 8,
     perches: ['treetop', 'branch'],
     call: 'pik (a dry, metallic note)',
     song: 'a rich, fast warble, longer and smoother than a robin’s',
@@ -506,6 +521,10 @@ export class PurpleFinch extends Haemorhous {
     tail: '#4f4440',
     beak: '#8e8478',
     legs: '#6a5a4a',
+  };
+  static override variants: Variants = {
+    // Brown and heavily streaked, with a bold white eyebrow and a dark cheek. No raspberry.
+    female: { body: '#7a6a58', belly: '#ece4d8', head: '#7a6a58', throat: '#ece4d8', breast: '#e4d8c8', spots: '#5a4a3a', eyeLine: '#f0e8dc', wing: '#5e5042', tail: '#4f4440' },
   };
 }
 
@@ -572,10 +591,10 @@ export class PineSiskin extends Spinus {
     rank: 'species',
     name: 'Spinus pinus',
     common: 'Pine Siskin',
-    note: 'A small, heavily streaked brown finch with a sharp bill and yellow in the wing and tail. Flocks come and go with the cone crop: scarce some years, abundant in the Gardiner and Miller Peninsula alders and conifers in others, mostly outside summer.',
+    note: 'A small, heavily streaked brown finch with a sharp bill and yellow in the wing and tail. Flocks come and go with the cone crop: scarce some years, abundant in the Gardiner and Miller Peninsula alders and conifers in others, mostly outside summer. Flocks are tight and noisy, feeding together in one tree and moving on all at once.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 30,
     call: 'tit-i-tit, and a rising, buzzy zzzreeee',
     song: 'a rambling jumble of twitters and wheezy buzzes',
     presence: [2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2],
@@ -605,12 +624,12 @@ export class AmericanGoldfinch extends Spinus {
     rank: 'species',
     name: 'Spinus tristis',
     common: 'American Goldfinch',
-    note: 'Breeding males are bright yellow with a black cap and black wings; females and winter birds are dull olive-brown. Common at Gardiner and the Miller Peninsula from April to September on thistle and dandelion heads; a few stay through winter.',
+    note: 'Breeding males are bright yellow with a black cap and black wings; females and winter birds are dull olive-brown. Common at Gardiner and the Miller Peninsula from April to September on thistle and dandelion heads; a few stay through winter. Outside the nesting season they travel in flocks, often with siskins.',
   };
 
   static override flight: Partial<FlightProfile> = { flapDuty: 0.3, cyclePeriod: 0.38 };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 15,
     call: 'po-ta-to-chip',
     song: 'a long, bright string of twitters and whistles',
     presence: [1, 1, 1, 2, 3, 3, 3, 3, 3, 2, 1, 1],
@@ -630,6 +649,10 @@ export class AmericanGoldfinch extends Spinus {
     tail: '#1a1a1d',
     beak: '#f0a064',
     legs: '#b89a80',
+  };
+  static override variants: Variants = {
+    // Dull olive-yellow above, yellow on the throat, with no black cap and duller wings.
+    female: { body: '#a8a050', belly: '#d8d088', head: '#b0a850', throat: '#e0d050', cap: undefined, wing: '#3a3a36', tail: '#3a3a36', beak: '#c8a080' },
   };
 }
 
@@ -651,6 +674,11 @@ export abstract class Loxia extends Fringillidae {
       eats: 'cones',
       label: 'Pry open a cone',
       cue: 'Climbs about a conifer top using bill and feet like a small parrot, hangs from a cone, and twists its bill sideways to spread the scales. Seeds and scales drop. Nothing else in the yard feeds this way.',
+    },
+    feedTogether: {
+      eats: 'cones',
+      label: 'Feed together on cones',
+      cue: 'The flock works through one conifer together, birds hanging from the cones to pry the scales apart, calling kip-kip as they go, then all move on to the next tree.',
     },
   };
 
@@ -700,6 +728,10 @@ export class RedCrossbill extends Loxia {
     beak: '#2a2420',
     legs: '#4a4038',
   };
+  static override variants: Variants = {
+    // Olive-gray with a yellowish rump and breast, and the same dark wings and crossed bill.
+    female: { body: '#7e8452', belly: '#a8a868', head: '#7a7e56' },
+  };
 }
 
 // ---- Hesperiphona
@@ -730,10 +762,10 @@ export class EveningGrosbeak extends Hesperiphona {
     rank: 'species',
     name: 'Hesperiphona vespertina',
     common: 'Evening Grosbeak',
-    note: 'A chunky finch: the male has a dark head with a yellow brow, a yellow body, black wings with a large white patch, and a pale ivory bill. Irregular at Gardiner and the Miller Peninsula; most records are of small flocks in maples and conifers in winter and spring, cracking seeds.',
+    note: 'A chunky finch: the male has a dark head with a yellow brow, a yellow body, black wings with a large white patch, and a pale ivory bill. Irregular at Gardiner and the Miller Peninsula; most records are of small flocks in maples and conifers in winter and spring, cracking seeds. Flocks are noisy, calling constantly as they feed and fly.',
   };
 
-  static override ecology: Partial<Ecology> = {
+  static override ecology: Partial<Ecology> = { flockSize: 20,
     call: 'peer! (a loud, ringing note, like a House Sparrow’s but louder)',
     song: 'a halting series of the same ringing notes',
     presence: [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1],
@@ -754,6 +786,10 @@ export class EveningGrosbeak extends Hesperiphona {
     tail: '#161616',
     beak: '#c8d88a',
     legs: '#b89a80',
+  };
+  static override variants: Variants = {
+    // Gray with a yellowish wash on the nape and flanks, a dark whisker, and black-and-white wings.
+    female: { body: '#9a9a90', belly: '#c8c4b0', head: '#8a8a84', eyeLine: undefined, throat: '#e8e4d8', wing: '#1e1e1e', tail: '#1e1e1e' },
   };
 }
 
