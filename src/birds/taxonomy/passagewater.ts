@@ -129,6 +129,13 @@ export abstract class Aythya extends Anatidae {
       label: 'Dive',
       cue: 'Springs forward and goes under with a small jump, and stays down much longer than a Bufflehead. It comes up a little way from where it went down with mussels and clams from the bottom.',
     },
+    diveTogether: {
+      eats: 'shellfish',
+      label: 'Dive together',
+      cue: 'One bird dives for clams and mussels and those around it follow within moments, so a wave of dives runs through the flock. They come up again scattered, and a bird or two at the edge often stays up and never dives.',
+      feeding: true,
+      flock: true,
+    },
   };
 
   protected override feeding: Feeding = 'dive';
@@ -143,10 +150,11 @@ export class GreaterScaup extends Aythya {
     rank: 'species',
     name: 'Aythya marila',
     common: 'Greater Scaup',
-    note: 'Drake: black head with a green gloss, black breast and tail, pale gray back, white flanks. The white wing stripe runs out into the primaries. Rafts of them winter on open water in Discovery Bay and off the Miller Peninsula, November to March.',
+    note: 'Drake: black head with a green gloss, black breast and tail, pale gray back, white flanks. The white wing stripe runs out into the primaries. Rafts of them winter on open water in Discovery Bay and off the Miller Peninsula, November to March. Winter rafts can be large, and they dive in waves.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 30,
     call: 'a deep, purring scaup (the hen); the drake gives a soft, cooing whew',
     presence: [2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2],
   };
@@ -169,6 +177,10 @@ export class GreaterScaup extends Aythya {
     legs: '#6a7078',
     eye: '#e8c020',
   };
+  static override variants: Variants = {
+    // The hen: brown with a white patch at the base of the bill (not drawn) and the same yellow eye.
+    female: { head: '#5a4232', breast: '#5e4a3a', body: '#7a6a5a', belly: '#e8e4dc', wing: '#5a4e44', tail: '#4a3e34', beak: '#5a6a7a' },
+  };
 
   // Larger, and it works the deeper water of open bays.
   protected override diveTime = 3;
@@ -184,6 +196,7 @@ export class LesserScaup extends Aythya {
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 20,
     call: 'a harsh scaup (the hen); the drake gives a soft whew',
     presence: [1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1],
   };
@@ -206,6 +219,10 @@ export class LesserScaup extends Aythya {
     beak: '#6a8aa8',
     legs: '#6a7078',
     eye: '#e8c020',
+  };
+  static override variants: Variants = {
+    // The hen: brown with a white patch at the base of the bill (not drawn) and the same yellow eye.
+    female: { head: '#5a4232', breast: '#5e4a3a', body: '#7a6a5a', belly: '#e8e4dc', wing: '#5a4e44', tail: '#4a3e34', beak: '#5a6a7a' },
   };
 
   protected override diveTime = 2.4;
@@ -254,6 +271,10 @@ export class RingNeckedDuck extends Aythya {
     legs: '#6a7078',
     eye: '#e8c020',
   };
+  static override variants: Variants = {
+    // The hen: gray-brown with a white eye ring, a paler face and a dark eye.
+    female: { head: '#7a6e62', breast: '#6e5e50', band: undefined, body: '#6e5e50', belly: '#d8d2c8', wing: '#4e4640', eye: '#6a4a32', eyeRing: '#e8e4dc' },
+  };
 
   // Shallow dives for plants and seeds.
   protected override diveTime = 1.8;
@@ -285,6 +306,13 @@ export abstract class Oxyura extends Anatidae {
       label: 'Bubble display',
       cue: 'The drake cocks the tail up over the back, then pounds his bill against the inflated breast so that bubbles boil up around him. Given from late winter on.',
     },
+    diveTogether: {
+      eats: { beach: 'eelgrass', yard: 'grass' },
+      label: 'Dive together',
+      cue: 'One bird dives for bits of weed and grass seed and those around it follow within moments, so a wave of dives runs through the flock. They come up again scattered, and a bird or two at the edge often stays up and never dives.',
+      feeding: true,
+      flock: true,
+    },
   };
 
   protected override feeding: Feeding = 'dive';
@@ -311,10 +339,11 @@ export class RuddyDuck extends Oxyura {
     rank: 'species',
     name: 'Oxyura jamaicensis',
     common: 'Ruddy Duck',
-    note: 'In winter plumage: gray-brown with a dark cap, a white cheek crossed by a faint line, and a gray-blue bill. The tail is cocked up at rest. Small groups on the bay and coastal ponds, November to March.',
+    note: 'In winter plumage: gray-brown with a dark cap, a white cheek crossed by a faint line, and a gray-blue bill. The tail is cocked up at rest. Small groups on the bay and coastal ponds, November to March. Winter flocks often sleep through the day in tight rafts, then dive together to feed.',
   };
 
   static override ecology: Partial<Ecology> = {
+    flockSize: 15,
     call: 'a soft chuck-uck-uck-uck-urrr (the display); otherwise silent',
     presence: [2, 2, 1, 0, 0, 0, 0, 0, 0, 1, 2, 2],
   };
@@ -334,6 +363,10 @@ export class RuddyDuck extends Oxyura {
     beak: '#6a7e90',
     legs: '#7a8088',
     eye: '#1a1a1a',
+  };
+  static override variants: Variants = {
+    // The hen: like the drake but with a dark line across the pale cheek.
+    female: { cap: '#4a3e34', throat: '#c8c0b0', eyeLine: '#5a4e44' },
   };
 }
 
