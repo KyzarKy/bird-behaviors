@@ -100,8 +100,8 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
               </option>
             ))}
           </Select>
-          {plumages.length > 1 && <SegmentedControl label="Plumage" value={variant} onChange={setVariant} options={plumages} />}
-          <div className="flex gap-x-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+            {plumages.length > 1 && <SegmentedControl label="Plumage" value={variant} onChange={setVariant} options={plumages} />}
             <Checkbox label="Close-up" checked={closeUp} onChange={(e) => setCloseUp(e.target.checked)} />
             <Checkbox label="Auto" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
           </div>
