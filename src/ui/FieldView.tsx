@@ -1,19 +1,11 @@
-import { Button, Card, Checkbox, Link, List, ListRow, Meter, SegmentedControl, Select, Tag } from '@kyzarky/ui';
+import { Button, Card, Checkbox, Link, SegmentedControl, Select, Tag } from '@kyzarky/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { behaviorsOf, lineage, traitSources, variantsOf, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
-import type { Ecology, FlightProfile, HabitatId, Variant } from '../birds/core/traits';
+import { behaviorsOf, lineage, variantsOf, type BirdClass, type SpeciesClass } from '../birds/core/reflect';
+import type { Ecology, HabitatId, Variant } from '../birds/core/traits';
 import { HABITATS, World } from '../birds/core/World';
 import { classHref, fieldHref } from './route';
 import { inScene, levelIn, likeliestIn, MONTHS, PRESENCE, THIS_MONTH } from './season';
 import { Stage } from './Stage';
-
-const BARS: { field: keyof FlightProfile; label: string }[] = [
-  { field: 'power', label: 'Power' },
-  { field: 'agility', label: 'Agility' },
-  { field: 'braking', label: 'Braking' },
-  { field: 'hover', label: 'Hover' },
-  { field: 'glide', label: 'Glide' },
-];
 
 export function FieldView({ species, scene }: { species: SpeciesClass; scene: HabitatId }) {
   const [variant, setVariant] = useState<Variant>('adult');
@@ -25,7 +17,6 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
   }, [species]);
   const bird = useMemo(() => new species(new World(HABITATS[scene]), true, variant), [species, scene, variant]);
   const behaviors = useMemo(() => behaviorsOf(species).reverse(), [species]);
-  const flight = useMemo(() => new Map(traitSources(species, 'flight').map((s) => [s.field, s.from])), [species]);
   const [current, setCurrent] = useState<string | null>(null);
   const [lastKey, setLastKey] = useState<string | null>(null);
   // On phones the controls fold into a drawer, so the behaviors list peeks above the fold.
@@ -53,8 +44,6 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
     bird.perform(key);
     setLastKey(key);
   };
-  const f = bird.flight;
-  const from = (field: keyof FlightProfile) => <ClassLink cls={flight.get(field)!} />;
 
   return (
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
@@ -162,19 +151,6 @@ export function FieldView({ species, scene }: { species: SpeciesClass; scene: Ha
           </ul>
         </Card>
 
-        <Card aria-labelledby="flight-heading">
-          <List heading={<h2 id="flight-heading">Flight profile</h2>} description="The numbers the shared flight routine reads, and the class that set each.">
-            {BARS.map(({ field, label }) => (
-              <ListRow key={field} label={label} detail={<>{(f[field] as number).toFixed(2)} · {from(field)}</>}>
-                <Meter value={f[field] as number} />
-              </ListRow>
-            ))}
-            <ListRow label="Cruise speed" detail={<>{f.cruiseSpeed} m/s · {from('cruiseSpeed')}</>} />
-            <ListRow label={`Wingbeat: ${describeRhythm(f)}`} detail={<>{f.flapRate}/s · {from('flapDuty')}</>} />
-            <ListRow label="Endurance" detail={<>{Number.isFinite(f.endurance) ? `${f.endurance} s` : 'sustained'} · {from('endurance')}</>} />
-          </List>
-        </Card>
-
         <Card aria-labelledby="notes-heading">
           <h2 id="notes-heading" className="font-semibold text-lg">
             Field notes
@@ -223,11 +199,6 @@ function Calendar({ levels }: { levels: readonly number[] }) {
       ))}
     </span>
   );
-}
-
-function describeRhythm(f: FlightProfile) {
-  if (f.flapDuty >= 0.95) return 'continuous';
-  return `flaps ${Math.round(f.flapDuty * 100)}%, then ${f.restPose === 'folded' ? 'bounds with wings shut' : 'glides'}`;
 }
 
 function describeGait(e: Ecology) {
